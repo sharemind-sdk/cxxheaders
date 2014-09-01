@@ -79,27 +79,11 @@ inline mul_t<uint64_t> multHiLo<uint64_t>(uint64_t u, uint64_t v) {
     return res;
 
     /*
-     * x86_64 version with a single mulq.
-     */
-
-//    mul_t<uint64_t> res;
-//
-//    asm (
-//    "movq %[u],%%rax\n"
-//    "mulq %[v]\n"
-//    "movq %%rax,%[lo]\n"
-//    "movq %%rdx,%[hi]\n"
-//    : [hi]"=r"(res.hi), [lo]"=r"(res.lo)
-//    : [u]"r"(u), [v]"r"(v)
-//    : "%rax", "%rdx");
-//
-//    return res;
-
-    /*
      * Version using 128 bit integers.
      * Both gcc and clang can optimize this to a single mulq. However, because
      * inline assembly hides other optimization opportunities this version is
-     * better.
+     * better. Consider enabling this version if the compiler supports 128 bit
+     * integers.
      */
 
 //    const unsigned __int128 uu = u;
@@ -223,7 +207,6 @@ public: /* Methods: */
 
 
     uint_t() {
-        // TODO: gcc complains a lot if I only clear the unused bits.
         std::fill(begin(), end(), block_t(0));
     }
 
@@ -231,20 +214,18 @@ public: /* Methods: */
         std::copy(other.begin(), other.end(), begin());
     }
 
-    uint_t (uint_t && copy) : uint_t(copy) {} // Use copy constructor
+    uint_t (uint_t&& other) {
+        std::copy(other.begin(), other.end(), begin());
+    }
 
     template <typename Generator>
     uint_t (Generator && generator) {
-        generator(begin(), end());
-        clear_unused_bits_ ();
+        constructor_ (std::forward<Generator>(generator));
     }
 
-    // TODO: only allow for primitive types here
     template <typename T>
-    /* implicit */ uint_t (T val) {
-        std::fill(begin(), end(), block_t(0));
-        copy_bits_<T>::impl(*this, val);
-        clear_unused_bits_ ();
+    /* implicit */ uint_t (const T& val) {
+        constructor_ (val);
     }
 
     uint_t& operator = (const uint_t& rhs) {
@@ -842,6 +823,54 @@ private: /* Methods: */
             dest += other.lower ();
         }
     };
+
+    // Check if the argument type is any uint_t.
+    template <typename T>
+    struct is_some_uint : public std::false_type { };
+
+    template <unsigned N2, typename B2>
+    struct is_some_uint<uint_t<N2, B2> > : public std::true_type { };
+
+    // Remove reference and constant and volatile qualifiers.
+    template <typename T>
+    struct remove_cv_ref : public std::remove_cv<typename std::remove_reference<T>::type> { };
+
+    /*
+     * This is a hack in order to detect things that look like random number
+     * generators.  Anything that is not an integral, an uint128_t or any
+     * uint_t is a random number generator. Duck typing... eughhhh...
+     */
+    template <typename Generator>
+    struct is_random_generator : public std::integral_constant<bool,
+        ! std::is_integral<typename remove_cv_ref<Generator>::type>::value &&
+        ! std::is_same<typename remove_cv_ref<Generator>::type, uint128_t>::value &&
+        ! is_some_uint<typename remove_cv_ref<Generator>::type>::value
+    > { };
+
+    /*
+     * The following is required because we can not properly specialize (to my
+     * knowledge) implicit constructors.
+     */
+    void constructor_ (const uint_t& other) {
+        std::copy(other.begin(), other.end(), begin());
+    }
+
+    void constructor_ (uint_t&& other) {
+        std::copy(other.begin(), other.end(), begin());
+    }
+
+    template <typename Generator>
+    void constructor_ (Generator && generator, typename std::enable_if<is_random_generator<Generator>::value>::type* = nullptr) {
+        generator(begin(), end());
+        clear_unused_bits_ ();
+    }
+
+    template <typename T>
+    void constructor_ (const T& val, typename std::enable_if<! is_random_generator<T>::value>::type* = nullptr) {
+        std::fill(begin(), end(), block_t(0));
+        copy_bits_<T>::impl(*this, val);
+        clear_unused_bits_ ();
+    }
 };
 
 namespace impl {
