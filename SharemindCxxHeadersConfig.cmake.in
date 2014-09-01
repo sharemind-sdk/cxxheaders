@@ -1,0 +1,17 @@
+#
+# Copyright (C) Cybernetica AS
+#
+# All rights are reserved. Reproduction in whole or part is prohibited
+# without the written consent of the copyright owner. The usage of this
+# code is subject to the appropriate license agreement.
+#
+
+# This file defines the following variables:
+#   SharemindCxxHeaders_INCLUDE_DIRS - include directories
+#   SharemindCxxHeaders_LIBRARIES    - libraries to link against
+#   SharemindCxxHeaders_DEFINITIONS  - required compiler definitions
+
+
+SET(SharemindCxxHeaders_INCLUDE_DIRS @SHAREMIND_CXXHEADERS_INSTALL_INCLUDE_DIRS@)
+SET(SharemindCxxHeaders_LIBRARIES @SHAREMIND_CXXHEADERS_INSTALL_LINK_LIBRARIES@)
+SET(SharemindCxxHeaders_DEFINITIONS @SHAREMIND_CXXHEADERS_INSTALL_DEFINITIONS@)
