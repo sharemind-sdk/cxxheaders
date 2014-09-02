@@ -16,12 +16,12 @@
 #if ! (defined(__APPLE__) || defined(__FreeBSD__))
 #include <features.h>
 #endif
-#include <sharemind/compiler-support/GccVersion.h>
 #include <string>
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #include <sys/cdefs.h>
 #endif
 #include <utility>
+#include "compiler-support/GccVersion.h"
 
 
 namespace sharemind {

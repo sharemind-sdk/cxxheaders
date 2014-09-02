@@ -14,9 +14,9 @@
 #include <functional>
 #include <map>
 #include <memory>
-#include <sharemind/compiler-support/GccIsNothrowDestructible.h>
 #include <type_traits>
 #include <utility>
+#include "compiler-support/GccIsNothrowDestructible.h"
 
 
 namespace sharemind {
