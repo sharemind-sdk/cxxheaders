@@ -56,10 +56,7 @@ SHAREMIND_GCC_NORETURN_PART1
 void sharemindVerboseTerminateHandler() noexcept
     SHAREMIND_GCC_NORETURN_PART2;
 
-SHAREMIND_GCC_NORETURN_PART1
-void sharemindVerboseTerminateHandler() noexcept
-    SHAREMIND_GCC_NORETURN_PART2
-{
+void sharemindVerboseTerminateHandler() noexcept {
     const std::exception_ptr e = std::current_exception();
     if (e) {
         fprintf(stderr, "std::terminate() called with active exception(s):\n");
