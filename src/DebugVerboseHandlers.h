@@ -54,6 +54,10 @@ void sharemindVerbosePrintException(std::exception_ptr e) noexcept {
 
 SHAREMIND_GCC_NORETURN_PART1
 void sharemindVerboseTerminateHandler() noexcept
+    SHAREMIND_GCC_NORETURN_PART2;
+
+SHAREMIND_GCC_NORETURN_PART1
+void sharemindVerboseTerminateHandler() noexcept
     SHAREMIND_GCC_NORETURN_PART2
 {
     const std::exception_ptr e = std::current_exception();
@@ -69,8 +73,9 @@ void sharemindVerboseTerminateHandler() noexcept
 
 SHAREMIND_GCC_NORETURN_PART1
 void sharemindVerboseUnexpectedHandler() noexcept
-    SHAREMIND_GCC_NORETURN_PART2
-{
+    SHAREMIND_GCC_NORETURN_PART2;
+
+void sharemindVerboseUnexpectedHandler() noexcept {
     const std::exception_ptr e = std::current_exception();
     if (e) {
         fprintf(stderr,
