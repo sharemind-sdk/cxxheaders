@@ -21,7 +21,7 @@
 #include <sys/cdefs.h>
 #endif
 #include <utility>
-#include "compiler-support/GccVersion.h"
+#include "compiler-support/GccNoreturn.h"
 
 
 namespace sharemind {
@@ -104,27 +104,15 @@ public: /* Methods: */
     { return m_message; }
 
     template <typename Exception__>
-    #if !defined(SHAREMIND_GCC_VERSION) || (SHAREMIND_GCC_VERSION >= 40800)
-    [[noreturn]]
-    #endif
+    SHAREMIND_GCC_NORETURN_PART1
     static void throwAsNestedOf(Exception__ && e,
                                 const int returnStatus = errno) noexcept(false)
-            #if defined(SHAREMIND_GCC_VERSION) \
-                && (SHAREMIND_GCC_VERSION < 40800)
-            __attribute__ ((noreturn))
-            #endif
-            ;
+            SHAREMIND_GCC_NORETURN_PART2;
 
     template <typename Exception__>
-    #if !defined(SHAREMIND_GCC_VERSION) || (SHAREMIND_GCC_VERSION >= 40800)
-    [[noreturn]]
-    #endif
+    SHAREMIND_GCC_NORETURN_PART1
     static void throwAsNestedOf(const int returnStatus = errno) noexcept(false)
-            #if defined(SHAREMIND_GCC_VERSION) \
-                && (SHAREMIND_GCC_VERSION < 40800)
-            __attribute__ ((noreturn))
-            #endif
-            ;
+            SHAREMIND_GCC_NORETURN_PART2;
 
 private: /* Methods: */
 

@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <exception>
 #include <typeinfo>
+#include "compiler-support/GccNoreturn.h"
 
 
 namespace {
@@ -51,7 +52,10 @@ void sharemindVerbosePrintException(std::exception_ptr e) noexcept {
     } while (e);
 }
 
-[[noreturn]] void sharemindVerboseTerminateHandler() noexcept {
+SHAREMIND_GCC_NORETURN_PART1
+void sharemindVerboseTerminateHandler() noexcept
+    SHAREMIND_GCC_NORETURN_PART2
+{
     const std::exception_ptr e = std::current_exception();
     if (e) {
         fprintf(stderr, "std::terminate() called with active exception(s):\n");
@@ -62,7 +66,11 @@ void sharemindVerbosePrintException(std::exception_ptr e) noexcept {
     abort();
 }
 
-[[noreturn]] void sharemindVerboseUnexpectedHandler() noexcept {
+
+SHAREMIND_GCC_NORETURN_PART1
+void sharemindVerboseUnexpectedHandler() noexcept
+    SHAREMIND_GCC_NORETURN_PART2
+{
     const std::exception_ptr e = std::current_exception();
     if (e) {
         fprintf(stderr,
