@@ -106,6 +106,20 @@ public: /* Methods: */
                                             const mapped_type value)
     { return m_map.insert(value_type(key, value)); }
 
+    template <typename ... Args>
+    inline std::pair<iterator, bool> constructAndInsert(
+            const std::string & name,
+            Args && ... args)
+    {
+        const T * const value = new T(std::forward<Args>(args)...);
+        try {
+            return insert(name, value);
+        } catch (...) {
+            delete value;
+            throw;
+        }
+    }
+
     inline void replaceOrInsert(const key_type & key, const mapped_type value) {
         const std::pair<iterator, bool> r = m_map.insert(value_type(key,
                                                                     value));
