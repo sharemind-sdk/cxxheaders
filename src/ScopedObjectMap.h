@@ -96,6 +96,7 @@ public: /* Methods: */
 
     inline void clearNoDelete() noexcept { m_map.clear(); }
 
+    /* https://gcc.gnu.org/bugzilla/show_bug.cgi?id=44436 */
     #if !defined(SHAREMIND_GCC_VERSION) || (SHAREMIND_GCC_VERSION >= 40800)
     template <typename ... Args>
     inline std::pair<iterator, bool> emplace(Args && ... args)
