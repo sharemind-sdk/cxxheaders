@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMINDCOMMON_INTEGER_DEMOTION_H
-#define SHAREMINDCOMMON_INTEGER_DEMOTION_H
+#ifndef SHAREMIND_INTEGER_DEMOTION_H
+#define SHAREMIND_INTEGER_DEMOTION_H
 
 #include <cstddef>
 #include <cstdint>
@@ -63,4 +63,4 @@ inline T demote_integer (const U x, typename std::enable_if<impl::can_demote<T, 
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMINDCOMMON_INTEGER_DEMOTION_H */
+#endif /* SHAREMIND_INTEGER_DEMOTION_H */

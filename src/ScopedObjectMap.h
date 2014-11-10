@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMIND_COMMON_SCOPEDOBJECTMAP_H
-#define SHAREMIND_COMMON_SCOPEDOBJECTMAP_H
+#ifndef SHAREMIND_SCOPEDOBJECTMAP_H
+#define SHAREMIND_SCOPEDOBJECTMAP_H
 
 #include <cstddef>
 #include <functional>
@@ -233,4 +233,4 @@ private: /* Fields: */
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMIND_COMMON_SCOPEDOBJECTMAP_H */
+#endif /* SHAREMIND_SCOPEDOBJECTMAP_H */

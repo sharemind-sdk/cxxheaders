@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMIND_COMMON_GCCINHERITCONSTRUCTOR_H
-#define SHAREMIND_COMMON_GCCINHERITCONSTRUCTOR_H
+#ifndef SHAREMIND_GCCINHERITCONSTRUCTOR_H
+#define SHAREMIND_GCCINHERITCONSTRUCTOR_H
 
 #include "GccVersion.h"
 
@@ -36,4 +36,4 @@
     using fullBase::base;
 #endif
 
-#endif /* SHAREMIND_COMMON_GCCINHERITCONSTRUCTOR_H */
+#endif /* SHAREMIND_GCCINHERITCONSTRUCTOR_H */

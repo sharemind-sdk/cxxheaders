@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMIND_COMMON_MICROSECONDTIMER_H
-#define SHAREMIND_COMMON_MICROSECONDTIMER_H
+#ifndef SHAREMIND_MICROSECONDTIMER_H
+#define SHAREMIND_MICROSECONDTIMER_H
 
 #ifdef __cplusplus
 #include <cassert>
@@ -59,4 +59,4 @@ inline SharemindUsTime getUsTime(const SharemindUsTime onFail = 0u) noexcept
 
 #endif
 
-#endif /* SHAREMIND_COMMON_MICROSECONDTIMER_H */
+#endif /* SHAREMIND_MICROSECONDTIMER_H */

@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMIND_COMMON_GCCISNOTHROWDESTRUCTIBLE_H
-#define SHAREMIND_COMMON_GCCISNOTHROWDESTRUCTIBLE_H
+#ifndef SHAREMIND_GCCISNOTHROWDESTRUCTIBLE_H
+#define SHAREMIND_GCCISNOTHROWDESTRUCTIBLE_H
 
 #include "GccVersion.h"
 
@@ -52,4 +52,4 @@ using sharemind::workaround::is_nothrow_destructible;
 } /* namespace std { */
 #endif
 
-#endif /* SHAREMIND_COMMON_GCCISNOTHROWDESTRUCTIBLE_H */
+#endif /* SHAREMIND_GCCISNOTHROWDESTRUCTIBLE_H */

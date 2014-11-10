@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMIND_COMMON_GCCVERSION_H
-#define SHAREMIND_COMMON_GCCVERSION_H
+#ifndef SHAREMIND_GCCVERSION_H
+#define SHAREMIND_GCCVERSION_H
 
 
 #if !defined(__clang__) && defined(__GNUC__)
@@ -16,4 +16,4 @@
     (((__GNUC__ * 100) + __GNUC_MINOR__) * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
-#endif /* SHAREMIND_COMMON_GCCVERSION_H */
+#endif /* SHAREMIND_GCCVERSION_H */

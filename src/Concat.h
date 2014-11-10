@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMINDCOMMON_CONCAT_H
-#define SHAREMINDCOMMON_CONCAT_H
+#ifndef SHAREMIND_CONCAT_H
+#define SHAREMIND_CONCAT_H
 
 #include <iostream>
 #include <sstream>
@@ -50,4 +50,4 @@ const constexpr auto concat_endl = &std::endl<std::ostringstream::char_type,
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMINDCOMMON_CONCAT_H */
+#endif /* SHAREMIND_CONCAT_H */

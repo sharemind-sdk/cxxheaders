@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMINDCOMMON_SCOPEEXIT_H
-#define SHAREMINDCOMMON_SCOPEEXIT_H
+#ifndef SHAREMIND_SCOPEEXIT_H
+#define SHAREMIND_SCOPEEXIT_H
 
 namespace sharemind {
 
@@ -38,4 +38,4 @@ inline ScopeExit<F> makeScopeExit(F f) { return ScopeExit<F>(f); }
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMINDCOMMON_SCOPEEXIT_H */
+#endif /* SHAREMIND_SCOPEEXIT_H */

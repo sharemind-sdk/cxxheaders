@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMINDCOMMON_UINT_H
-#define SHAREMINDCOMMON_UINT_H
+#ifndef SHAREMIND_UINT_H
+#define SHAREMIND_UINT_H
 
 #include "integer_demotion.h"
 #include "uint128_t.h"
@@ -934,4 +934,4 @@ struct demote_integer_impl<uint128_t, uint_t<N, B>,
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMINDCOMMON_UINT_H */
+#endif /* SHAREMIND_UINT_H */

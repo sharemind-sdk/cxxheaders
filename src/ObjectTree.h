@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMIND_COMMON_OBJECTTREE_H
-#define SHAREMIND_COMMON_OBJECTTREE_H
+#ifndef SHAREMIND_OBJECTTREE_H
+#define SHAREMIND_OBJECTTREE_H
 
 #include <functional>
 #include <cassert>
@@ -228,4 +228,4 @@ int main() {
 
 #endif
 
-#endif /* SHAREMIND_COMMON_OBJECTTREE_H */
+#endif /* SHAREMIND_OBJECTTREE_H */

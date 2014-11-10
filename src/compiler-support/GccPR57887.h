@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMIND_COMMON_GCCPR57887_H
-#define SHAREMIND_COMMON_GCCPR57887_H
+#ifndef SHAREMIND_GCCPR57887_H
+#define SHAREMIND_GCCPR57887_H
 
 #include "GccVersion.h"
 
@@ -57,4 +57,4 @@
 #define SHAREMIND_GCCPR57887_PART2(...) __VA_ARGS__
 #endif
 
-#endif // SHAREMIND_COMMON_GCCPR57887_H
+#endif // SHAREMIND_GCCPR57887_H

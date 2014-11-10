@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMINDCOMMON_DATUM
-#define SHAREMINDCOMMON_DATUM
+#ifndef SHAREMIND_DATUM
+#define SHAREMIND_DATUM
 
 #include <algorithm>
 #include <boost/functional/hash.hpp>
@@ -126,4 +126,4 @@ inline std::size_t hash_value(const Datum & datum) noexcept
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMINDCOMMON_DATUM */
+#endif /* SHAREMIND_DATUM */

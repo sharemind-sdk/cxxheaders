@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMINDCOMMON_VOIDT_H
-#define SHAREMINDCOMMON_VOIDT_H
+#ifndef SHAREMIND_VOIDT_H
+#define SHAREMIND_VOIDT_H
 
 #include "compiler-support/GccVersion.h"
 
@@ -27,4 +27,4 @@ template <typename ...> using VoidT = void;
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMINDCOMMON_VOIDT_H */
+#endif /* SHAREMIND_VOIDT_H */

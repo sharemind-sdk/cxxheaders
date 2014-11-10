@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMINDCOMMON_DEBUGVERBOSEHANDLERS_H
-#define SHAREMINDCOMMON_DEBUGVERBOSEHANDLERS_H
+#ifndef SHAREMIND_DEBUGVERBOSEHANDLERS_H
+#define SHAREMIND_DEBUGVERBOSEHANDLERS_H
 
 #include <cstdio>
 #include <cstdlib>
@@ -99,4 +99,4 @@ const std::unexpected_handler sharemindVerboseUnexpectedHandler_old =
 
 } /* anonymous namespace */
 
-#endif /* SHAREMINDCOMMON_DEBUGVERBOSEHANDLERS_H */
+#endif /* SHAREMIND_DEBUGVERBOSEHANDLERS_H */

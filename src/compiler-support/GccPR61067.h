@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMIND_COMMON_GCCPR61067_H
-#define SHAREMIND_COMMON_GCCPR61067_H
+#ifndef SHAREMIND_GCCPR61067_H
+#define SHAREMIND_GCCPR61067_H
 
 #include "GccVersion.h"
 
@@ -66,4 +66,4 @@ public: /* Methods: */
 #define SHAREMIND_GCCPR61067_WRAPPED(...) __VA_ARGS__
 #endif
 
-#endif // SHAREMIND_COMMON_GCCPR61067_H
+#endif // SHAREMIND_GCCPR61067_H
