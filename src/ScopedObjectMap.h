@@ -17,6 +17,7 @@
 #include <type_traits>
 #include <utility>
 #include "compiler-support/GccIsNothrowDestructible.h"
+#include "compiler-support/GccVersion.h"
 
 
 namespace sharemind {
@@ -95,9 +96,11 @@ public: /* Methods: */
 
     inline void clearNoDelete() noexcept { m_map.clear(); }
 
+    #if !defined(SHAREMIND_GCC_VERSION) || (SHAREMIND_GCC_VERSION >= 40800)
     template <typename ... Args>
     inline std::pair<iterator, bool> emplace(Args && ... args)
     { return m_map.emplace(std::forward<Args>(args)...); }
+    #endif
 
     inline std::pair<iterator, bool> insert(const value_type & value)
     { return m_map.insert(value); }
