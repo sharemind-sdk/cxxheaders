@@ -25,7 +25,7 @@
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
 #ifndef SHAREMIND_SILENCE_WORKAROUND_WARNINGS
-#warning Using PR44436 workaround for g++ older than 4.8, which may cause lower\
+#warning Using PR44436 workaround for g++ older than 4.8, which may degrade \
          runtime performance. Define SHAREMIND_SILENCE_WORKAROUND_WARNINGS to \
          silence this warning.
 #endif
