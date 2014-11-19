@@ -27,11 +27,11 @@
     test.cpp:1:23: error:   overriding 'virtual Base::~Base() noexcept (true)'
 
   Given that the destructor for struct A can't be changed, use this workaround
-  as follows:
+  as follows, by means of wrapping the base type:
 
     struct Base { virtual ~Base() noexcept; };
     struct A { ~A(); };
-    struct Derived: Base { A a; };
+    struct Derived: SHAREMIND_GCCPR61067_WRAPPED(Base) { A a; };
 
 */
 
