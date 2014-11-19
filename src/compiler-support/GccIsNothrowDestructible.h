@@ -13,11 +13,6 @@
 #include "GccVersion.h"
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
-#ifndef SHAREMIND_SILENCE_WORKAROUND_WARNINGS
-#warning Using workaround for missing std::is_nothrow_destructible for g++ \
-         older than 4.8. Define SHAREMIND_SILENCE_WORKAROUND_WARNINGS to \
-         silence.
-#endif
 #include <type_traits>
 #include <utility>
 namespace sharemind {

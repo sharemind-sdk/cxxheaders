@@ -12,6 +12,7 @@
 
 #include "GccVersion.h"
 
+
 /**
   We always expose this GCC 4.7 workaround macro for all compilers, because
   there are contexts where extracting a non-qualified (base) from a qualified
@@ -24,10 +25,6 @@
         : fullBase(std::forward<Args>(args)...) {}
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
-#ifndef SHAREMIND_SILENCE_WORKAROUND_WARNINGS
-#warning Using workaround for inherited constructors for g++ older than 4.8. \
-         Define SHAREMIND_SILENCE_WORKAROUND_WARNINGS to silence.
-#endif
 #include <utility>
 #define SHAREMIND_GCC_INHERITED_CONSTRUCTOR(...) \
         SHAREMIND_GCC_INHERITED_CONSTRUCTOR_WORKAROUND(__VA_ARGS__)

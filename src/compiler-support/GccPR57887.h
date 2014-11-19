@@ -46,10 +46,6 @@
 */
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40900)
-#ifndef SHAREMIND_SILENCE_WORKAROUND_WARNINGS
-#warning Using PR57887 workaround for g++ older than 4.9. Define \
-         SHAREMIND_SILENCE_WORKAROUND_WARNINGS to silence.
-#endif
 #define SHAREMIND_GCCPR57887_PART1(...) __VA_ARGS__
 #define SHAREMIND_GCCPR57887_PART2(...)
 #else

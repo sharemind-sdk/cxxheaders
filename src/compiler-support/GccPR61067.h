@@ -36,10 +36,6 @@
 */
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
-#ifndef SHAREMIND_SILENCE_WORKAROUND_WARNINGS
-#warning Using PR61067 workaround for g++ older than 4.8. Define \
-         SHAREMIND_SILENCE_WORKAROUND_WARNINGS to silence.
-#endif
 #include <utility>
 #include "GccInheritContructor.h"
 namespace sharemind {
