@@ -17,6 +17,7 @@
 #include <type_traits>
 #include <utility>
 #include "compiler-support/GccIsNothrowDestructible.h"
+#include "compiler-support/GccPR44436.h"
 #include "compiler-support/GccVersion.h"
 
 
@@ -96,8 +97,7 @@ public: /* Methods: */
 
     inline void clearNoDelete() noexcept { m_map.clear(); }
 
-    /* https://gcc.gnu.org/bugzilla/show_bug.cgi?id=44436 */
-    #if !defined(SHAREMIND_GCC_VERSION) || (SHAREMIND_GCC_VERSION >= 40800)
+    #if ! SHAREMIND_GCCPR44436
     template <typename ... Args>
     inline std::pair<iterator, bool> emplace(Args && ... args)
     { return m_map.emplace(std::forward<Args>(args)...); }
