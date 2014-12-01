@@ -14,7 +14,7 @@
 
 
 /*
-  This is a workaround around http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57887
+  This is a workaround around https://gcc.gnu.org/bugzilla/show_bug.cgi?id=57887
   which prevents code like the following to parse with GCC versions before 4.9.
 
   struct Outer {

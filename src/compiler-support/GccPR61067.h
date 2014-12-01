@@ -14,7 +14,7 @@
 
 
 /*
-  This is a workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=61067
+  This is a workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61067
   which prevents code like the following to compile with GCC before 4.8.
 
     struct Base { virtual ~Base() noexcept; };
