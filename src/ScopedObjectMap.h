@@ -56,16 +56,16 @@ public: /* Types: */
 public: /* Methods: */
 
     inline ScopedObjectMap() {}
-    ScopedObjectMap(ScopedObjectMap && copy) = default;
-    ScopedObjectMap(const ScopedObjectMap & copy) = default;
+    ScopedObjectMap(ScopedObjectMap &&) = default;
+    ScopedObjectMap(const ScopedObjectMap &) = default;
 
     inline ~ScopedObjectMap() noexcept {
         for (value_type & valuePair : m_map)
             delete valuePair.second;
     }
 
-    ScopedObjectMap & operator=(ScopedObjectMap && move) = default;
-    ScopedObjectMap & operator=(const ScopedObjectMap & copy) = default;
+    ScopedObjectMap & operator=(ScopedObjectMap &&) = default;
+    ScopedObjectMap & operator=(const ScopedObjectMap &) = default;
 
     /*************
      * Iterators *
