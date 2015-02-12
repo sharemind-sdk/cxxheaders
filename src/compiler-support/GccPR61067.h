@@ -47,7 +47,7 @@
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
 #include <utility>
-#include "GccInheritContructor.h"
+#include "GccInheritConstructor.h"
 namespace sharemind {
 namespace workaround {
 
