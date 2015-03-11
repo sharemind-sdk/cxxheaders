@@ -106,6 +106,7 @@ public: /* Methods: */
 
     inline void start() noexcept { m_inner.startThread(); }
     inline void join() noexcept { m_thread.join(); }
+    inline bool joinable() noexcept { return m_thread.joinable(); }
 
 private: /* Fields: */
 
