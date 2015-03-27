@@ -26,15 +26,15 @@
 #include <condition_variable>
 #include <cstddef>
 #include <exception>
-#include <sharemind/compiler-support/GccVersion.h>
-#include <sharemind/Durations.h>
-#include <sharemind/Exception.h>
-#include <sharemind/FunctionTraits.h>
-#include <sharemind/PotentiallyVoidTypeInfo.h>
-#include <sharemind/QueueingRwMutex.h>
 #include <type_traits>
 #include <utility>
+#include "compiler-support/GccVersion.h"
 #include "CountMaxActor.h"
+#include "Durations.h"
+#include "Exception.h"
+#include "FunctionTraits.h"
+#include "PotentiallyVoidTypeInfo.h"
+#include "QueueingRwMutex.h"
 
 
 namespace sharemind {

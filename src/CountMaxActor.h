@@ -25,9 +25,9 @@
 #include <cassert>
 #include <cstddef>
 #include <limits>
-#include <sharemind/FunctionTraits.h>
 #include <type_traits>
 #include <utility>
+#include "FunctionTraits.h"
 
 
 namespace sharemind {
