@@ -62,20 +62,17 @@ public: /* Methods: */
     inline size_t operator()(WantDataType * const data, const size_t size)
             noexcept(noexcept(std::declval<Actor &>()(data, size)))
     {
-        if (data) {
-            assert(size > 0u);
-            const size_t maxTransfer =
-                    std::numeric_limits<size_t>::max() - m_count;
-            if (maxTransfer == 0u)
-                return 0u;
-            const size_t canTransfer = std::min(size, maxTransfer);
-            const size_t transferred = m_actor(data, canTransfer);
-            assert(transferred <= canTransfer);
-            m_count += transferred;
-            return transferred;
-        } else {
-            return m_actor(data, size);
-        }
+        assert(data);
+        assert(size > 0u);
+        const size_t maxTransfer =
+                std::numeric_limits<size_t>::max() - m_count;
+        if (maxTransfer == 0u)
+            return 0u;
+        const size_t canTransfer = std::min(size, maxTransfer);
+        const size_t transferred = m_actor(data, canTransfer);
+        assert(transferred <= canTransfer);
+        m_count += transferred;
+        return transferred;
     }
 
     inline size_t count() const noexcept { return m_count; }
