@@ -28,11 +28,12 @@
 #include <type_traits>
 #include <utility>
 #include "FunctionTraits.h"
+#include "PartialStreamOperationException.h"
 
 
 namespace sharemind {
 
-template <typename Actor>
+template <typename Actor, bool COUNT_PARTIAL = false>
 class CountMaxActor {
 
 public: /* Types: */
@@ -48,10 +49,12 @@ private: /* Types: */
 
 public: /* Methods: */
 
-    CountMaxActor(const CountMaxActor<Actor> &) = delete;
-    CountMaxActor<Actor> & operator=(const CountMaxActor<Actor> &) = delete;
-    CountMaxActor(CountMaxActor<Actor> &&) = default;
-    CountMaxActor<Actor> & operator=(CountMaxActor<Actor> &&) = default;
+    CountMaxActor(const CountMaxActor<Actor, COUNT_PARTIAL> &) = delete;
+    CountMaxActor<Actor> & operator=(
+            const CountMaxActor<Actor, COUNT_PARTIAL> &) = delete;
+    CountMaxActor(CountMaxActor<Actor, COUNT_PARTIAL> &&) = default;
+    CountMaxActor<Actor> & operator=(
+            CountMaxActor<Actor, COUNT_PARTIAL> &&) = default;
 
     template <typename ... Args>
     inline CountMaxActor(Args && ... args)
@@ -69,10 +72,21 @@ public: /* Methods: */
         if (maxTransfer == 0u)
             return 0u;
         const size_t canTransfer = std::min(size, maxTransfer);
-        const size_t transferred = m_actor(data, canTransfer);
-        assert(transferred <= canTransfer);
-        m_count += transferred;
-        return transferred;
+        try {
+            const size_t transferred = m_actor(data, canTransfer);
+            assert(transferred <= canTransfer);
+            m_count += transferred;
+            return transferred;
+        } catch (PartialStreamOperationException const & e) {
+            assert(e.size() < canTransfer);
+            if (COUNT_PARTIAL)
+                m_count += e.size();
+            throw;
+        } catch (Exception &) {
+            throw;
+        } catch (...) {
+            std::unexpected();
+        }
     }
 
     inline size_t count() const noexcept { return m_count; }

@@ -33,6 +33,7 @@
 #include "Durations.h"
 #include "Exception.h"
 #include "FunctionTraits.h"
+#include "PartialStreamOperationException.h"
 #include "PotentiallyVoidTypeInfo.h"
 #include "QueueingRwMutex.h"
 
@@ -398,11 +399,16 @@ public: /* Methods: */
      * \param actor The actor producing the input.
      * \returns the number of elements written.
     */
-    template <typename PartialOperationException, typename InputProducerActor>
-    inline size_t write(InputProducerActor && inputProducerActor) {
-        return operate<WriteActions,
-                       PartialOperationException,
-                       InputProducerActor>(
+    template <typename InputProducerActor>
+    inline size_t write(InputProducerActor && inputProducerActor)
+            noexcept(noexcept(
+                        std::declval<Self &>().template operate<
+                                typename Self::WriteActions,
+                                InputProducerActor>(
+                             std::forward<InputProducerActor>(
+                                 inputProducerActor))))
+    {
+        return operate<WriteActions, InputProducerActor>(
                     std::forward<InputProducerActor>(inputProducerActor));
     }
 
@@ -555,11 +561,16 @@ public: /* Methods: */
      * \param actor The actor consuming the input.
      * \returns the number of elements read.
     */
-    template <typename PartialOperationException, typename OutputConsumerActor>
-    inline size_t read(OutputConsumerActor && outputConsumerActor) {
-        return operate<ReadActions,
-                       PartialOperationException,
-                       OutputConsumerActor>(
+    template <typename OutputConsumerActor>
+    inline size_t read(OutputConsumerActor && outputConsumerActor)
+            noexcept(noexcept(
+                         std::declval<Self &>().template operate<
+                                Self::ReadActions,
+                                OutputConsumerActor>(
+                             std::forward<OutputConsumerActor>(
+                                 outputConsumerActor))))
+    {
+        return operate<ReadActions, OutputConsumerActor>(
                     std::forward<OutputConsumerActor>(outputConsumerActor));
     }
 
@@ -631,10 +642,13 @@ private: /* Methods: */
         }
     }
 
-    template <typename Actions,
-              typename PartialOperationException,
-              typename Actor>
-    inline size_t operate(Actor && actor) {
+    template <typename Actions, typename Actor>
+    inline size_t operate(Actor && actor)
+            noexcept(noexcept(
+                         actor(
+                             std::declval<typename Actions::BufferSideType *>(),
+                             static_cast<size_t>(42u))))
+    {
         CountMaxActor<Actor> countActor(std::forward<Actor>(actor));
         using WDT = typename std::remove_pointer<
                 typename sharemind::FunctionTraits<Actor>
@@ -654,11 +668,14 @@ private: /* Methods: */
                                                               transferred);
                 if (transferred < toTransfer)
                     return countActor.count();
-            } catch (...) {
-                using POE = PartialOperationException;
-                if (countActor.count() > 0u)
-                    std::throw_with_nested(POE(countActor.count()));
+            } catch (typename CountMaxActor<Actor>::Exception const &) {
+                PartialStreamOperationException::throwWithCurrent(
+                            countActor.count());
+            } catch (PartialStreamOperationException & e) {
+                e.addToSize(countActor.count());
                 throw;
+            } catch (...) {
+                std::unexpected();
             }
         }
         return countActor.count();
