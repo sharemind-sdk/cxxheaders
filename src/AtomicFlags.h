@@ -22,6 +22,7 @@
 
 #include <atomic>
 #include <type_traits>
+#include "compiler-support/GccInheritConstructor.h"
 #include "Flags.h"
 
 
@@ -194,7 +195,10 @@ class AtomicFlags<T, false>:
 
 public: /* Methods: */
 
-    using AtomicFlags<typename std::underlying_type<T>::type>::AtomicFlags;
+    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(
+            AtomicFlags,
+            AtomicFlags<typename std::underlying_type<T>::type>,
+            AtomicFlags)
     using AtomicFlags<typename std::underlying_type<T>::type>::operator=;
 
 };

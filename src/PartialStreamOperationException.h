@@ -13,6 +13,7 @@
 
 #include <cassert>
 #include <limits>
+#include "compiler-support/GccNoreturn.h"
 
 
 namespace sharemind {
@@ -35,7 +36,8 @@ public: /* Methods: */
     inline size_t size() const noexcept
     { return (assert(m_doneSize > 0u), m_doneSize); }
 
-    [[noreturn]] inline void rethrowInner() const {
+    SHAREMIND_GCC_NORETURN_PART1
+    inline void rethrowInner() const SHAREMIND_GCC_NORETURN_PART2 {
         try {
             std::rethrow_if_nested(*this);
             std::unexpected();
@@ -44,7 +46,10 @@ public: /* Methods: */
         }
     }
 
-    [[noreturn]] static inline void throwWithCurrent(size_t const doneSize) {
+    SHAREMIND_GCC_NORETURN_PART1
+    static inline void throwWithCurrent(size_t const doneSize)
+            SHAREMIND_GCC_NORETURN_PART2
+    {
         if (doneSize > 0u)
             std::throw_with_nested(PartialStreamOperationException{doneSize});
         throw;

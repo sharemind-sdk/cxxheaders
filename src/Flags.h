@@ -22,6 +22,7 @@
 
 #include <cassert>
 #include <type_traits>
+#include "compiler-support/GccInheritConstructor.h"
 
 
 namespace sharemind {
@@ -110,7 +111,10 @@ class Flags<T, false>: public Flags<typename std::underlying_type<T>::type> {
 
 public: /* Methods: */
 
-    using Flags<typename std::underlying_type<T>::type>::Flags;
+    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(
+            Flags,
+            Flags<typename std::underlying_type<T>::type>,
+            Flags)
     using Flags<typename std::underlying_type<T>::type>::operator=;
 
 };
