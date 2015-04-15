@@ -40,7 +40,7 @@
   Use this workaround as follows:
 
     struct X {
-        X(X & a) : ri SHAREMIND_GCCPR50025_WORKAROUND(a} {}
+        X(X & a) : ri SHAREMIND_GCCPR50025_WORKAROUND(a) {}
         X & ri;
     };
 */
