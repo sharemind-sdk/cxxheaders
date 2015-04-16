@@ -26,6 +26,7 @@
 #include <condition_variable>
 #include <cstddef>
 #include <exception>
+#include <sharemind/QueueingRwMutex.h>
 #include <type_traits>
 #include <utility>
 #include "compiler-support/GccVersion.h"
@@ -35,7 +36,6 @@
 #include "FunctionTraits.h"
 #include "PartialStreamOperationException.h"
 #include "PotentiallyVoidTypeInfo.h"
-#include "QueueingRwMutex.h"
 
 
 namespace sharemind {
