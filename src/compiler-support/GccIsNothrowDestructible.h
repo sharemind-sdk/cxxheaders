@@ -20,7 +20,8 @@
 #ifndef SHAREMIND_GCCISNOTHROWDESTRUCTIBLE_H
 #define SHAREMIND_GCCISNOTHROWDESTRUCTIBLE_H
 
-#include "GccVersion.h"
+#include <sharemind/compiler-support/GccVersion.h>
+
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
 #include <type_traits>

@@ -20,7 +20,7 @@
 #ifndef SHAREMIND_GCCINHERITCONSTRUCTOR_H
 #define SHAREMIND_GCCINHERITCONSTRUCTOR_H
 
-#include "GccVersion.h"
+#include <sharemind/compiler-support/GccVersion.h>
 
 
 /**

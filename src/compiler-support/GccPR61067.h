@@ -20,7 +20,7 @@
 #ifndef SHAREMIND_GCCPR61067_H
 #define SHAREMIND_GCCPR61067_H
 
-#include "GccVersion.h"
+#include <sharemind/compiler-support/GccVersion.h>
 
 
 /*

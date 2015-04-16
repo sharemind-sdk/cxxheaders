@@ -20,7 +20,7 @@
 #ifndef SHAREMIND_VOIDT_H
 #define SHAREMIND_VOIDT_H
 
-#include "compiler-support/GccVersion.h"
+#include <sharemind/compiler-support/GccVersion.h>
 
 
 namespace sharemind {

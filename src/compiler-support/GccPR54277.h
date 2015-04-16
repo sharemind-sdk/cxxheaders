@@ -20,6 +20,9 @@
 #ifndef SHAREMIND_GCCPR54277_H
 #define SHAREMIND_GCCPR54277_H
 
+#include <sharemind/compiler-support/GccVersion.h>
+
+
 /*
   This is a workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=54277
   according to which GCC before 4.7.3 incorrectly handles implicit uses of a

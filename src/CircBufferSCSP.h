@@ -26,10 +26,10 @@
 #include <condition_variable>
 #include <cstddef>
 #include <exception>
+#include <sharemind/compiler-support/GccVersion.h>
 #include <sharemind/QueueingRwMutex.h>
 #include <type_traits>
 #include <utility>
-#include "compiler-support/GccVersion.h"
 #include "CountMaxActor.h"
 #include "Durations.h"
 #include "Exception.h"
