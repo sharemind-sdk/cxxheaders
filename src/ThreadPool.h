@@ -34,11 +34,29 @@ namespace sharemind {
 
 class ThreadPool {
 
+private: /* Forward declarations: */
+
+    struct TaskWrapper;
 
 public: /* Types: */
 
-    struct TaskWrapper;
     using Task = std::unique_ptr<TaskWrapper>;
+
+    class ReusableTask: public Task {
+
+    public: /* Methods: */
+
+        template <typename F>
+        inline ReusableTask(F && f)
+            : Task{createTask([this, f](Task && task) noexcept {
+                                  this->Task::operator=(std::move(task));
+                                  f();
+                              })}
+        {}
+
+    };
+
+private: /* Types: */
 
     struct TaskBase {
         inline TaskBase() {}
@@ -60,9 +78,6 @@ public: /* Types: */
         std::unique_ptr<TaskBase> m_value;
         Task m_next;
     };
-
-
-private: /* Types: */
 
     class StopThreadException {};
 
@@ -89,16 +104,6 @@ public: /* Methods: */
 
     virtual inline ~ThreadPool() noexcept { stop(); }
 
-    static inline Task createTask(std::unique_ptr<TaskBase> task) {
-        assert(task);
-        return Task{new TaskWrapper{std::move(task)}};
-    }
-
-    template <typename TaskSubclass>
-    static inline Task createTask(TaskSubclass * task) {
-        return Task{new TaskWrapper{std::unique_ptr<TaskBase>{task}}};
-    }
-
     template <typename F>
     static inline Task createTask(F f) {
         struct CustomTask: TaskBase {
@@ -124,6 +129,16 @@ public: /* Methods: */
     }
 
 private: /* Methods: */
+
+    static inline Task createTask(std::unique_ptr<TaskBase> task) {
+        assert(task);
+        return Task{new TaskWrapper{std::move(task)}};
+    }
+
+    template <typename TaskSubclass>
+    static inline Task createTask(TaskSubclass * const task) {
+        return Task{new TaskWrapper{std::unique_ptr<TaskBase>{task}}};
+    }
 
     inline ThreadPool(size_t const numThreads,
                       TaskWrapper * const emptyTaskWrapper)
