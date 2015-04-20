@@ -137,6 +137,7 @@ private: /* Methods: */
 
     template <typename TaskSubclass>
     static inline Task createTask(TaskSubclass * const task) {
+        assert(task);
         return Task{new TaskWrapper{std::unique_ptr<TaskBase>{task}}};
     }
 
