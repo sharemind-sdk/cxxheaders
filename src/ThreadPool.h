@@ -112,8 +112,7 @@ public: /* Methods: */
             { m_f(std::move(task)); }
             F m_f;
         };
-        return Task{new TaskWrapper{std::unique_ptr<TaskBase>{new CustomTask{
-                        std::move(f)}}}};
+        return createTask(new CustomTask{std::move(f)});
     }
 
     inline void submit(Task task) noexcept {
