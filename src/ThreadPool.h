@@ -115,6 +115,19 @@ public: /* Methods: */
         return createTask(new CustomTask{std::move(f)});
     }
 
+    template <typename F>
+    static inline Task createSimpleTask(F f) {
+        struct CustomSimpleTask: TaskBase {
+            inline CustomSimpleTask(F f) : m_f{std::move(f)} {}
+            inline void operator()(Task && task) final override {
+                task.reset();
+                m_f();
+            }
+            F m_f;
+        };
+        return createTask(new CustomSimpleTask{std::move(f)});
+    }
+
     inline void submit(Task task) noexcept {
         assert(task);
         assert(task->m_value);
