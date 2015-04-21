@@ -20,108 +20,101 @@
 #ifndef SHAREMIND_FLAGS_H
 #define SHAREMIND_FLAGS_H
 
-#include <cassert>
 #include <type_traits>
-#include "compiler-support/GccInheritConstructor.h"
 
 
 namespace sharemind {
 namespace Detail {
 
-template <typename, bool> class AtomicFlags;
+template <typename, typename> class AtomicFlags;
 
-template <typename T, bool = std::is_integral<T>::value>
+template <typename T, typename U>
 class Flags {
 
-    friend class AtomicFlags<T, true>;
+    friend class AtomicFlags<T, U>;
 
 public: /* Methods: */
 
     inline constexpr Flags() noexcept {}
-    inline constexpr Flags(T const value) noexcept : m_flags{value} {}
+    inline constexpr Flags(U const value) noexcept : m_flags{value} {}
 
-    inline Flags<T> & operator=(T const flags) noexcept { return store(flags); }
+    inline Flags<T, U> & operator=(U const flags) noexcept
+    { return store(flags); }
 
-    inline Flags<T> & operator&=(T const flags) noexcept
+    inline Flags<T, U> & operator&=(U const flags) noexcept
     { return ((m_flags &= flags), *this); }
 
-    inline Flags<T> & operator|=(T const flags) noexcept
+    inline Flags<T, U> & operator|=(U const flags) noexcept
     { return setFlags(flags); }
 
-    inline Flags<T> & operator^=(T const flags) noexcept
+    inline Flags<T, U> & operator^=(U const flags) noexcept
     { return toggleFlags(flags); }
 
-    inline Flags<T> operator&(T const flags) noexcept
+    inline Flags<T, U> operator&(U const flags) noexcept
     { return m_flags & flags; }
 
-    inline Flags<T> operator|(T const flags) noexcept
+    inline Flags<T, U> operator|(U const flags) noexcept
     { return m_flags | flags; }
 
-    inline Flags<T> operator^(T const flags) noexcept
+    inline Flags<T, U> operator^(U const flags) noexcept
     { return m_flags ^ flags; }
 
-    inline operator T () const noexcept { return load(); }
+    inline operator U () const noexcept { return load(); }
 
-    inline T load() const noexcept { return m_flags; }
+    inline U load() const noexcept { return m_flags; }
 
-    inline Flags<T> & store(T const flags) const noexcept
+    inline Flags<T, U> & store(U const flags) const noexcept
     { return ((m_flags = flags), *this); }
 
-    inline Flags<T> exchange(T const flags) noexcept {
-        T const old = m_flags;
+    inline Flags<T, U> exchange(U const flags) noexcept {
+        U const old = m_flags;
         m_flags = flags;
         return old;
     }
 
-    inline Flags<T> & setFlags() noexcept
-    { return ((m_flags = ~static_cast<T>(0)), *this); }
+    inline Flags<T, U> & setFlags() noexcept
+    { return ((m_flags = ~static_cast<U>(0)), *this); }
 
-    inline Flags<T> & setFlags(T const flags) noexcept
+    inline Flags<T, U> & setFlags(U const flags) noexcept
     { return ((m_flags |= flags), *this); }
 
-    inline Flags<T> & unsetFlags() noexcept
-    { return ((m_flags = static_cast<T>(0)), *this); }
+    inline Flags<T, U> & unsetFlags() noexcept
+    { return ((m_flags = static_cast<U>(0)), *this); }
 
-    inline Flags<T> & unsetFlags(T const flags) noexcept
+    inline Flags<T, U> & unsetFlags(U const flags) noexcept
     { return ((m_flags &= ~flags), *this); }
 
-    inline Flags<T> & toggleFlags() noexcept
+    inline Flags<T, U> & toggleFlags() noexcept
     { return ((m_flags = ~m_flags), *this); }
 
-    inline Flags<T> & toggleFlags(T const flags) noexcept
+    inline Flags<T, U> & toggleFlags(U const flags) noexcept
     { return ((m_flags ^= flags), *this); }
 
-    inline bool hasAnyOf(T const flags) const noexcept
+    inline bool hasAnyOf(U const flags) const noexcept
     { return m_flags & flags; }
 
-    inline bool hasAllOf(T const flags) const noexcept
+    inline bool hasAllOf(U const flags) const noexcept
     { return (m_flags & flags) == flags; }
 
-    inline bool hasNoneOf(T const flags) const noexcept
+    inline bool hasNoneOf(U const flags) const noexcept
     { return !(hasAnyOf(flags)); }
 
 private: /* Fields: */
 
-    T m_flags;
-
-};
-
-template <typename T>
-class Flags<T, false>: public Flags<typename std::underlying_type<T>::type> {
-
-public: /* Methods: */
-
-    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(
-            Flags,
-            Flags<typename std::underlying_type<T>::type>,
-            Flags)
-    using Flags<typename std::underlying_type<T>::type>::operator=;
+    U m_flags;
 
 };
 
 } /* namespace Detail { */
 
-template <typename EnumOrIntegral> using Flags = Detail::Flags<EnumOrIntegral>;
+template <typename EnumOrIntegral>
+using Flags =
+        Detail::Flags<
+            EnumOrIntegral,
+            typename std::conditional<
+                std::is_integral<EnumOrIntegral>::value,
+                EnumOrIntegral,
+                typename std::underlying_type<EnumOrIntegral>::type>::type>;
 
 } /* namespace Sharemind { */
 

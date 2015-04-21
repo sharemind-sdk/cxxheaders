@@ -22,44 +22,43 @@
 
 #include <atomic>
 #include <type_traits>
-#include "compiler-support/GccInheritConstructor.h"
 #include "Flags.h"
 
 
 namespace sharemind {
 namespace Detail {
 
-template <typename T, bool = std::is_integral<T>::value>
+template <typename T, typename U>
 class AtomicFlags {
 
 public: /* Methods: */
 
     AtomicFlags() noexcept {}
-    constexpr explicit AtomicFlags(T const value) noexcept : m_flags{value} {}
+    constexpr explicit AtomicFlags(U const value) noexcept : m_flags{value} {}
 
-    Flags<T> load(std::memory_order const memoryOrder =
-                          std::memory_order_seq_cst) noexcept
+    Flags<T, U> load(std::memory_order const memoryOrder =
+                             std::memory_order_seq_cst) noexcept
     { return m_flags.load(memoryOrder); }
 
-    void store(T const flags,
+    void store(U const flags,
                std::memory_order const memoryOrder =
                        std::memory_order_seq_cst) noexcept
     { return m_flags.store(flags, memoryOrder); }
 
-    inline Flags<T> exchange(T const flags,
-                             std::memory_order const memoryOrder =
-                                     std::memory_order_seq_cst) noexcept
+    inline Flags<T, U> exchange(U const flags,
+                                std::memory_order const memoryOrder =
+                                        std::memory_order_seq_cst) noexcept
     { return m_flags.exchange(flags, memoryOrder); }
 
-    inline bool compareExchangeStrong(T & expected,
-                                      T const flags,
+    inline bool compareExchangeStrong(U & expected,
+                                      U const flags,
                                       std::memory_order const memoryOrder =
                                               std::memory_order_seq_cst)
             noexcept
     { return m_flags.compare_exchange_strong(expected, flags, memoryOrder); }
 
-    inline bool compareExchangeStrong(T & expected,
-                                      T const flags,
+    inline bool compareExchangeStrong(U & expected,
+                                      U const flags,
                                       std::memory_order const success,
                                       std::memory_order const failure)
             noexcept
@@ -70,8 +69,8 @@ public: /* Methods: */
                                                failure);
     }
 
-    inline bool compareExchangeStrong(Flags<T> & expected,
-                                      T const flags,
+    inline bool compareExchangeStrong(Flags<T, U> & expected,
+                                      U const flags,
                                       std::memory_order const memoryOrder =
                                               std::memory_order_seq_cst)
             noexcept
@@ -81,8 +80,8 @@ public: /* Methods: */
                                                memoryOrder);
     }
 
-    inline bool compareExchangeStrong(Flags<T> & expected,
-                                      T const flags,
+    inline bool compareExchangeStrong(Flags<T, U> & expected,
+                                      U const flags,
                                       std::memory_order const success,
                                       std::memory_order const failure)
             noexcept
@@ -93,22 +92,22 @@ public: /* Methods: */
                                                failure);
     }
 
-    inline bool compareExchangeWeak(T & expected,
-                                    T const flags,
+    inline bool compareExchangeWeak(U & expected,
+                                    U const flags,
                                     std::memory_order const memoryOrder =
                                             std::memory_order_seq_cst)
             noexcept
     { return m_flags.compare_exchange_weak(expected, flags, memoryOrder); }
 
-    inline bool compareExchangeWeak(T & expected,
-                                    T const flags,
+    inline bool compareExchangeWeak(U & expected,
+                                    U const flags,
                                     std::memory_order const success,
                                     std::memory_order const failure)
             noexcept
     { return m_flags.compare_exchange_weak(expected, flags, success, failure); }
 
-    inline bool compareExchangeWeak(Flags<T> & expected,
-                                    T const flags,
+    inline bool compareExchangeWeak(Flags<T, U> & expected,
+                                    U const flags,
                                     std::memory_order const memoryOrder =
                                             std::memory_order_seq_cst)
             noexcept
@@ -118,8 +117,8 @@ public: /* Methods: */
                                              memoryOrder);
     }
 
-    inline bool compareExchangeWeak(Flags<T> & expected,
-                                    T const flags,
+    inline bool compareExchangeWeak(Flags<T, U> & expected,
+                                    U const flags,
                                     std::memory_order const success,
                                     std::memory_order const failure)
             noexcept
@@ -132,81 +131,72 @@ public: /* Methods: */
 
     void setFlags(std::memory_order const memoryOrder =
                           std::memory_order_seq_cst) noexcept
-    { return m_flags.store(~static_cast<T>(0), memoryOrder); }
+    { return m_flags.store(~static_cast<U>(0), memoryOrder); }
 
-    Flags<T> fetchSetFlags(std::memory_order const memoryOrder =
-                                   std::memory_order_seq_cst) noexcept
-    { return exchange(~static_cast<T>(0), memoryOrder); }
+    Flags<T, U> fetchSetFlags(std::memory_order const memoryOrder =
+                                      std::memory_order_seq_cst) noexcept
+    { return exchange(~static_cast<U>(0), memoryOrder); }
 
-    Flags<T> fetchSetFlags(T const flags,
-                           std::memory_order const memoryOrder =
-                                   std::memory_order_seq_cst) noexcept
+    Flags<T, U> fetchSetFlags(U const flags,
+                              std::memory_order const memoryOrder =
+                                      std::memory_order_seq_cst) noexcept
     { return m_flags.fetch_or(flags, memoryOrder); }
 
     void unsetFlags(std::memory_order const memoryOrder =
                             std::memory_order_seq_cst) noexcept
-    { return m_flags.store(static_cast<T>(0), memoryOrder); }
+    { return m_flags.store(static_cast<U>(0), memoryOrder); }
 
-    Flags<T> fetchUnsetFlags(std::memory_order const memoryOrder =
-                                     std::memory_order_seq_cst) noexcept
-    { return exchange(static_cast<T>(0), memoryOrder); }
+    Flags<T, U> fetchUnsetFlags(std::memory_order const memoryOrder =
+                                        std::memory_order_seq_cst) noexcept
+    { return exchange(static_cast<U>(0), memoryOrder); }
 
-    Flags<T> fetchUnsetFlags(T const flags,
-                             std::memory_order const memoryOrder =
-                                     std::memory_order_seq_cst) noexcept
+    Flags<T, U> fetchUnsetFlags(U const flags,
+                                std::memory_order const memoryOrder =
+                                        std::memory_order_seq_cst) noexcept
     { return m_flags.fetch_and(~flags, memoryOrder); }
 
-    Flags<T> fetchToggleFlags(T const flags,
-                              std::memory_order const memoryOrder =
-                                      std::memory_order_seq_cst) noexcept
+    Flags<T, U> fetchToggleFlags(U const flags,
+                                 std::memory_order const memoryOrder =
+                                         std::memory_order_seq_cst) noexcept
     { return m_flags.fetch_xor(flags, memoryOrder); }
 
-    bool has(T const flags,
-             T const of,
+    bool has(U const flags,
+             U const of,
              std::memory_order const memoryOrder =
                      std::memory_order_seq_cst) const noexcept
     { return load(memoryOrder).has(flags, of); }
 
-    inline bool hasAnyOf(T const flags,
+    inline bool hasAnyOf(U const flags,
                          std::memory_order const memoryOrder =
                                  std::memory_order_seq_cst) const noexcept
     { return load(memoryOrder).hasAnyOf(flags); }
 
-    inline bool hasAllOf(T const flags,
+    inline bool hasAllOf(U const flags,
                          std::memory_order const memoryOrder =
                                  std::memory_order_seq_cst) const noexcept
     { return load(memoryOrder).hasAllOf(flags); }
 
-    inline bool hasNoneOf(T const flags,
+    inline bool hasNoneOf(U const flags,
                           std::memory_order const memoryOrder =
                                   std::memory_order_seq_cst) const noexcept
     { return load(memoryOrder).hasNoneOf(flags); }
 
 private: /* Fields: */
 
-    std::atomic<T> m_flags;
-
-};
-
-template <typename T>
-class AtomicFlags<T, false>:
-        public AtomicFlags<typename std::underlying_type<T>::type>
-{
-
-public: /* Methods: */
-
-    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(
-            AtomicFlags,
-            AtomicFlags<typename std::underlying_type<T>::type>,
-            AtomicFlags)
-    using AtomicFlags<typename std::underlying_type<T>::type>::operator=;
+    std::atomic<U> m_flags;
 
 };
 
 } /* namespace Detail { */
 
 template <typename EnumOrIntegral>
-using AtomicFlags = Detail::AtomicFlags<EnumOrIntegral>;
+using AtomicFlags =
+        Detail::AtomicFlags<
+            EnumOrIntegral,
+                typename std::conditional<
+                    std::is_integral<EnumOrIntegral>::value,
+                    EnumOrIntegral,
+                    typename std::underlying_type<EnumOrIntegral>::type>::type>;
 
 } /* namespace Sharemind { */
 
