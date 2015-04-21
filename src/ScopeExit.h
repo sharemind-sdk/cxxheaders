@@ -20,6 +20,9 @@
 #ifndef SHAREMIND_SCOPEEXIT_H
 #define SHAREMIND_SCOPEEXIT_H
 
+#include <utility>
+
+
 namespace sharemind {
 
 template <typename F>
@@ -27,7 +30,7 @@ class ScopeExit {
 
 public: /* Methods: */
 
-    inline ScopeExit(F f) : m_f(f) {}
+    inline ScopeExit(F && f) : m_f{std::forward<F>(f)} {}
     inline ~ScopeExit() noexcept { m_f(); }
 
 private: /* Fields: */
@@ -37,7 +40,8 @@ private: /* Fields: */
 };
 
 template <typename F>
-inline ScopeExit<F> makeScopeExit(F f) { return ScopeExit<F>(f); }
+inline ScopeExit<F> makeScopeExit(F && f)
+{ return ScopeExit<F>(std::forward<F>(f)); }
 
 #define SHAREMIND_SCOPE_EXIT_CAT(a,b) SHAREMIND_SCOPE_EXIT_CAT2(a,b)
 #define SHAREMIND_SCOPE_EXIT_CAT2(a,b) a ## b
