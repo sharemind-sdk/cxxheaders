@@ -131,10 +131,10 @@ public: /* Methods: */
     inline void submit(Task task) noexcept {
         assert(task);
         assert(task->m_value);
+        TaskWrapper * const newTail = task.get();
         Guard const tailGuard{m_tailMutex};
         TaskWrapper * const oldTail = m_tail;
         oldTail->m_value = std::move(task->m_value);
-        TaskWrapper * const newTail = task.get();
         oldTail->m_next = std::move(task);
         m_tail = newTail;
         m_dataCond.notify_one();
