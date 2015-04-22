@@ -179,6 +179,10 @@ private: /* Methods: */
         {
             Lock tailLock{m_tailMutex};
             while (m_head.get() == m_tail)
+                #ifdef __clang__
+                #warning Clang 3.6 (and possibly other versions) are known to \
+                         sometimes hang here for unknown reasons!
+                #endif
                 m_dataCond.wait(tailLock);
         }
         assert(m_head->m_value);
