@@ -20,35 +20,46 @@
 #ifndef SHAREMIND_SCOPEEXIT_H
 #define SHAREMIND_SCOPEEXIT_H
 
+#include <functional>
 #include <utility>
 
 
 namespace sharemind {
 
-template <typename F>
 class ScopeExit {
 
 public: /* Methods: */
 
-    inline ScopeExit(F && f) : m_f{std::forward<F>(f)} {}
+    template <typename ... Args>
+    inline ScopeExit(Args && ... args) : m_f{std::forward<Args>(args)...} {}
     inline ~ScopeExit() noexcept { m_f(); }
 
 private: /* Fields: */
 
-    F m_f;
+    std::function<void () noexcept> m_f;
 
 };
 
 template <typename F>
-inline ScopeExit<F> makeScopeExit(F && f)
-{ return ScopeExit<F>(std::forward<F>(f)); }
+#if __cplusplus >= 201402L
+[[deprecated]]
+#endif
+inline ScopeExit makeScopeExit(F && f)
+#if __cplusplus < 201402L
+    __attribute__ ((deprecated))
+#endif
+        ;
+
+template <typename F>
+inline ScopeExit makeScopeExit(F && f)
+{ return ScopeExit{std::forward<F>(f)}; }
 
 #define SHAREMIND_SCOPE_EXIT_CAT(a,b) SHAREMIND_SCOPE_EXIT_CAT2(a,b)
 #define SHAREMIND_SCOPE_EXIT_CAT2(a,b) a ## b
 
 #define SHAREMIND_SCOPE_EXIT(...) \
-    auto const SHAREMIND_SCOPE_EXIT_CAT(scopeExit_,__LINE__) = \
-            ::sharemind::makeScopeExit([=](){ __VA_ARGS__ ; })
+    ::sharemind::ScopeExit const SHAREMIND_SCOPE_EXIT_CAT(scopeExit_,__LINE__){\
+            [=](){ __VA_ARGS__ ; }}
 
 } /* namespace sharemind { */
 
