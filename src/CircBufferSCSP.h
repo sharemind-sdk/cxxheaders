@@ -187,7 +187,7 @@ public: /* Types: */
         ReadActor & operator=(ReadActor &&) = default;
         ReadActor & operator=(const ReadActor &) = default;
 
-        inline ReadActor(Self & buffer)
+        inline ReadActor(Self & buffer) noexcept
             : m_buffer SHAREMIND_GCCPR50025_WORKAROUND(buffer)
         {}
 
@@ -217,7 +217,7 @@ public: /* Types: */
         WriteActor & operator=(WriteActor &&) = default;
         WriteActor & operator=(const WriteActor &) = default;
 
-        inline WriteActor(Self & buffer)
+        inline WriteActor(Self & buffer) noexcept
             : m_buffer SHAREMIND_GCCPR50025_WORKAROUND(buffer)
         {}
 
