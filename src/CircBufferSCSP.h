@@ -90,17 +90,15 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    template <typename LoopDuration>
-    inline void wait_for(ScopedReadLock & lock, LoopDuration && loopDuration) {
-        m_dataAvailableCondition.wait_for
-                (lock, std::forward<LoopDuration>(loopDuration));
+    template <typename Lock, typename LoopDuration>
+    inline void wait_for(Lock & lock, LoopDuration && loopDuration) {
+        m_dataAvailableCondition.wait_for(
+                    lock,
+                    std::forward<LoopDuration>(loopDuration));
     }
 
-    template <typename LoopDuration>
-    inline void wait_for(ScopedWriteLock & lock, LoopDuration && loopDuration) {
-        m_dataAvailableCondition.wait_for
-                (lock, std::forward<LoopDuration>(loopDuration));
-    }
+    template <typename Lock> inline void wait(Lock & lock)
+    { return m_dataAvailableCondition.wait(lock); }
 
     inline void notifyOne() noexcept { m_dataAvailableCondition.notify_one(); }
 
@@ -133,7 +131,12 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    inline void notifyOne() const {}
+    template <typename Lock, typename LoopDuration>
+    inline void wait_for(Lock &&, LoopDuration &&) noexcept {}
+
+    template <typename Lock> inline void wait(Lock &&) noexcept {}
+
+    inline void notifyOne() const noexcept {}
 
 };
 
@@ -831,22 +834,41 @@ public: /* Methods: */
      * \brief Waits until there is data pending.
      * \returns the total number of elements pending.
     */
-    template <typename StopTest = DummyStopTest,
+    inline size_t waitSpaceAvailable() const
+    { return waitSpaceAvailable__(); }
+
+    /**
+     * \brief Waits until there is data pending.
+     * \param stopTest The condition for stopping.
+     * \param loopDuration The interval at which to execute the stop condition.
+     * \returns the total number of elements pending.
+    */
+    template <typename StopTest,
               typename LoopDuration =
                   sharemind::StaticLoopDuration<3u, std::chrono::microseconds> >
     inline size_t waitSpaceAvailable(
-            StopTest && stopTest = StopTest(),
-            LoopDuration && loopDuration = LoopDuration()) const
+            StopTest && stopTest,
+            LoopDuration && loopDuration = LoopDuration{}) const
     {
-        return this->bufferSize() - waitAvailable<HaveSpaceTest>(
-                    std::forward<StopTest>(stopTest),
-                    std::forward<LoopDuration>(loopDuration));
+        return waitSpaceAvailable__(std::forward<StopTest>(stopTest),
+                                    std::forward<LoopDuration>(loopDuration));
     }
 
     /**
      * \param[out] availableUntilBufferEnd where to write the total number of
      *                                     elements pending before the buffer
      *                                     array wraps.
+     * \returns the total number of elements free.
+    */
+    inline size_t waitSpaceAvailable(size_t & availableUntilBufferEnd) const
+    { return waitSpaceAvailable__2(availableUntilBufferEnd); }
+
+    /**
+     * \param[out] availableUntilBufferEnd where to write the total number of
+     *                                     elements pending before the buffer
+     *                                     array wraps.
+     * \param stopTest The condition for stopping.
+     * \param loopDuration The interval at which to execute the stop condition.
      * \returns the total number of elements free.
     */
     template <typename StopTest = DummyStopTest,
@@ -857,13 +879,14 @@ public: /* Methods: */
             StopTest && stopTest = StopTest(),
             LoopDuration && loopDuration = LoopDuration()) const
     {
-        const size_t available =
-                waitAvailable<HaveSpaceTest>(
-                    std::forward<StopTest>(stopTest),
-                    std::forward<LoopDuration>(loopDuration));
-        availableUntilBufferEnd = this->bufferSize()
-                                  - std::max(available, this->writeOffset());
-        return this->bufferSize() - available;
+        return waitSpaceAvailable__2(availableUntilBufferEnd,
+                                     std::forward<StopTest>(stopTest),
+                                     std::forward<LoopDuration>(loopDuration));
+    }
+
+    /** \returns the number of elements free before the buffer array wraps. */
+    inline size_t waitSpaceAvailableUntilBufferEnd() const {
+        return waitSpaceAvailableUntilBufferEnd__();
     }
 
     /** \returns the number of elements free before the buffer array wraps. */
@@ -874,23 +897,30 @@ public: /* Methods: */
             StopTest && stopTest = StopTest(),
             LoopDuration && loopDuration = LoopDuration()) const
     {
-        return this->bufferSize()
-               - std::max(waitAvailable<HaveSpaceTest>(
-                              std::forward<StopTest>(stopTest),
-                              std::forward<LoopDuration>(loopDuration)),
-                          this->writeOffset());
+        return waitSpaceAvailableUntilBufferEnd__(
+                    std::forward<StopTest>(stopTest),
+                    std::forward<LoopDuration>(loopDuration));
     }
 
     /**
      * \brief Waits until there is data pending.
      * \returns the total number of elements pending.
     */
-    template <typename StopTest = DummyStopTest,
+    inline size_t waitDataAvailable() const
+    { return waitAvailable<HaveDataTest>(); }
+
+    /**
+     * \brief Waits until there is data pending.
+     * \param stopTest The condition for stopping.
+     * \param loopDuration The interval at which to execute the stop condition.
+     * \returns the total number of elements pending.
+    */
+    template <typename StopTest,
               typename LoopDuration =
                   sharemind::StaticLoopDuration<3u, std::chrono::microseconds> >
     inline size_t waitDataAvailable(
-            StopTest && stopTest = StopTest(),
-            LoopDuration && loopDuration = LoopDuration()) const
+            StopTest && stopTest,
+            LoopDuration && loopDuration = LoopDuration{}) const
     {
         return waitAvailable<HaveDataTest>(
                     std::forward<StopTest>(stopTest),
@@ -904,54 +934,128 @@ public: /* Methods: */
      *                                     array wraps.
      * \returns the total number of elements pending.
     */
-    template <typename StopTest = DummyStopTest,
-              typename LoopDuration =
-                  sharemind::StaticLoopDuration<3u, std::chrono::microseconds> >
-    inline size_t waitDataAvailable(
-            size_t & availableUntilBufferEnd,
-            StopTest && stopTest = StopTest(),
-            LoopDuration && loopDuration = LoopDuration()) const
-    {
+    inline size_t waitDataAvailable(size_t & availableUntilBufferEnd) const {
+        return waitDataAvailable__(availableUntilBufferEnd);
         const size_t toBufferEnd = (this->bufferSize() - this->readOffset());
         const size_t available =
-                waitAvailable<HaveDataTest>(
-                    std::forward<StopTest>(stopTest),
-                    std::forward<LoopDuration>(loopDuration));
+                waitAvailable<HaveDataTest>();
         availableUntilBufferEnd = std::min(available, toBufferEnd);
         return available;
     }
 
     /**
      * \brief Waits until there is data pending.
+     * \param[out] availableUntilBufferEnd where to write the total number of
+     *                                     elements pending before the buffer
+     *                                     array wraps.
+     * \param stopTest The condition for stopping.
+     * \param loopDuration The interval at which to execute the stop condition.
+     * \returns the total number of elements pending.
+    */
+    template <typename StopTest,
+              typename LoopDuration =
+                  sharemind::StaticLoopDuration<3u, std::chrono::microseconds> >
+    inline size_t waitDataAvailable(
+            size_t & availableUntilBufferEnd,
+            StopTest && stopTest,
+            LoopDuration && loopDuration = LoopDuration{}) const
+    {
+        return waitDataAvailable__(availableUntilBufferEnd,
+                                   std::forward<StopTest>(stopTest),
+                                   std::forward<LoopDuration>(loopDuration));
+    }
+
+    /**
+     * \brief Waits until there is data pending.
      * \returns the number of elements pending before the buffer array wraps.
     */
-    template <typename StopTest = DummyStopTest,
+    inline size_t waitDataAvailableUntilBufferEnd() const
+    { return waitDataAvailableUntilBufferEnd__(); }
+
+    /**
+     * \brief Waits until there is data pending.
+     * \param stopTest The condition for stopping.
+     * \param loopDuration The interval at which to execute the stop condition.
+     * \returns the number of elements pending before the buffer array wraps.
+    */
+    template <typename StopTest,
               typename LoopDuration =
                   sharemind::StaticLoopDuration<3u, std::chrono::microseconds> >
     inline size_t waitDataAvailableUntilBufferEnd(
-            StopTest && stopTest = StopTest(),
-            LoopDuration && loopDuration = LoopDuration()) const
+            StopTest && stopTest,
+            LoopDuration && loopDuration = LoopDuration{}) const
     {
-        const size_t toBufferEnd = (this->bufferSize() - this->readOffset());
-        return std::min(waitAvailable<HaveDataTest>(
-                            std::forward<StopTest>(stopTest),
-                            std::forward<LoopDuration>(loopDuration)),
-                        toBufferEnd);
+        return waitDataAvailableUntilBufferEnd__(
+                    std::forward<StopTest>(stopTest),
+                    std::forward<LoopDuration>(loopDuration));
     }
 
 private: /* Methods: */
 
+    template <typename ... Args>
+    inline size_t waitSpaceAvailable__(Args && ... args) const {
+        return this->bufferSize() - waitAvailable<HaveSpaceTest>(
+                    std::forward<Args>(args)...);
+    }
+
+    template <typename ... Args>
+    inline size_t waitSpaceAvailable__2(size_t & availableUntilBufferEnd,
+                                        Args && ... args) const
+    {
+        const size_t available =
+                waitAvailable<HaveSpaceTest>(std::forward<Args>(args)...);
+        availableUntilBufferEnd = this->bufferSize()
+                                  - std::max(available, this->writeOffset());
+        return this->bufferSize() - available;
+    }
+
+    template <typename ... Args>
+    inline size_t waitSpaceAvailableUntilBufferEnd__(Args && ... args) const {
+        return this->bufferSize()
+               - std::max(waitAvailable<HaveSpaceTest>(
+                              std::forward<Args>(args)...),
+                          this->writeOffset());
+    }
+
+    template <typename ... Args>
+    inline size_t waitDataAvailable__(
+            size_t & availableUntilBufferEnd,
+            Args && ... args) const
+    {
+        const size_t toBufferEnd = (this->bufferSize() - this->readOffset());
+        const size_t available =
+                waitAvailable<HaveDataTest>(std::forward<Args>(args)...);
+        availableUntilBufferEnd = std::min(available, toBufferEnd);
+        return available;
+    }
+
+    template <typename ... Args>
+    inline size_t waitDataAvailableUntilBufferEnd__(Args && ... args) const {
+        const size_t toBufferEnd = (this->bufferSize() - this->readOffset());
+        return std::min(waitAvailable<HaveDataTest>(
+                            std::forward<Args>(args)...),
+                        toBufferEnd);
+    }
+
+    template <typename Condition>
+    inline size_t waitAvailable() const {
+        typename CircBufferDefaultLocking::ScopedReadLock lock(this->locking());
+        while (!Condition::test(this->dataAvailableNoLocking(),
+                                this->bufferSize()))
+            this->locking().wait(lock);
+        return this->dataAvailableNoLocking();
+    }
+
     template <typename Condition, typename StopTest, typename LoopDuration>
-    inline size_t waitAvailable(StopTest && stopTest,
-                                LoopDuration && loopDuration) const
+    inline size_t waitAvailable(StopTest stopTest,
+                                LoopDuration const loopDuration) const
     {
         typename CircBufferDefaultLocking::ScopedReadLock lock(this->locking());
         while (!Condition::test(this->dataAvailableNoLocking(),
                                 this->bufferSize()))
         {
             stopTest();
-            this->locking().wait_for(lock,
-                                     std::forward<LoopDuration>(loopDuration));
+            this->locking().wait_for(lock, loopDuration);
         }
         return this->dataAvailableNoLocking();
     }
