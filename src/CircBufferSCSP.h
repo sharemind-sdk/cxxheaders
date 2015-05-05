@@ -30,6 +30,7 @@
 #include <sharemind/QueueingRwMutex.h>
 #include <type_traits>
 #include <utility>
+#include "compiler-support/GccPR50025.h"
 #include "CountMaxActor.h"
 #include "Durations.h"
 #include "Exception.h"
@@ -187,7 +188,8 @@ public: /* Types: */
         ReadActor & operator=(const ReadActor &) = default;
 
         inline ReadActor(Self & buffer)
-            : m_buffer(buffer) {}
+            : m_buffer SHAREMIND_GCCPR50025_WORKAROUND(buffer)
+        {}
 
         inline size_t operator()(T * const data, const size_t size) noexcept
         { return m_buffer.read(data, size); }
@@ -216,7 +218,8 @@ public: /* Types: */
         WriteActor & operator=(const WriteActor &) = default;
 
         inline WriteActor(Self & buffer)
-            : m_buffer(buffer) {}
+            : m_buffer SHAREMIND_GCCPR50025_WORKAROUND(buffer)
+        {}
 
         inline size_t operator()(const T * data, const size_t size) noexcept
         { return m_buffer.write(data, size); }
