@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_THREADPOOL_H
 #define SHAREMIND_THREADPOOL_H
 
+#include <atomic>
 #include <cassert>
 #include <condition_variable>
 #include <functional>
@@ -103,6 +104,18 @@ public: /* Methods: */
     {}
 
     virtual inline ~ThreadPool() noexcept { stop(); }
+
+    inline void stop() noexcept {
+        if (m_stopStarted.test_and_set())
+            return;
+        assert(m_stopTasks.size() >= m_threads.size());
+        size_t const maxStopJobs = m_threads.size();
+        for (size_t i = 0u; i < maxStopJobs; i++)
+            submit(std::move(m_stopTasks[i]));
+        for (std::thread & thread : m_threads)
+            if (thread.joinable())
+                thread.join();
+    }
 
     template <typename F>
     static inline Task createTask(F f) {
@@ -188,16 +201,6 @@ private: /* Methods: */
         return oldHead;
     }
 
-    inline void stop() noexcept {
-        assert(m_stopTasks.size() >= m_threads.size());
-        size_t const maxStopJobs = m_threads.size();
-        for (size_t i = 0u; i < maxStopJobs; i++)
-            submit(std::move(m_stopTasks[i]));
-        for (std::thread & thread : m_threads)
-            if (thread.joinable())
-                thread.join();
-    }
-
     inline void workerThread() noexcept {
         for (;;) {
             Task task{waitAndPop()};
@@ -221,6 +224,7 @@ private: /* Fields: */
 
     std::vector<std::thread> m_threads;
     std::vector<Task> m_stopTasks;
+    std::atomic_flag m_stopStarted = ATOMIC_FLAG_INIT;
 
 }; /* class ThreadPool { */
 
