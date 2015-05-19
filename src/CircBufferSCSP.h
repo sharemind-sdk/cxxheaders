@@ -400,24 +400,6 @@ public: /* Methods: */
     inline size_t write(const T * data, const size_t size) noexcept
     { return operate<WriteActions>(data, size); }
 
-    /**
-     * \brief Uses the given actor to write to the buffer.
-     * \param actor The actor producing the input.
-     * \returns the number of elements written.
-    */
-    template <typename InputProducerActor>
-    inline size_t write(InputProducerActor && inputProducerActor)
-            noexcept(noexcept(
-                        std::declval<Self &>().template operate<
-                                typename Self::WriteActions,
-                                InputProducerActor>(
-                             std::forward<InputProducerActor>(
-                                 inputProducerActor))))
-    {
-        return operate<WriteActions, InputProducerActor>(
-                    std::forward<InputProducerActor>(inputProducerActor));
-    }
-
 
     /***************************************************************************
      * Procedures for consumer */
@@ -561,24 +543,6 @@ public: /* Methods: */
     */
     inline size_t read(T * const buffer, const size_t size) noexcept
     { return operate<ReadActions>(buffer, size); }
-
-    /**
-     * \brief Uses the given actor to read from the buffer.
-     * \param actor The actor consuming the input.
-     * \returns the number of elements read.
-    */
-    template <typename OutputConsumerActor>
-    inline size_t read(OutputConsumerActor && outputConsumerActor)
-            noexcept(noexcept(
-                         std::declval<Self &>().template operate<
-                                Self::ReadActions,
-                                OutputConsumerActor>(
-                             std::forward<OutputConsumerActor>(
-                                 outputConsumerActor))))
-    {
-        return operate<ReadActions, OutputConsumerActor>(
-                    std::forward<OutputConsumerActor>(outputConsumerActor));
-    }
 
 protected: /* Methods: */
 
@@ -779,6 +743,44 @@ private: /* Types: */
     #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
     #undef Self
     #endif
+
+public: /* Methods */
+
+    /**
+     * \brief Uses the given actor to write to the buffer.
+     * \param actor The actor producing the input.
+     * \returns the number of elements written.
+    */
+    template <typename InputProducerActor>
+    inline size_t write(InputProducerActor && inputProducerActor)
+            noexcept(noexcept(
+                        std::declval<Self &>().template operate<
+                                typename Self::WriteActions,
+                                InputProducerActor>(
+                             std::forward<InputProducerActor>(
+                                 inputProducerActor))))
+    {
+        return operate<WriteActions, InputProducerActor>(
+                    std::forward<InputProducerActor>(inputProducerActor));
+    }
+
+    /**
+     * \brief Uses the given actor to read from the buffer.
+     * \param actor The actor consuming the input.
+     * \returns the number of elements read.
+    */
+    template <typename OutputConsumerActor>
+    inline size_t read(OutputConsumerActor && outputConsumerActor)
+            noexcept(noexcept(
+                         std::declval<Self &>().template operate<
+                                Self::ReadActions,
+                                OutputConsumerActor>(
+                             std::forward<OutputConsumerActor>(
+                                 outputConsumerActor))))
+    {
+        return operate<ReadActions, OutputConsumerActor>(
+                    std::forward<OutputConsumerActor>(outputConsumerActor));
+    }
 
 private: /* Fields :*/
 
