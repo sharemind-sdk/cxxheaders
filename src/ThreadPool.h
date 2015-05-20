@@ -67,8 +67,7 @@ private: /* Types: */
         TaskBase & operator=(TaskBase &&) = delete;
         TaskBase & operator=(TaskBase const &) = delete;
 
-        // May only throw StopThreadException:
-        virtual void operator()(Task &&) = 0;
+        virtual void operator()(Task &&) noexcept = 0;
     };
 
     struct TaskWrapper final {
@@ -79,8 +78,6 @@ private: /* Types: */
         std::unique_ptr<TaskBase> m_value;
         Task m_next;
     };
-
-    class StopThreadException {};
 
     using Mutex = sharemind::QueueingMutex;
     using Lock = sharemind::QueueingMutex::Lock;
@@ -103,25 +100,59 @@ public: /* Methods: */
                      new TaskWrapper{nullptr}}
     {}
 
-    virtual inline ~ThreadPool() noexcept { stop(); }
+    virtual inline ~ThreadPool() noexcept {
+        assert((std::find_if(
+                    m_threads.begin(),
+                    m_threads.end(),
+                    [](std::thread const & t)
+                    { return t.get_id() == std::this_thread::get_id(); })
+                == m_threads.end()) && "Can't destroy pool from pool thread!");
+        if (!m_stopStarted.test_and_set()) {
+            Guard const tailGuard{m_tailMutex};
+            m_stop = true;
+            m_dataCond.notify_all();
+        }
+        for (std::thread & thread : m_threads)
+            if (thread.joinable())
+                thread.join();
+    }
 
     inline void stop() noexcept {
         if (m_stopStarted.test_and_set())
             return;
-        assert(m_stopTasks.size() >= m_threads.size());
-        size_t const maxStopJobs = m_threads.size();
-        for (size_t i = 0u; i < maxStopJobs; i++)
-            submit(std::move(m_stopTasks[i]));
-        for (std::thread & thread : m_threads)
-            if (thread.joinable())
-                thread.join();
+
+        {
+            Guard const tailGuard{m_tailMutex};
+            m_stop = true;
+            m_dataCond.notify_all();
+        }
+        if (std::thread * const imOneThread = [this]() noexcept {
+                auto const it =
+                        std::find_if(
+                            m_threads.begin(),
+                            m_threads.end(),
+                            [](std::thread const & t) noexcept -> bool {
+                                return t.get_id()
+                                       == std::this_thread::get_id();
+                            });
+                return (it != m_threads.end()) ? &*it : nullptr;
+            }())
+        {
+            for (std::thread & thread : m_threads)
+                if (thread.joinable() && (imOneThread != &thread))
+                    thread.join();
+        } else {
+            for (std::thread & thread : m_threads)
+                if (thread.joinable())
+                    thread.join();
+        }
     }
 
     template <typename F>
     static inline Task createTask(F f) {
         struct CustomTask: TaskBase {
             inline CustomTask(F f) : m_f{std::move(f)} {}
-            inline void operator()(Task && task) final override
+            inline void operator()(Task && task) noexcept final override
             { m_f(std::move(task)); }
             F m_f;
         };
@@ -132,7 +163,7 @@ public: /* Methods: */
     static inline Task createSimpleTask(F f) {
         struct CustomSimpleTask: TaskBase {
             inline CustomSimpleTask(F f) : m_f{std::move(f)} {}
-            inline void operator()(Task &&) final override { m_f(); }
+            inline void operator()(Task &&) noexcept final override { m_f(); }
             F m_f;
         };
         return createTask(new CustomSimpleTask{std::move(f)});
@@ -168,12 +199,7 @@ private: /* Methods: */
         : m_tail{emptyTaskWrapper}
         , m_head{emptyTaskWrapper}
     {
-        m_stopTasks.reserve(numThreads);
         m_threads.reserve(numThreads);
-        for (unsigned i = 0u; i < numThreads; i++)
-            m_stopTasks.emplace_back(
-                        createTask([i](Task)
-                                   { throw StopThreadException{}; }));
         try {
             for (unsigned i = 0u; i < numThreads; i++)
                 m_threads.emplace_back(&ThreadPool::workerThread, this);
@@ -188,12 +214,17 @@ private: /* Methods: */
         assert(m_head);
         {
             Lock tailLock{m_tailMutex};
-            while (m_head.get() == m_tail)
+            for (;;) {
+                if (m_stop)
+                    return Task{};
+                if (m_head.get() != m_tail)
+                    break;
                 #ifdef __clang__
                 #warning Clang 3.6 (and possibly other versions) are known to \
                          sometimes hang here for unknown reasons!
                 #endif
                 m_dataCond.wait(tailLock);
+            }
         }
         assert(m_head->m_value);
         Task oldHead{std::move(m_head)};
@@ -204,13 +235,13 @@ private: /* Methods: */
     inline void workerThread() noexcept {
         for (;;) {
             Task task{waitAndPop()};
+            if (!task)
+                return;
             // this->m_value(std::move(*this)); // would segfault.
             TaskWrapper * const taskPtr = task.get();
             assert(taskPtr);
             assert(taskPtr->m_value);
-            try {
-                taskPtr->m_value->operator()(std::move(task));
-            } catch (StopThreadException const &) { return; }
+            taskPtr->m_value->operator()(std::move(task));
         }
     }
 
@@ -221,9 +252,9 @@ private: /* Fields: */
     std::condition_variable_any m_dataCond;
     TaskWrapper * m_tail;
     Task m_head;
+    bool m_stop = false;
 
     std::vector<std::thread> m_threads;
-    std::vector<Task> m_stopTasks;
     std::atomic_flag m_stopStarted = ATOMIC_FLAG_INIT;
 
 }; /* class ThreadPool { */
