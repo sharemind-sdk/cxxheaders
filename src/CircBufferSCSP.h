@@ -740,10 +740,6 @@ private: /* Types: */
                               &Self::haveReadRetPair,
                               &Self::haveReadRetUbe> ReadActions;
 
-    #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
-    #undef Self
-    #endif
-
 public: /* Methods */
 
     /**
@@ -781,6 +777,10 @@ public: /* Methods */
         return operate<ReadActions, OutputConsumerActor>(
                     std::forward<OutputConsumerActor>(outputConsumerActor));
     }
+
+    #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
+    #undef Self
+    #endif
 
 private: /* Fields :*/
 
