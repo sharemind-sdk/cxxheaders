@@ -25,6 +25,7 @@
 #include <condition_variable>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <sharemind/QueueingMutex.h>
 #include <thread>
 #include <vector>
@@ -79,9 +80,12 @@ private: /* Types: */
         Task m_next;
     };
 
-    using Mutex = sharemind::QueueingMutex;
-    using Lock = sharemind::QueueingMutex::Lock;
-    using Guard = sharemind::QueueingMutex::Guard;
+    using TasksMutex = sharemind::QueueingMutex;
+    using TasksLock = sharemind::QueueingMutex::Lock;
+    using TasksGuard = sharemind::QueueingMutex::Guard;
+    using ThreadsMutex = std::mutex;
+    using ThreadsGuard = std::lock_guard<ThreadsMutex>;
+    using ThreadsLock = std::unique_lock<ThreadsMutex>;
 
 public: /* Methods: */
 
@@ -107,45 +111,58 @@ public: /* Methods: */
                     [](std::thread const & t)
                     { return t.get_id() == std::this_thread::get_id(); })
                 == m_threads.end()) && "Can't destroy pool from pool thread!");
-        if (!m_stopStarted.test_and_set()) {
-            Guard const tailGuard{m_tailMutex};
-            m_stop = true;
-            m_dataCond.notify_all();
-        }
+        stopAndJoin();
+    }
+
+    /// \returns whether notifyStop() had already been called.
+    bool notifyStop() noexcept {
+        if (m_stopStarted.test_and_set())
+            return true;
+        TasksGuard const tailGuard{m_tailMutex};
+        m_stop = true;
+        m_dataCond.notify_all();
+        return false;
+    }
+
+    inline void join() noexcept {
+        ThreadsGuard const guard{m_threadsMutex};
+        #ifndef NDEBUG
+        std::thread::id const myId{std::this_thread::get_id()};
+        #endif
         for (std::thread & thread : m_threads)
-            if (thread.joinable())
+            if ((assert(thread.get_id() != myId), thread.joinable()))
                 thread.join();
     }
 
-    inline void stop() noexcept {
-        if (m_stopStarted.test_and_set())
-            return;
+    inline void stopAndJoin() noexcept {
+        notifyStop();
+        join();
+    }
 
-        {
-            Guard const tailGuard{m_tailMutex};
-            m_stop = true;
-            m_dataCond.notify_all();
+    inline void joinFromThread() noexcept {
+        std::thread::id const myId{std::this_thread::get_id()};
+        ThreadsLock const lock{m_threadsMutex, std::try_to_lock_t{}};
+        if (lock.owns_lock()) {
+            auto it = m_threads.begin();
+            assert(it != m_threads.end());
+            do {
+                if (it->joinable()) {
+                    if (it->get_id() == myId) {
+                        while (++it != m_threads.end())
+                            if (it->joinable())
+                                it->join();
+                        return;
+                    }
+                    it->join();
+                }
+            } while (++it != m_threads.end());
         }
-        if (std::thread * const imOneThread = [this]() noexcept {
-                auto const it =
-                        std::find_if(
-                            m_threads.begin(),
-                            m_threads.end(),
-                            [](std::thread const & t) noexcept -> bool {
-                                return t.get_id()
-                                       == std::this_thread::get_id();
-                            });
-                return (it != m_threads.end()) ? &*it : nullptr;
-            }())
-        {
-            for (std::thread & thread : m_threads)
-                if (thread.joinable() && (imOneThread != &thread))
-                    thread.join();
-        } else {
-            for (std::thread & thread : m_threads)
-                if (thread.joinable())
-                    thread.join();
-        }
+    }
+
+    inline void stopAndJoinFromThread() noexcept {
+        if (notifyStop())
+            return;
+        joinFromThread();
     }
 
     template <typename F>
@@ -173,7 +190,7 @@ public: /* Methods: */
         assert(task);
         assert(task->m_value);
         TaskWrapper * const newTail = task.get();
-        Guard const tailGuard{m_tailMutex};
+        TasksGuard const tailGuard{m_tailMutex};
         TaskWrapper * const oldTail = m_tail;
         oldTail->m_value = std::move(task->m_value);
         oldTail->m_next = std::move(task);
@@ -204,16 +221,16 @@ private: /* Methods: */
             for (unsigned i = 0u; i < numThreads; i++)
                 m_threads.emplace_back(&ThreadPool::workerThread, this);
         } catch (...) {
-            stop();
+            stopAndJoin();
             throw;
         }
     }
 
     inline Task waitAndPop() noexcept {
-        Guard const headGuard{m_headMutex};
+        TasksGuard const headGuard{m_headMutex};
         assert(m_head);
         {
-            Lock tailLock{m_tailMutex};
+            TasksLock tailLock{m_tailMutex};
             for (;;) {
                 if (m_stop)
                     return Task{};
@@ -247,14 +264,16 @@ private: /* Methods: */
 
 private: /* Fields: */
 
-    Mutex m_headMutex;
-    Mutex m_tailMutex;
+    TasksMutex m_headMutex;
+    TasksMutex m_tailMutex;
     std::condition_variable_any m_dataCond;
     TaskWrapper * m_tail;
     Task m_head;
     bool m_stop = false;
 
+    ThreadsMutex m_threadsMutex;
     std::vector<std::thread> m_threads;
+
     std::atomic_flag m_stopStarted = ATOMIC_FLAG_INIT;
 
 }; /* class ThreadPool { */
