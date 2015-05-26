@@ -43,11 +43,21 @@
     struct A { ~A(); };
     struct Derived: SHAREMIND_GCCPR61067_WRAPPED(Base) { A a; };
 
+  If the above doesn't work, try this:
+
+    struct Base { virtual ~Base() noexcept; };
+    struct A { ~A(); };
+    struct Derived: Base {
+        SHAREMIND_GCCPR61067_WORKAROUND(Derived)
+        A a;
+    };
+
 */
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
 #include <utility>
 #include "GccInheritConstructor.h"
+#define SHAREMIND_GCCPR61067_WORKAROUND(c) public: inline ~c() noexcept {}
 namespace sharemind {
 namespace workaround {
 
@@ -60,7 +70,7 @@ public: /* Methods: */
 
     using T::operator=;
 
-    inline ~GCC_PR61067_Wrapper() noexcept {}
+    SHAREMIND_GCCPR61067_WORKAROUND(GCC_PR61067_Wrapper)
 
 }; // class Wrapper {
 
@@ -69,6 +79,7 @@ public: /* Methods: */
 #define SHAREMIND_GCCPR61067_WRAPPED(...) \
     sharemind::workaround::GCC_PR61067_Wrapper<__VA_ARGS__>
 #else
+#define SHAREMIND_GCCPR61067_WORKAROUND(unused)
 #define SHAREMIND_GCCPR61067_WRAPPED(...) __VA_ARGS__
 #endif
 
