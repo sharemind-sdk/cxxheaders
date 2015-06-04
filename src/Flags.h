@@ -63,7 +63,7 @@ public: /* Methods: */
 
     inline U load() const noexcept { return m_flags; }
 
-    inline Flags<T, U> & store(U const flags) const noexcept
+    inline Flags<T, U> & store(U const flags) noexcept
     { return ((m_flags = flags), *this); }
 
     inline Flags<T, U> exchange(U const flags) noexcept {
