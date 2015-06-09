@@ -125,10 +125,10 @@ public: /* Methods: */
     }
 
     inline void join() noexcept {
-        ThreadsGuard const guard{m_threadsMutex};
         #ifndef NDEBUG
         std::thread::id const myId{std::this_thread::get_id()};
         #endif
+        ThreadsGuard const guard{m_threadsMutex};
         for (std::thread & thread : m_threads)
             if ((assert(thread.get_id() != myId), thread.joinable()))
                 thread.join();
