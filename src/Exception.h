@@ -43,7 +43,7 @@ namespace sharemind {
      || __APPLE__ \
      || __FreeBSD__) \
     && ! _GNU_SOURCE
-    #define SHAREMIND_STRERROR__(e, buf, bufsize) \
+    #define SHAREMIND_STRERROR_(e, buf, bufsize) \
         do { \
             const int r = strerror_r((e), (buf), (bufsize)); \
             if (r != 0) { \
@@ -56,7 +56,7 @@ namespace sharemind {
             } \
         } while(0)
 #else
-    #define SHAREMIND_STRERROR__(e, buf, bufsize) \
+    #define SHAREMIND_STRERROR_(e, buf, bufsize) \
         do { \
             char * const c = strerror_r((e), (buf), (bufsize)); \
             if (c != buf) { \
@@ -132,7 +132,7 @@ public: /* Methods: */
     ErrnoException & operator=(ErrnoException &&) = default;
 
     explicit inline ErrnoException(const int e) noexcept
-    { SHAREMIND_STRERROR__(e, m_message, BUFFER_SIZE); }
+    { SHAREMIND_STRERROR_(e, m_message, BUFFER_SIZE); }
 
     inline const char * what() const noexcept final override
     { return m_message; }
