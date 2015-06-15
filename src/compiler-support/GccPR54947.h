@@ -31,9 +31,9 @@
   braced initializer lists {}.
 */
 
-#if defined(SHAREMIND_GCC_VERSION)
-    && ((SHAREMIND_GCC_VERSION < 40703)
-        || ((SHAREMIND_GCC_VERSION >= 40800)
+#if defined(SHAREMIND_GCC_VERSION) \
+    && ((SHAREMIND_GCC_VERSION < 40703) \
+        || ((SHAREMIND_GCC_VERSION >= 40800) \
             && (SHAREMIND_GCC_VERSION < 40801)))
 #define SHAREMIND_GCCPR54947_WORKAROUND(...) (__VA_ARGS__)
 #else
