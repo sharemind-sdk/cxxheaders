@@ -61,8 +61,8 @@ using Filter2 = TemplateCondAppend<IsNullPointer, std::tuple, Tpl, Ts...>;
 
 template <typename Tpl> struct MakeNoNullTuple__ {};
 template <typename ... Ts>
-struct MakeNoNullTuple__<SHAREMIND_GCCPR54526::std::tuple<Ts...> >
-        : Filter2<SHAREMIND_GCCPR54526::std::tuple<>, Ts...> {};
+struct MakeNoNullTuple__<SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<Ts...> >
+        : Filter2<SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<>, Ts...> {};
 
 struct NoNullptrTupleExtender {
 
@@ -92,17 +92,20 @@ struct NoNullptrTupleExtender {
 
 template <typename End, size_t I = 0u> struct ToNoNullptrTuple;
 template <size_t I>
-struct ToNoNullptrTuple<SHAREMIND_GCCPR54526::std::tuple<>, I> {
+struct ToNoNullptrTuple<SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<>, I> {
   template <typename Start, typename Tpl>
   static constexpr Start convert(Start start, Tpl &&) { return start; }
 };
 template <size_t I, typename T, typename ... Ts>
-struct ToNoNullptrTuple<SHAREMIND_GCCPR54526::std::tuple<T, Ts...>, I> {
+struct ToNoNullptrTuple<SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<T, Ts...>,
+                        I>
+{
     template <typename Start, typename Tpl>
     static constexpr typename Filter2<Start, T, Ts...>::type
     convert(Start start, Tpl && tpl) {
-        return ToNoNullptrTuple<SHAREMIND_GCCPR54526::std::tuple<Ts...>,
-                                I + 1u>::convert(
+        return ToNoNullptrTuple<
+                   SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<Ts...>,
+                   I + 1u>::convert(
               NoNullptrTupleExtender::extend(std::move(start),
                                              std::get<I>(tpl)),
               std::forward<Tpl>(tpl));

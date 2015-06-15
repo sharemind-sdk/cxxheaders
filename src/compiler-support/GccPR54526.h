@@ -20,6 +20,8 @@
 #ifndef SHAREMIND_GCCPR54526_H
 #define SHAREMIND_GCCPR54526_H
 
+#include <sharemind/compiler-support/GccVersion.h>
+
 /*
   This is a workaround around https://gcc.gnu.org/bugzilla/show_bug.cgi?id=54526
   which parses <:: as a digraph in code like:
@@ -31,6 +33,11 @@
     template <> struct S<SHAREMIND_GCCPR54526::A> {};
 */
 
-#define SHAREMIND_GCCPR54526
+#define SHAREMIND_GCCPR54526_WORKAROUND
+#if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
+#define SHAREMIND_GCCPR54526 true
+#else
+#define SHAREMIND_GCCPR54526 false
+#endif
 
 #endif // SHAREMIND_GCCPR54526_H

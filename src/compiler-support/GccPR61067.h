@@ -55,6 +55,7 @@
 */
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
+#define SHAREMIND_GCCPR61067 true
 #include <utility>
 #include "GccInheritConstructor.h"
 #define SHAREMIND_GCCPR61067_WORKAROUND(c) public: inline ~c() noexcept {}
@@ -79,6 +80,7 @@ public: /* Methods: */
 #define SHAREMIND_GCCPR61067_WRAPPED(...) \
     sharemind::workaround::GCC_PR61067_Wrapper<__VA_ARGS__>
 #else
+#define SHAREMIND_GCCPR61067 false
 #define SHAREMIND_GCCPR61067_WORKAROUND(unused)
 #define SHAREMIND_GCCPR61067_WRAPPED(...) __VA_ARGS__
 #endif
