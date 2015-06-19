@@ -40,11 +40,19 @@ inline uint8_t  hostToLittleEndian(uint8_t  const v) noexcept { return v; }
 inline uint16_t hostToLittleEndian(uint16_t const v) noexcept { return htole16(v); }
 inline uint32_t hostToLittleEndian(uint32_t const v) noexcept { return htole32(v); }
 inline uint64_t hostToLittleEndian(uint64_t const v) noexcept { return htole64(v); }
+inline uint8_t  hostToNetOrder(uint8_t  const v) noexcept { return v; }
+inline uint16_t hostToNetOrder(uint16_t const v) noexcept { return htole16(v); }
+inline uint32_t hostToNetOrder(uint32_t const v) noexcept { return htole32(v); }
+inline uint64_t hostToNetOrder(uint64_t const v) noexcept { return htole64(v); }
 
 inline uint8_t  littleEndianToHost(uint8_t  const v) noexcept { return v; }
 inline uint16_t littleEndianToHost(uint16_t const v) noexcept { return le16toh(v); }
 inline uint32_t littleEndianToHost(uint32_t const v) noexcept { return le32toh(v); }
 inline uint64_t littleEndianToHost(uint64_t const v) noexcept { return le64toh(v); }
+inline uint8_t  netToHostOrder(uint8_t  const v) noexcept { return v; }
+inline uint16_t netToHostOrder(uint16_t const v) noexcept { return le16toh(v); }
+inline uint32_t netToHostOrder(uint32_t const v) noexcept { return le32toh(v); }
+inline uint64_t netToHostOrder(uint64_t const v) noexcept { return le64toh(v); }
 
 } /* namespace sharemind { */
 
