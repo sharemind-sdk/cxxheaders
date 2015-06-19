@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <sharemind/endian.h>
 
+
 namespace sharemind {
 
 inline uint8_t  hostToBigEndian(uint8_t  const v) noexcept { return v; }
