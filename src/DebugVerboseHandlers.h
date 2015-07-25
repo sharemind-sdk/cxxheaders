@@ -20,77 +20,73 @@
 #ifndef SHAREMIND_DEBUGVERBOSEHANDLERS_H
 #define SHAREMIND_DEBUGVERBOSEHANDLERS_H
 
-#include <cstdio>
+#include <cassert>
 #include <cstdlib>
 #include <exception>
+#include <iostream>
 #include <typeinfo>
 #include "compiler-support/GccNoreturn.h"
 
 
-namespace {
+namespace sharemind {
 
-void sharemindVerbosePrintException(std::exception_ptr e) noexcept {
-    size_t n = 0u;
-    do {
+inline void verbosePrintException(std::exception_ptr e,
+                                  std::ostream & oss = std::cerr) noexcept
+{
+    #ifdef __GLIBCXX__
+    #define SHAREMIND_T << e.__cxa_exception_type()->name() <<
+    #else
+    #define SHAREMIND_T "<unknown type>"
+    #endif
+    assert(e);
+    for (size_t n = 1u;; n++) {
         try {
             std::rethrow_exception(e);
         } catch (const std::exception & se) {
-            #ifdef __GLIBCXX__
-            fprintf(stderr, "%zu: Exception of type %s, what(): %s\n",
-                    ++n, e.__cxa_exception_type()->name(), se.what());
-            #else
-            fprintf(stderr, "%zu: Exception of unknown type derived from "
-                    "std::exception, what(): %s\n", ++n, se.what());
-            #endif
-            const std::nested_exception * const ne =
-                    dynamic_cast<const std::nested_exception *>(&se);
+            oss << ++n << ": [" SHAREMIND_T "] " << se.what() << std::endl;
+            std::nested_exception const * const ne =
+                    dynamic_cast<std::nested_exception const *>(&se);
             if (!ne)
-                break;
+                return;
             e = ne->nested_ptr();
+            assert(e);
         } catch (...) {
-            #ifdef __GLIBCXX__
-            fprintf(stderr, "%zu: Exception of type %s.\n... unable to "
-                    "continue printing nested exceptions, if any ...\n",
-                    ++n, e.__cxa_exception_type()->name());
-            #else
-            fprintf(stderr, "%zu: Exception of unknown type not derived from "
-                    "std::exception.\n... unable to continue printing nested "
-                    "exceptions, if any ...\n", ++n);
-            #endif
+            oss << ++n << ": [" SHAREMIND_T "]" << std::endl
+                << "... unable to continue printing nested exceptions, if any "
+                   "..." << std::endl;
             return;
         }
-    } while (e);
+    }
+    #undef SHAREMIND_T
 }
 
 SHAREMIND_GCC_NORETURN_PART1
-void sharemindVerboseTerminateHandler() noexcept
-    SHAREMIND_GCC_NORETURN_PART2;
+void verboseTerminateHandler() noexcept SHAREMIND_GCC_NORETURN_PART2;
 
-void sharemindVerboseTerminateHandler() noexcept {
-    const std::exception_ptr e = std::current_exception();
-    if (e) {
-        fprintf(stderr, "std::terminate() called with active exception(s):\n");
-        sharemindVerbosePrintException(e);
+void verboseTerminateHandler() noexcept {
+    if (std::exception_ptr const e = std::current_exception()) {
+        verbosePrintException(e,
+                              std::cerr << "std::terminate() called with "
+                                           "active exception(s):" << std::endl);
     } else {
-        fprintf(stderr, "std::terminate() called!\n");
+        std::cerr << "std::terminate() called without active exceptions!"
+                  << std::endl;
     }
     abort();
 }
 
 
 SHAREMIND_GCC_NORETURN_PART1
-void sharemindVerboseUnexpectedHandler() noexcept
-    SHAREMIND_GCC_NORETURN_PART2;
+void verboseUnexpectedHandler() noexcept SHAREMIND_GCC_NORETURN_PART2;
 
-void sharemindVerboseUnexpectedHandler() noexcept {
-    const std::exception_ptr e = std::current_exception();
-    if (e) {
-        fprintf(stderr,
-                "std::unexpected() called with an active exception:\n");
-        sharemindVerbosePrintException(e);
+void verboseUnexpectedHandler() noexcept {
+    if (std::exception_ptr const e = std::current_exception()) {
+        verbosePrintException(e,
+                              std::cerr << "std::unexpected() called with "
+                                           "active exception(s):" << std::endl);
     } else {
-        fprintf(stderr,
-                "std::unexpected() called without an active exception!\n");
+        std::cerr << "std::unexpected() called without active exceptions!"
+                  << std::endl;
     }
     abort();
 }
@@ -99,14 +95,14 @@ void sharemindVerboseUnexpectedHandler() noexcept {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
-const std::terminate_handler sharemindVerboseTerminateHandler_old =
-        std::set_terminate(sharemindVerboseTerminateHandler);
-const std::unexpected_handler sharemindVerboseUnexpectedHandler_old =
-        std::set_unexpected(sharemindVerboseUnexpectedHandler);
+std::terminate_handler const verboseTerminateHandler_old =
+        std::set_terminate(verboseTerminateHandler);
+std::unexpected_handler const verboseUnexpectedHandler_old =
+        std::set_unexpected(verboseUnexpectedHandler);
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
 
-} /* anonymous namespace */
+} /* namespace sharemind { */
 
 #endif /* SHAREMIND_DEBUGVERBOSEHANDLERS_H */
