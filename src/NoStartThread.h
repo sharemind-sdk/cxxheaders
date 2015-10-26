@@ -91,11 +91,7 @@ public: /* Methods: */
         , m_thread(std::bind(&Inner::run, &m_inner))
     {}
 
-    inline ~NoStartThread() noexcept {
-        m_inner.destroyPrivate();
-        if (m_thread.joinable())
-            m_thread.join();
-    }
+    inline ~NoStartThread() noexcept { stop(); }
 
     template <typename F, typename ... Args>
     void setFunction(F && f, Args && ... args) {
@@ -105,6 +101,13 @@ public: /* Methods: */
     }
 
     inline void start() noexcept { m_inner.startThread(); }
+
+    inline void stop() noexcept {
+        m_inner.destroyPrivate();
+        if (m_thread.joinable())
+            m_thread.join();
+    }
+
     inline void join() noexcept { m_thread.join(); }
     inline bool joinable() noexcept { return m_thread.joinable(); }
 
