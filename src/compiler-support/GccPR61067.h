@@ -69,8 +69,6 @@ public: /* Methods: */
 
     SHAREMIND_GCC_INHERITED_CONSTRUCTOR_WORKAROUND(GCC_PR61067_Wrapper,T,T)
 
-    using T::operator=;
-
     SHAREMIND_GCCPR61067_WORKAROUND(GCC_PR61067_Wrapper)
 
 }; // class Wrapper {
