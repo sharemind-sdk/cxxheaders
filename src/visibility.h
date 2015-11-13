@@ -20,8 +20,16 @@
 #ifndef SHAREMIND_VISIBILITY_H
 #define SHAREMIND_VISIBILITY_H
 
+#ifndef SHAREMIND_VISIBILITY_DEFAULT
+#define SHAREMIND_VISIBILITY_DEFAULT __attribute__ ((visibility("default")))
+#endif
+
 #ifndef SHAREMIND_VISIBILITY_INTERNAL
 #define SHAREMIND_VISIBILITY_INTERNAL __attribute__ ((visibility("internal")))
+#endif
+
+#ifndef SHAREMIND_VISIBILITY_HIDDEN
+#define SHAREMIND_VISIBILITY_HIDDEN __attribute__ ((visibility("hidden")))
 #endif
 
 #endif /* SHAREMIND_VISIBILITY_H */
