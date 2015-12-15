@@ -32,8 +32,8 @@ using UuidNameGenerator = boost::uuids::name_generator;
 
 /* Level 0: */
 constexpr Uuid sharemindNamespaceUuid =
-        {0x53u, 0x68u, 0x61u, 0x72u, 0x65u, 0x6du, 0x69u, 0x6eu,
-         0x64u, 0x7eu, 0x28u, 0x5eu, 0x5fu, 0x5eu, 0x29u, 0x7eu};
+        {{0x53u, 0x68u, 0x61u, 0x72u, 0x65u, 0x6du, 0x69u, 0x6eu,
+          0x64u, 0x7eu, 0x28u, 0x5eu, 0x5fu, 0x5eu, 0x29u, 0x7eu}};
 
 
 /* Level 1: */
@@ -53,43 +53,6 @@ inline Uuid generateSharemindNameUuid(Args && ... args) noexcept {
     return generator(std::forward<Args>(args)...);
 }
 
-
-/* Level 2: */
-class SharemindInstanceUuidGenerator: public UuidNameGenerator {
-
-public: /* Methods: */
-
-    template <typename ... Args>
-    inline SharemindInstanceUuidGenerator(Args && ... args) noexcept
-        : UuidNameGenerator{
-              generateSharemindNameUuid(std::forward<Args>(args)...)}
-    {}
-
-};
-
-
-namespace Detail {
-
-template <typename Generator>
-class SharemindUuidGeneratorLevelN: public UuidNameGenerator {
-
-public: /* Methods: */
-
-    template <typename ... Args>
-    inline SharemindUuidGeneratorLevelN(Generator & generator,
-                                        Args && ... args) noexcept
-        : UuidNameGenerator{
-              generator(std::forward<Args>(args)...)}
-    {}
-
-};
-
-} /* namespace Detail { */
-
-
-/* Level 3: */
-using SharemindMinerUuidGenerator =
-        Detail::SharemindUuidGeneratorLevelN<SharemindInstanceUuidGenerator>;
 
 } /* namespace sharemind { */
 
