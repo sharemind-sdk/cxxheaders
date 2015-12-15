@@ -49,7 +49,7 @@ public: /* Methods: */
 
 template <typename ... Args>
 inline Uuid generateSharemindNameUuid(Args && ... args) noexcept {
-    static SharemindUuidGenerator const generator;
+    static SharemindUuidGenerator generator;
     return generator(std::forward<Args>(args)...);
 }
 
@@ -76,7 +76,7 @@ class SharemindUuidGeneratorLevelN: public UuidNameGenerator {
 public: /* Methods: */
 
     template <typename ... Args>
-    inline SharemindUuidGeneratorLevelN(Generator const & generator,
+    inline SharemindUuidGeneratorLevelN(Generator & generator,
                                         Args && ... args) noexcept
         : UuidNameGenerator{
               generator(std::forward<Args>(args)...)}
