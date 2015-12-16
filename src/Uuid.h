@@ -28,6 +28,8 @@
 namespace sharemind {
 
 using Uuid = boost::uuids::uuid;
+static_assert(sizeof(Uuid) == 16u, "");
+
 using UuidNameGenerator = boost::uuids::name_generator;
 
 /* Level 0: */
