@@ -255,9 +255,7 @@ public: /* Methods: */
     /***************************************************************************
      * Procedures for producer */
 
-    /**
-     * \returns the total number of elements free.
-    */
+    /** \returns the total number of elements free. */
     inline size_t spaceAvailable() const noexcept {
         const size_t da = dataAvailable();
         assert(da <= m_bufferSize);
