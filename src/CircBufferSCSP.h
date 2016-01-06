@@ -255,6 +255,9 @@ public: /* Methods: */
     /***************************************************************************
      * Procedures for producer */
 
+    /** \returns whether the buffer is full. */
+    inline bool full() const noexcept { return spaceAvailable() <= 0u; }
+
     /** \returns the total number of elements free. */
     inline size_t spaceAvailable() const noexcept {
         const size_t da = dataAvailable();
@@ -401,6 +404,9 @@ public: /* Methods: */
 
     /***************************************************************************
      * Procedures for consumer */
+
+    /** \returns whether the buffer is empty. */
+    inline bool empty() const noexcept { return dataAvailable() <= 0u; }
 
     /** \returns the total number of elements pending. */
     inline size_t dataAvailable() const noexcept {
