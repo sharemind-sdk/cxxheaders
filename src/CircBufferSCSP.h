@@ -748,7 +748,7 @@ public: /* Methods */
 
     /**
      * \brief Uses the given actor to write to the buffer.
-     * \param actor The actor producing the input.
+     * \param inputProducerActor The actor producing the input.
      * \returns the number of elements written.
     */
     template <typename InputProducerActor>
@@ -766,7 +766,7 @@ public: /* Methods */
 
     /**
      * \brief Uses the given actor to read from the buffer.
-     * \param actor The actor consuming the input.
+     * \param outputConsumerActor The actor consuming the input.
      * \returns the number of elements read.
     */
     template <typename OutputConsumerActor>
