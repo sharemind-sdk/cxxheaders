@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_TEMPLATECONDAPPEND_H
 #define SHAREMIND_TEMPLATECONDAPPEND_H
 
+#include <type_traits>
 #include "TemplateAppendOne.h"
 
 
