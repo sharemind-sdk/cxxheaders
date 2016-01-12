@@ -113,8 +113,9 @@ public: /* Methods: */
                              std::ios_base::in | std::ios_base::binary);
         inFile.seekg(0, std::ios::end);
         const std::streamoff fileSize = inFile.tellg();
+        assert(fileSize >= 0u);
         inFile.seekg(0, std::ios::beg);
-        outData.resize(fileSize);
+        outData.resize(static_cast<size_t>(fileSize));
         inFile.read(static_cast<char *>(&outData[0]), fileSize);
     }
 
