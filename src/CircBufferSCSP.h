@@ -26,17 +26,17 @@
 #include <condition_variable>
 #include <cstddef>
 #include <exception>
-#include <sharemind/compiler-support/GccVersion.h>
-#include <sharemind/QueueingRwMutex.h>
 #include <type_traits>
 #include <utility>
 #include "compiler-support/GccPR50025.h"
+#include "compiler-support/GccVersion.h"
 #include "CountMaxActor.h"
 #include "Durations.h"
 #include "Exception.h"
 #include "FunctionTraits.h"
 #include "PartialStreamOperationException.h"
 #include "PotentiallyVoidTypeInfo.h"
+#include "QueueingRwMutex.h"
 
 
 namespace sharemind {
