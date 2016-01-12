@@ -670,7 +670,7 @@ public: /* Methods: */
 
     inline void dump_blocks (std::ostream& os) const {
         for (size_t i = 0; i < num_of_blocks; ++i) {
-            os << std::hex << (uint64_t)block(i) << ' ';
+            os << std::hex << static_cast<uint64_t>(block(i)) << ' ';
         }
 
         os << std::endl;
