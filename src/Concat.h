@@ -55,8 +55,19 @@ template <typename ... T>
 inline std::string concat(T && ... args)
 { return Detail::concatBase(std::ostringstream(), std::forward<T>(args)...); }
 
-const constexpr auto concat_endl = &std::endl<std::ostringstream::char_type,
-                                              std::ostringstream::traits_type>;
+template <typename ... Args>
+inline std::basic_ostream<std::ostringstream::char_type,
+                          std::ostringstream::traits_type> &
+concat_endl(Args && ... args)
+    noexcept(noexcept(
+                 std::endl<std::ostringstream::char_type,
+                           std::ostringstream::traits_type>(
+                        std::forward<Args>(args)...)))
+{
+    return std::endl<std::ostringstream::char_type,
+                     std::ostringstream::traits_type>(
+                std::forward<Args>(args)...);
+}
 
 } /* namespace sharemind { */
 
