@@ -25,6 +25,7 @@
 #include <cassert>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <type_traits>
 
@@ -257,9 +258,9 @@ inline bool operator >= (uint128_t x, uint128_t y) { return !(x < y); }
  */
 
 inline std::ostream& operator << (std::ostream& os, uint128_t x) {
-    const size_t buff_size = 64; // enough to fit the number in base 8 + extra
-    const char* lower = "0123456789abcdef";
-    const char* upper = "0123456789ABCDEF";
+    constexpr size_t const buff_size = 64; // enough to fit the number in base 8 + extra
+    static char const lower[] = "0123456789abcdef";
+    static char const upper[] = "0123456789ABCDEF";
     char buff[buff_size];
 
     if (x == 0) os << '0';
@@ -279,7 +280,9 @@ inline std::ostream& operator << (std::ostream& os, uint128_t x) {
         if (os.flags () & std::ios::showpos)
             buff[-- i] = '+';
 
-        os.write (&buff[i], buff_size - i);
+        static_assert(buff_size <= std::numeric_limits<std::streamsize>::max(),
+                      "");
+        os.write (&buff[i], static_cast<std::streamsize>(buff_size - i));
     }
 
     return os;
