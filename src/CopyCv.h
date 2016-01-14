@@ -27,7 +27,7 @@
 namespace sharemind {
 
 template <typename To, typename From>
-using CopyCv = CopyConst<CopyVolatile<To, From>, From>;
+using CopyCv = CopyConst<typename CopyVolatile<To, From>::type, From>;
 
 template <typename To, typename From>
 using CopyCv_t = typename CopyCv<To, From>::type;
