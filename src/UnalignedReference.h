@@ -29,7 +29,7 @@
 namespace sharemind {
 
 template <typename T>
-class UnalignedReference: public UnalignedReferenceBase<T> {
+class UnalignedReference: public Detail::UnalignedReferenceBase<T> {
 
 public: /* Methods: */
 

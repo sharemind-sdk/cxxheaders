@@ -26,6 +26,7 @@
 
 
 namespace sharemind {
+namespace Detail {
 
 template <typename T>
 class UnalignedReferenceBase {
@@ -59,6 +60,7 @@ private: /* Fields: */
 
 };
 
+} /* namespace Detail { */
 } /* namespace sharemind { */
 
 #endif /* SHAREMIND_DETAIL_UNALIGNEDREFERENCEBASE_H */
