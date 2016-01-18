@@ -25,7 +25,7 @@ namespace sharemind {
 template <typename ...> struct Void { using type = void; };
 #ifdef SHAREMIND_GCC_VERSION
 /* Work around CWG 1558 in GCC: */
-template <typename ... T> using Void_t = typename ToVoid<T ...>::type;
+template <typename ... T> using Void_t = typename Void<T ...>::type;
 #else
 template <typename ...> using Void_t = void;
 #endif
