@@ -20,19 +20,14 @@
 #ifndef SHAREMIND_VOIDT_H
 #define SHAREMIND_VOIDT_H
 
-#include <sharemind/compiler-support/GccVersion.h>
-
-
 namespace sharemind {
 
+template <typename ...> struct Void { using type = void; };
 #ifdef SHAREMIND_GCC_VERSION
 /* Work around CWG 1558 in GCC: */
-namespace Detail {
-    template <typename ...> struct Voider { using type = void; };
-} /* namespace Detail { */
-template <typename ... T> using VoidT = typename Detail::Voider<T ...>::type;
+template <typename ... T> using Void_t = typename ToVoid<T ...>::type;
 #else
-template <typename ...> using VoidT = void;
+template <typename ...> using Void_t = void;
 #endif
 
 } /* namespace sharemind { */
