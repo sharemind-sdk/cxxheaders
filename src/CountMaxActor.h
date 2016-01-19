@@ -21,7 +21,6 @@
 #define SHAREMIND_COUNTMAXACTOR_H
 
 #include <algorithm>
-#include <boost/static_assert.hpp>
 #include <cassert>
 #include <cstddef>
 #include <limits>
