@@ -26,8 +26,10 @@
 #include <condition_variable>
 #include <cstddef>
 #include <exception>
+#include <sharemind/comma.h>
 #include <type_traits>
 #include <utility>
+#include "compiler-support/GccInheritConstructor.h"
 #include "compiler-support/GccPR50025.h"
 #include "compiler-support/GccVersion.h"
 #include "CountMaxActor.h"
@@ -43,53 +45,52 @@ namespace sharemind {
 
 class CircBufferDefaultLocking {
 
+public: /* Constants: */
+
+    constexpr static bool const providesWait = true;
+
+private: /* Types: */
+
+    using WriteGuard = sharemind::QueueingRwMutex::UniqueGuard;
+    using ReadGuard = sharemind::QueueingRwMutex::SharedGuard;
+
 public: /* Types: */
-
-    class ReadGuard: public sharemind::QueueingRwMutex::SharedGuard {
-
-    public: /* Methods: */
-
-        inline ReadGuard(const CircBufferDefaultLocking & locking)
-            : sharemind::QueueingRwMutex::SharedGuard(
-                  locking.m_dataAvailableMutex)
-        {}
-
-    };
-
-    class WriteGuard: public sharemind::QueueingRwMutex::UniqueGuard {
-
-    public: /* Methods: */
-
-        inline WriteGuard(const CircBufferDefaultLocking & locking)
-            : sharemind::QueueingRwMutex::UniqueGuard(
-                  locking.m_dataAvailableMutex)
-        {}
-
-    };
 
     class ScopedReadLock: public sharemind::QueueingRwMutex::SharedLock {
 
     public: /* Methods: */
 
-        inline ScopedReadLock(const CircBufferDefaultLocking & locking)
+        ScopedReadLock(CircBufferDefaultLocking & locking)
             : sharemind::QueueingRwMutex::SharedLock(
                   locking.m_dataAvailableMutex)
         {}
 
     };
 
-    class ScopedWriteLock: public sharemind::QueueingRwMutex::UniqueLock {
-
-    public: /* Methods: */
-
-        inline ScopedWriteLock(const CircBufferDefaultLocking & locking)
-            : sharemind::QueueingRwMutex::UniqueLock(
-                  locking.m_dataAvailableMutex)
-        {}
-
-    };
-
 public: /* Methods: */
+
+    inline size_t dataAvailable() const noexcept {
+        ReadGuard const guard(m_dataAvailableMutex);
+        return m_dataAvailable;
+    }
+
+    inline size_t dataAvailableNoLocking() const noexcept
+    { return m_dataAvailable; }
+
+    inline size_t increaseDataAvailable(size_t const size) noexcept {
+        WriteGuard const guard(m_dataAvailableMutex);
+        m_dataAvailable += size;
+        m_dataAvailableCondition.notify_one();
+        return m_dataAvailable;
+    }
+
+    inline size_t decreaseDataAvailable(size_t const size) noexcept {
+        WriteGuard const guard(m_dataAvailableMutex);
+        assert(m_dataAvailable >= size);
+        m_dataAvailable -= size;
+        m_dataAvailableCondition.notify_one();
+        return m_dataAvailable;
+    }
 
     template <typename Lock, typename LoopDuration>
     inline void wait_for(Lock & lock, LoopDuration && loopDuration) {
@@ -101,61 +102,57 @@ public: /* Methods: */
     template <typename Lock> inline void wait(Lock & lock)
     { return m_dataAvailableCondition.wait(lock); }
 
-    inline void notifyOne() noexcept { m_dataAvailableCondition.notify_one(); }
-
 private: /* Fields: */
 
     mutable sharemind::QueueingRwMutex m_dataAvailableMutex;
     std::condition_variable_any m_dataAvailableCondition;
+    size_t m_dataAvailable = 0u;
 
 };
 
 class CircBufferNoLocking {
 
-public: /* Types: */
+public: /* Constants: */
 
-    struct ReadGuard {
-        inline ReadGuard(const CircBufferNoLocking &) {}
-    };
-
-    struct WriteGuard {
-        inline WriteGuard(const CircBufferNoLocking &) {}
-    };
-
-    struct ScopedReadLock {
-        inline ScopedReadLock(const CircBufferNoLocking &) {}
-    };
-
-    struct ScopedWriteLock {
-        inline ScopedWriteLock(const CircBufferNoLocking &) {}
-    };
+    constexpr static bool const providesWait = false;
 
 public: /* Methods: */
 
-    template <typename Lock, typename LoopDuration>
-    inline void wait_for(Lock &&, LoopDuration &&) noexcept {}
+    inline size_t dataAvailable() const noexcept { return m_dataAvailable; }
 
-    template <typename Lock> inline void wait(Lock &&) noexcept {}
+    inline size_t increaseDataAvailable(size_t const size) noexcept {
+        m_dataAvailable += size;
+        return m_dataAvailable;
+    }
 
-    inline void notifyOne() const noexcept {}
+    inline size_t decreaseDataAvailable(size_t const size) noexcept {
+        m_dataAvailable -= size;
+        return m_dataAvailable;
+    }
+
+private: /* Fields: */
+
+    size_t m_dataAvailable = 0u;
 
 };
 
-template <typename T, typename Locking>
-class CircBufferSCSP;
+namespace Detail {
 
-namespace Internal {
+template <typename T, typename Locking, bool = Locking::providesWait>
+class CircBufferBase2;
 
 /**
  * \brief A one producer, one consumer thread circular FIFO buffer.
 */
-template <typename T, typename Locking>
+template <typename T, typename Locking_>
 class CircBufferBase {
 
-    template <typename T__, typename Locking__>
-    friend class CircBufferSCSP;
+    template <typename, typename, bool>
+    friend class CircBufferBase2;
 
 private: /* Types: */
+
+    using Locking = Locking_;
 
     #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
     #warning Using workaround for unknown GCC 4.7 bug.
@@ -240,7 +237,7 @@ public: /* Methods: */
         , m_bufferSize(bufferSize)
         , m_readOffset(0u)
         , m_writeOffset(0u)
-        , m_dataAvailable(0u) {}
+    {}
 
     inline ~CircBufferBase() noexcept
     { delete[] static_cast<ValueAllocType *>(m_buffer); }
@@ -409,10 +406,8 @@ public: /* Methods: */
     inline bool empty() const noexcept { return dataAvailable() <= 0u; }
 
     /** \returns the total number of elements pending. */
-    inline size_t dataAvailable() const noexcept {
-        typename Locking::ReadGuard lock(m_locking);
-        return m_dataAvailable;
-    }
+    inline size_t dataAvailable() const noexcept
+    { return m_locking.dataAvailable(); }
 
     /**
      * \param[out] availableUntilBufferEnd where to write the total number of
@@ -548,43 +543,16 @@ public: /* Methods: */
     inline size_t read(T * const buffer, const size_t size) noexcept
     { return operate<ReadActions>(buffer, size); }
 
-protected: /* Methods: */
-
-    /**
-     * \returns reference to the locking policy.
-     * \note implementations may require access to the locking policy.
-     */
-    inline Locking& locking() const noexcept { return m_locking; }
-
-    /**
-     * \returns the total number of elements pending.
-     * \note performs no locking.
-     */
-    inline size_t dataAvailableNoLocking() const noexcept
-    { return m_dataAvailable; }
-
 private: /* Methods: */
 
     inline size_t increaseDataAvailable(const size_t size) noexcept {
         assert(size <= m_bufferSize);
-
-        typename Locking::WriteGuard lock(m_locking);
-        assert(size <= (m_bufferSize - m_dataAvailable));
-        m_dataAvailable += size;
-        assert(m_dataAvailable <= m_bufferSize);
-        m_locking.notifyOne();
-        return m_dataAvailable;
+        return m_locking.increaseDataAvailable(size);
     }
 
     inline size_t decreaseDataAvailable(const size_t size) noexcept {
         assert(size <= m_bufferSize);
-
-        typename Locking::WriteGuard lock(m_locking);
-        assert(m_dataAvailable >= size);
-        m_dataAvailable -= size;
-        assert(m_dataAvailable <= m_bufferSize);
-        m_locking.notifyOne();
-        return m_dataAvailable;
+        return m_locking.decreaseDataAvailable(size);
     }
 
     template <typename Actions>
@@ -667,36 +635,36 @@ private: /* Types: */
                                              const size_t size) noexcept
     { ValueTypeInfo::copy(second, first, size); }
 
-    template < typename BufferSideType__
-             , typename OtherSideType__
-             , void (*COPY_ACTION__)(BufferSideType__ *,
-                                     OtherSideType__ *,
+    template < typename BufferSideType_
+             , typename OtherSideType_
+             , void (*COPY_ACTION_)(BufferSideType_ *,
+                                     OtherSideType_ *,
                                      size_t) noexcept
-             , size_t (Self::*OFFSET_ACTION__)() const noexcept
-             , size_t (Self::*AVAILABLE_WITH_REF_ACTION__)(size_t &)
+             , size_t (Self::*OFFSET_ACTION_)() const noexcept
+             , size_t (Self::*AVAILABLE_WITH_REF_ACTION_)(size_t &)
                     const noexcept
-             , size_t (Self::*AVAILABLE_UBE__)() const noexcept
-             , size_t (Self::*DONE__)(size_t) noexcept
-             , void (Self::*DONE_NO_RET__)(size_t) noexcept
-             , std::pair<size_t, size_t> (Self::*DONE_RET_PAIR__)(size_t)
+             , size_t (Self::*AVAILABLE_UBE_)() const noexcept
+             , size_t (Self::*DONE_)(size_t) noexcept
+             , void (Self::*DONE_NO_RET_)(size_t) noexcept
+             , std::pair<size_t, size_t> (Self::*DONE_RET_PAIR_)(size_t)
                     noexcept
-             , size_t (Self::*DONE_RET_UBE__)(size_t) noexcept
+             , size_t (Self::*DONE_RET_UBE_)(size_t) noexcept
              >
     struct FifoBufferActions {
-        BOOST_STATIC_ASSERT(std::is_const<BufferSideType__>::value
-                            != std::is_const<OtherSideType__>::value);
-        typedef BufferSideType__ BufferSideType;
-        typedef OtherSideType__ OtherSideType;
-        static inline void copyAction(BufferSideType__ * const a,
-                                      OtherSideType__ * const b,
+        BOOST_STATIC_ASSERT(std::is_const<BufferSideType_>::value
+                            != std::is_const<OtherSideType_>::value);
+        typedef BufferSideType_ BufferSideType;
+        typedef OtherSideType_ OtherSideType;
+        static inline void copyAction(BufferSideType_ * const a,
+                                      OtherSideType_ * const b,
                                       const size_t size) noexcept
-        { COPY_ACTION__(a, b, size); }
+        { COPY_ACTION_(a, b, size); }
         static inline size_t offset(const Self * thisPtr) noexcept
-        { return (thisPtr->*OFFSET_ACTION__)(); }
-        static inline BufferSideType__ * operatePtr(const Self * thisPtr)
+        { return (thisPtr->*OFFSET_ACTION_)(); }
+        static inline BufferSideType_ * operatePtr(const Self * thisPtr)
                 noexcept
         {
-            return const_cast<BufferSideType__ *>(
+            return const_cast<BufferSideType_ *>(
                         ValueTypeInfo::ptrAdd(thisPtr->arrayStart(),
                                               offset(thisPtr)));
         }
@@ -704,22 +672,22 @@ private: /* Types: */
                                        size_t & availableUntilBufferEnd)
                 noexcept
         {
-            return (thisPtr->*AVAILABLE_WITH_REF_ACTION__)(
+            return (thisPtr->*AVAILABLE_WITH_REF_ACTION_)(
                         availableUntilBufferEnd);
         }
         static inline size_t availableUntilBufferEnd(Self * thisPtr) noexcept
-        { return (thisPtr->*AVAILABLE_UBE__)(); }
+        { return (thisPtr->*AVAILABLE_UBE_)(); }
         static inline size_t done(Self * thisPtr, const size_t size) noexcept
-        { return (thisPtr->*DONE__)(size); }
+        { return (thisPtr->*DONE_)(size); }
         static inline void doneNoRet(Self * thisPtr, const size_t size) noexcept
-        { (thisPtr->*DONE_NO_RET__)(size); }
+        { (thisPtr->*DONE_NO_RET_)(size); }
         static inline std::pair<size_t, size_t> doneRetPair(
                 Self * thisPtr,
                 const size_t size) noexcept
-        { return (thisPtr->*DONE_RET_PAIR__)(size); }
+        { return (thisPtr->*DONE_RET_PAIR_)(size); }
         static inline size_t doneRetUbe(Self * thisPtr,
                                         const size_t size) noexcept
-        { return (thisPtr->*DONE_RET_UBE__)(size); }
+        { return (thisPtr->*DONE_RET_UBE_)(size); }
     };
 
     typedef FifoBufferActions<typename Self::ValueType,
@@ -792,33 +760,25 @@ private: /* Fields :*/
     const size_t m_bufferSize;
     size_t m_readOffset;
     size_t m_writeOffset;
-    size_t m_dataAvailable;
 
     mutable Locking m_locking;
 
 }; /* template <typename T, typename Locking> class CircBufferBase { */
 
-} /* namespace Internal { */
-
-template <typename T, typename Locking = CircBufferDefaultLocking>
-class CircBufferSCSP {};
-
-template <typename T>
-class CircBufferSCSP<T, CircBufferNoLocking>
-        : public Internal::CircBufferBase<T, CircBufferNoLocking>
-{
+template <typename T, typename Locking>
+class CircBufferBase2<T, Locking, false>: public CircBufferBase<T, Locking> {
 
 public: /* Methods: */
 
-    inline CircBufferSCSP(const size_t bufferSize = 1024u * 1024u)
-        : Internal::CircBufferBase<T, CircBufferNoLocking>(bufferSize) {}
+    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(
+            CircBufferBase2,
+            CircBufferBase<T SHAREMIND_COMMA Locking>,
+            CircBufferBase)
 
-};
+}; /* class CircBufferBase2<T, Locking, false> */
 
-template <typename T>
-class CircBufferSCSP<T, CircBufferDefaultLocking>
-        : public Internal::CircBufferBase<T, CircBufferDefaultLocking>
-{
+template <typename T, typename Locking>
+class CircBufferBase2<T, Locking, true>: public CircBufferBase<T, Locking> {
 
 private: /* Types: */
 
@@ -836,15 +796,17 @@ private: /* Types: */
 
 public: /* Methods: */
 
-    inline CircBufferSCSP(const size_t bufferSize = 1024u * 1024u)
-        : Internal::CircBufferBase<T, CircBufferDefaultLocking>(bufferSize) {}
+    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(
+            CircBufferBase2,
+            CircBufferBase<T SHAREMIND_COMMA Locking>,
+            CircBufferBase)
 
     /**
      * \brief Waits until there is data pending.
      * \returns the total number of elements pending.
     */
     inline size_t waitSpaceAvailable() const
-    { return waitSpaceAvailable__(); }
+    { return waitSpaceAvailable_(); }
 
     /**
      * \brief Waits until there is data pending.
@@ -859,8 +821,8 @@ public: /* Methods: */
             StopTest && stopTest,
             LoopDuration && loopDuration = LoopDuration{}) const
     {
-        return waitSpaceAvailable__(std::forward<StopTest>(stopTest),
-                                    std::forward<LoopDuration>(loopDuration));
+        return waitSpaceAvailable_(std::forward<StopTest>(stopTest),
+                                   std::forward<LoopDuration>(loopDuration));
     }
 
     /**
@@ -870,7 +832,7 @@ public: /* Methods: */
      * \returns the total number of elements free.
     */
     inline size_t waitSpaceAvailable(size_t & availableUntilBufferEnd) const
-    { return waitSpaceAvailable__2(availableUntilBufferEnd); }
+    { return waitSpaceAvailable_2(availableUntilBufferEnd); }
 
     /**
      * \param[out] availableUntilBufferEnd where to write the total number of
@@ -888,14 +850,14 @@ public: /* Methods: */
             StopTest && stopTest = StopTest(),
             LoopDuration && loopDuration = LoopDuration()) const
     {
-        return waitSpaceAvailable__2(availableUntilBufferEnd,
-                                     std::forward<StopTest>(stopTest),
-                                     std::forward<LoopDuration>(loopDuration));
+        return waitSpaceAvailable_2(availableUntilBufferEnd,
+                                    std::forward<StopTest>(stopTest),
+                                    std::forward<LoopDuration>(loopDuration));
     }
 
     /** \returns the number of elements free before the buffer array wraps. */
     inline size_t waitSpaceAvailableUntilBufferEnd() const {
-        return waitSpaceAvailableUntilBufferEnd__();
+        return waitSpaceAvailableUntilBufferEnd_();
     }
 
     /** \returns the number of elements free before the buffer array wraps. */
@@ -906,7 +868,7 @@ public: /* Methods: */
             StopTest && stopTest = StopTest(),
             LoopDuration && loopDuration = LoopDuration()) const
     {
-        return waitSpaceAvailableUntilBufferEnd__(
+        return waitSpaceAvailableUntilBufferEnd_(
                     std::forward<StopTest>(stopTest),
                     std::forward<LoopDuration>(loopDuration));
     }
@@ -944,7 +906,7 @@ public: /* Methods: */
      * \returns the total number of elements pending.
     */
     inline size_t waitDataAvailable(size_t & availableUntilBufferEnd) const {
-        return waitDataAvailable__(availableUntilBufferEnd);
+        return waitDataAvailable_(availableUntilBufferEnd);
         const size_t toBufferEnd = (this->bufferSize() - this->readOffset());
         const size_t available =
                 waitAvailable<HaveDataTest>();
@@ -969,9 +931,9 @@ public: /* Methods: */
             StopTest && stopTest,
             LoopDuration && loopDuration = LoopDuration{}) const
     {
-        return waitDataAvailable__(availableUntilBufferEnd,
-                                   std::forward<StopTest>(stopTest),
-                                   std::forward<LoopDuration>(loopDuration));
+        return waitDataAvailable_(availableUntilBufferEnd,
+                                  std::forward<StopTest>(stopTest),
+                                  std::forward<LoopDuration>(loopDuration));
     }
 
     /**
@@ -979,7 +941,7 @@ public: /* Methods: */
      * \returns the number of elements pending before the buffer array wraps.
     */
     inline size_t waitDataAvailableUntilBufferEnd() const
-    { return waitDataAvailableUntilBufferEnd__(); }
+    { return waitDataAvailableUntilBufferEnd_(); }
 
     /**
      * \brief Waits until there is data pending.
@@ -994,7 +956,7 @@ public: /* Methods: */
             StopTest && stopTest,
             LoopDuration && loopDuration = LoopDuration{}) const
     {
-        return waitDataAvailableUntilBufferEnd__(
+        return waitDataAvailableUntilBufferEnd_(
                     std::forward<StopTest>(stopTest),
                     std::forward<LoopDuration>(loopDuration));
     }
@@ -1002,14 +964,14 @@ public: /* Methods: */
 private: /* Methods: */
 
     template <typename ... Args>
-    inline size_t waitSpaceAvailable__(Args && ... args) const {
+    inline size_t waitSpaceAvailable_(Args && ... args) const {
         return this->bufferSize() - waitAvailable<HaveSpaceTest>(
                     std::forward<Args>(args)...);
     }
 
     template <typename ... Args>
-    inline size_t waitSpaceAvailable__2(size_t & availableUntilBufferEnd,
-                                        Args && ... args) const
+    inline size_t waitSpaceAvailable_2(size_t & availableUntilBufferEnd,
+                                       Args && ... args) const
     {
         const size_t available =
                 waitAvailable<HaveSpaceTest>(std::forward<Args>(args)...);
@@ -1019,7 +981,7 @@ private: /* Methods: */
     }
 
     template <typename ... Args>
-    inline size_t waitSpaceAvailableUntilBufferEnd__(Args && ... args) const {
+    inline size_t waitSpaceAvailableUntilBufferEnd_(Args && ... args) const {
         return this->bufferSize()
                - std::max(waitAvailable<HaveSpaceTest>(
                               std::forward<Args>(args)...),
@@ -1027,7 +989,7 @@ private: /* Methods: */
     }
 
     template <typename ... Args>
-    inline size_t waitDataAvailable__(
+    inline size_t waitDataAvailable_(
             size_t & availableUntilBufferEnd,
             Args && ... args) const
     {
@@ -1039,7 +1001,7 @@ private: /* Methods: */
     }
 
     template <typename ... Args>
-    inline size_t waitDataAvailableUntilBufferEnd__(Args && ... args) const {
+    inline size_t waitDataAvailableUntilBufferEnd_(Args && ... args) const {
         const size_t toBufferEnd = (this->bufferSize() - this->readOffset());
         return std::min(waitAvailable<HaveDataTest>(
                             std::forward<Args>(args)...),
@@ -1048,28 +1010,35 @@ private: /* Methods: */
 
     template <typename Condition>
     inline size_t waitAvailable() const {
-        typename CircBufferDefaultLocking::ScopedReadLock lock(this->locking());
-        while (!Condition::test(this->dataAvailableNoLocking(),
+        Locking & lockingImpl = this->m_locking;
+        typename Locking::ScopedReadLock lock(lockingImpl);
+        while (!Condition::test(lockingImpl.dataAvailableNoLocking(),
                                 this->bufferSize()))
-            this->locking().wait(lock);
-        return this->dataAvailableNoLocking();
+            lockingImpl.wait(lock);
+        return lockingImpl.dataAvailableNoLocking();
     }
 
     template <typename Condition, typename StopTest, typename LoopDuration>
     inline size_t waitAvailable(StopTest stopTest,
                                 LoopDuration const loopDuration) const
     {
-        typename CircBufferDefaultLocking::ScopedReadLock lock(this->locking());
-        while (!Condition::test(this->dataAvailableNoLocking(),
+        Locking & lockingImpl = this->m_locking;
+        typename Locking::ScopedReadLock lock(lockingImpl);
+        while (!Condition::test(lockingImpl.dataAvailableNoLocking(),
                                 this->bufferSize()))
         {
             stopTest();
-            this->locking().wait_for(lock, loopDuration);
+            lockingImpl.wait_for(lock, loopDuration);
         }
-        return this->dataAvailableNoLocking();
+        return lockingImpl.dataAvailableNoLocking();
     }
 
-};
+}; /* class CircBufferBase2<T, Locking, true> */
+
+} /* namespace Detail { */
+
+template <typename T, typename Locking = CircBufferDefaultLocking>
+using CircBufferSCSP = Detail::CircBufferBase2<T, Locking>;
 
 } /* namespace sharemind { */
 
