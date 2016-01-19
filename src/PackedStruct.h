@@ -21,16 +21,8 @@
 #define SHAREMIND_PACKEDSTRUCT_H
 
 #include <cstdint>
-#include <cstring>
-#include <type_traits>
-#include <utility>
-#include "ConstUnalignedReference.h"
-#include "PotentiallyVoidTypeInfo.h"
-#include "SizeOfTypes.h"
-#include "TemplateCopyParams.h"
-#include "TemplateGetTypeParam.h"
-#include "TemplatePrefixTypes.h"
-#include "UnalignedReference.h"
+#include "ConstPackedReferences.h"
+#include "PackedReferences.h"
 
 
 namespace sharemind {
@@ -38,46 +30,20 @@ namespace sharemind {
 template <typename ... Ts>
 class __attribute__((packed)) PackedStruct {
 
+    SHAREMIND_PACKEDREFERENCESINFO_DECLARE_MEMBER_TYPES(Ts...)
+
 public: /* Types: */
 
     using type = PackedStruct<Ts...>;
 
-    template <size_t I>
-    using ElemType = typename TemplateGetTypeParam<I, Ts...>::type;
-
-    template <size_t I>
-    using ElemOffset =
-            typename TemplateCopyParams<
-                typename TemplatePrefixTypes<I, Ts...>::type,
-                SizeOfTypes
-            >::type::type;
-
-    constexpr static size_t const size = sizeOfTypes<Ts...>();
-
-    constexpr static size_t const numFields = sizeof...(Ts);
-
 public: /* Methods: */
 
-    template <size_t I>
-    ConstUnalignedReference<ElemType<I> > cref() const noexcept
-    { return ptrAdd(m_data.asUint8, ElemOffset<I>::value); }
+    PackedReferences<Ts...> refs() noexcept { return data(); }
+    ConstPackedReferences<Ts...> refs() const noexcept { return data(); }
+    ConstPackedReferences<Ts...> crefs() const noexcept { return data(); }
 
-    template <size_t I>
-    UnalignedReference<ElemType<I> > ref() noexcept
-    { return ptrAdd(m_data.asUint8, ElemOffset<I>::value); }
-
-    template <size_t I>
-    ConstUnalignedReference<ElemType<I> > ref() const noexcept
-    { return cref(); }
-
-    template <size_t I>
-    ElemType<I> get() const noexcept { return *cref<I>(); }
-
-    template <size_t I>
-    void set(ElemType<I> v) noexcept { return ref<I>() = std::move(v); }
-
-    template <size_t I, typename T>
-    void set(T && v) noexcept { return ref<I>() = std::forward<T>(v); }
+    SHAREMIND_PACKEDREFERENCESINFO_DEFINE_READ_METHODS
+    SHAREMIND_PACKEDREFERENCESINFO_DEFINE_WRITE_METHODS()
 
     void * data() noexcept { return &m_data; }
     void const * data() const noexcept { return &m_data; }
@@ -91,20 +57,14 @@ public: /* Methods: */
     unsigned char * dataUnsignedChar() noexcept { return m_data.asUChar; }
     unsigned char const * dataUnsignedChar() const noexcept { return m_data.asUChar; }
 
-    bool operator==(type const & rhs) const noexcept
-    { return std::memcmp(&m_data, &rhs.m_data, size) == 0; }
-
-    bool operator!=(type const & rhs) const noexcept
-    { return std::memcmp(&m_data, &rhs.m_data, size) != 0; }
-
 private: /* Fields: */
 
     union __attribute__((packed)) {
-        uint8_t asUint8[size];
-        char asChar[size];
-        unsigned char asUChar[size];
+        uint8_t asUint8[type::size];
+        char asChar[type::size];
+        unsigned char asUChar[type::size];
     } __attribute__((packed)) m_data;
-    static_assert(sizeof(m_data) == size, "");
+    static_assert(sizeof(m_data) == type::size, "");
 
 }; /* class PackedStruct */
 
@@ -116,6 +76,9 @@ private: /* Fields: */
 
 #include <array>
 #include <cassert>
+#include <cstring>
+#include <type_traits>
+#include <utility>
 
 
 using sharemind::PackedStruct;
@@ -129,6 +92,11 @@ struct PackedStructEqualityChecker<Msg, 0u>
 
 template <typename Msg, std::size_t I>
 struct PackedStructEqualityChecker {
+    static_assert(
+            std::is_same<
+                decltype(std::declval<Msg const>().template ref<I - 1u>()),
+                decltype(std::declval<Msg const>().template cref<I - 1u>())
+            >::value, "");
     static void check(Msg const & a, Msg const & b) noexcept {
         PackedStructEqualityChecker<Msg, I - 1u>::check(a, b);
         assert(a.template get<I - 1u>() == b.template get<I - 1u>());
@@ -144,21 +112,47 @@ void checkPackedStruct(Msg const & m) noexcept {
     PackedStructEqualityChecker<Msg>::check(m, m2);
 }
 
+template <typename Lhs, typename Rhs>
+void checkPackedRefs(Lhs && lhs, Rhs && rhs) noexcept {
+    PackedStructEqualityChecker<typename std::remove_reference<Lhs>::type>
+            ::check(lhs, rhs);
+}
+
 int main() {
-    PackedStruct<char, int, std::array<uint16_t, 10>, float, long> m;
+    using Msg1 = PackedStruct<char, int, std::array<uint16_t, 10>, float, long>;
+    using Msg2 = PackedStruct<char, Msg1, char>;
+    static_assert(sizeof(Msg2) == sizeof(Msg1) + 2, "");
+    Msg1 m;
+    Msg2 m2;
+    using T1 = decltype(std::declval<Msg1 const>().ref<0u>());
+    using T2 = decltype(std::declval<Msg1 const>().cref<0u>());
+    static_assert(std::is_same<T1, T2>::value, "");
+
+    // Regular checks
     m.set<0u>('x');
     m.set<1u>(42);
     m.set<2u>({1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u});
     m.set<3u>(55);
     m.set<4u>(231234);
     checkPackedStruct(m);
-    PackedStruct<char, decltype(m), char> m2;
-    static_assert(sizeof(m2) == sizeof(m) + 2, "");
     m2.set<0u>('<');
     m2.set<1u>(std::move(m));
     m2.set<2u>('>');
     checkPackedStruct(m2);
-    return 0;
+
+    // Checks using references:
+    auto const mRefs = m.refs();
+    mRefs.set<0u>('x');
+    mRefs.set<1u>(42);
+    mRefs.set<2u>({1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u});
+    mRefs.set<3u>(55);
+    mRefs.set<4u>(231234);
+    checkPackedRefs(m.crefs(), std::move(mRefs));
+    auto const m2Refs = m2.refs();
+    m2Refs.set<0u>('<');
+    m2Refs.set<1u>(std::move(m));
+    m2Refs.set<2u>('>');
+    checkPackedRefs(m2.crefs(), std::move(m2Refs));
 }
 
 #endif /* SHAREMIND_PACKEDSTRUCT_TEST */
