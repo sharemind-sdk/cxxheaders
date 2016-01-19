@@ -110,6 +110,8 @@ private: /* Fields: */
 
 } /* namespace sharemind { */
 
+#endif /* SHAREMIND_PACKEDSTRUCT_H */
+
 #ifdef SHAREMIND_PACKEDSTRUCT_TEST
 
 #include <array>
@@ -160,5 +162,3 @@ int main() {
 }
 
 #endif /* SHAREMIND_PACKEDSTRUCT_TEST */
-
-#endif /* SHAREMIND_PACKEDSTRUCT_H */
