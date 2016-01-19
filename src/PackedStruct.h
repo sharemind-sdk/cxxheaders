@@ -106,7 +106,7 @@ private: /* Fields: */
     } __attribute__((packed)) m_data;
     static_assert(sizeof(m_data) == size, "");
 
-};
+}; /* class PackedStruct */
 
 } /* namespace sharemind { */
 
