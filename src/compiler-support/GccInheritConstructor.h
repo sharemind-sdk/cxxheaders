@@ -29,18 +29,18 @@
   name (fullBase) is impossible, and hence this is always required. Note that
   the third argument is not used.
 */
-#define SHAREMIND_GCC_INHERITED_CONSTRUCTOR_WORKAROUND(thisClass,fullBase,base)\
+#define SHAREMIND_GCC_INHERITED_CONSTRUCTOR_WORKAROUND(thisClass,base,...)\
     template <typename ... Args> \
     inline thisClass(Args && ... args) \
-        : fullBase(std::forward<Args>(args)...) {}
+        : __VA_ARGS__(std::forward<Args>(args)...) {}
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
 #include <utility>
 #define SHAREMIND_GCC_INHERITED_CONSTRUCTOR(...) \
         SHAREMIND_GCC_INHERITED_CONSTRUCTOR_WORKAROUND(__VA_ARGS__)
 #else
-#define SHAREMIND_GCC_INHERITED_CONSTRUCTOR(thisClass,fullBase,base) \
-    using fullBase::base;
+#define SHAREMIND_GCC_INHERITED_CONSTRUCTOR(thisClass,base,...) \
+    using __VA_ARGS__::base;
 #endif
 
 #endif /* SHAREMIND_GCCINHERITCONSTRUCTOR_H */

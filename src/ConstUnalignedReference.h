@@ -33,8 +33,8 @@ class ConstUnalignedReference: public Detail::UnalignedReferenceBase<T const> {
 public: /* Methods: */
 
     SHAREMIND_GCC_INHERITED_CONSTRUCTOR(ConstUnalignedReference,
-                                        UnalignedReferenceBase<T const>,
-                                        UnalignedReferenceBase)
+                                        UnalignedReferenceBase,
+                                        UnalignedReferenceBase<T const>)
 
 };
 

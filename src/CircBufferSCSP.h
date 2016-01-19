@@ -769,10 +769,9 @@ class CircBufferBase2<T, Locking, false>: public CircBufferBase<T, Locking> {
 
 public: /* Methods: */
 
-    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(
-            CircBufferBase2,
-            CircBufferBase<T SHAREMIND_COMMA Locking>,
-            CircBufferBase)
+    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(CircBufferBase2,
+                                        CircBufferBase,
+                                        CircBufferBase<T, Locking>)
 
 }; /* class CircBufferBase2<T, Locking, false> */
 
@@ -795,10 +794,9 @@ private: /* Types: */
 
 public: /* Methods: */
 
-    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(
-            CircBufferBase2,
-            CircBufferBase<T SHAREMIND_COMMA Locking>,
-            CircBufferBase)
+    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(CircBufferBase2,
+                                        CircBufferBase,
+                                        CircBufferBase<T, Locking>)
 
     /**
      * \brief Waits until there is data pending.
