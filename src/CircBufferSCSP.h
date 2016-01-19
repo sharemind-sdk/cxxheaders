@@ -21,7 +21,6 @@
 #define SHAREMIND_CIRCBUFFERSCSP_H
 
 #include <algorithm>
-#include <boost/static_assert.hpp>
 #include <cassert>
 #include <condition_variable>
 #include <cstddef>
@@ -596,9 +595,9 @@ private: /* Methods: */
                 typename sharemind::FunctionTraits<Actor>
                         ::template argument<1u>::type
             >::type;
-        BOOST_STATIC_ASSERT(std::is_const<typename Actions::BufferSideType>
-                                    ::value
-                            == std::is_const<WDT>::value);
+        static_assert(std::is_const<typename Actions::BufferSideType>
+                            ::value
+                      == std::is_const<WDT>::value, "");
         size_t availableUntilBufferEnd = Actions::availableUntilBufferEnd(this);
         while (availableUntilBufferEnd > 0u) {
             try {
@@ -651,8 +650,8 @@ private: /* Types: */
              , size_t (Self::*DONE_RET_UBE_)(size_t) noexcept
              >
     struct FifoBufferActions {
-        BOOST_STATIC_ASSERT(std::is_const<BufferSideType_>::value
-                            != std::is_const<OtherSideType_>::value);
+        static_assert(std::is_const<BufferSideType_>::value
+                      != std::is_const<OtherSideType_>::value, "");
         typedef BufferSideType_ BufferSideType;
         typedef OtherSideType_ OtherSideType;
         static inline void copyAction(BufferSideType_ * const a,
