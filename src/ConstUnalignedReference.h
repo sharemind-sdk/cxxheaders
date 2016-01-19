@@ -34,7 +34,7 @@ public: /* Methods: */
 
     SHAREMIND_GCC_INHERITED_CONSTRUCTOR(ConstUnalignedReference,
                                         UnalignedReferenceBase,
-                                        UnalignedReferenceBase<T const>)
+                                        Detail::UnalignedReferenceBase<T const>)
 
 };
 

@@ -35,7 +35,7 @@ public: /* Methods: */
 
     SHAREMIND_GCC_INHERITED_CONSTRUCTOR(UnalignedReference,
                                         UnalignedReferenceBase,
-                                        UnalignedReferenceBase<T>)
+                                        Detail::UnalignedReferenceBase<T>)
 
     void operator=(T const & v) const noexcept
     { std::memcpy(this->ptr(), &v, sizeof(T)); }
