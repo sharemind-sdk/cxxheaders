@@ -24,7 +24,7 @@
 #include "ConstUnalignedReference.h"
 #include "PotentiallyVoidTypeInfo.h"
 #include "SizeOfTypes.h"
-#include "TemplateCopyParams.h"
+#include "TemplateCopyTypeParams.h"
 #include "TemplateGetTypeParam.h"
 #include "TemplatePrefixTypes.h"
 #include "UnalignedReference.h"
@@ -44,7 +44,7 @@ struct PackedReferencesInfo {
 
     template <std::size_t I>
     using ElemOffset =
-            typename TemplateCopyParams<
+            typename TemplateCopyTypeParams<
                 typename TemplatePrefixTypes<I, Ts...>::type,
                 SizeOfTypes
             >::type::type;

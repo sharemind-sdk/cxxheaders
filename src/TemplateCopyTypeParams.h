@@ -17,24 +17,23 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_TEMPLATECOPYPARAMS_H
-#define SHAREMIND_TEMPLATECOPYPARAMS_H
+#ifndef SHAREMIND_TEMPLATECOPYTYPEPARAMS_H
+#define SHAREMIND_TEMPLATECOPYTYPEPARAMS_H
 
 namespace sharemind {
 
-template <typename T, typename From, template <T ...> class To>
-struct TemplateCopyParams;
+template <typename From, template <typename ...> class To>
+struct TemplateCopyTypeParams;
 
-template <typename T,
-          template <T ...> class From,
-          template <T ...> class To,
-          T ... Vs>
-struct TemplateCopyParams<T, From<Vs...>, To>
-{ using type = To<Vs...>; };
+template <template <typename ...> class From,
+          template <typename ...> class To,
+          typename ... Ts>
+struct TemplateCopyTypeParams<From<Ts...>, To>
+{ using type = To<Ts...>; };
 
-template <typename T, typename From, template <T ...> class To>
-using TemplateCopyParams_t = typename TemplateCopyParams<T, From, To>::type;
+template <typename From, template <typename ...> class To>
+using TemplateCopyTypeParams_t = typename TemplateCopyTypeParams<From, To>::type;
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMIND_TEMPLATECOPYPARAMS_H */
+#endif /* SHAREMIND_TEMPLATECOPYTYPEPARAMS_H */
