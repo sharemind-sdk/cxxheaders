@@ -17,19 +17,19 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_TEMPLATEPREPENDONE_H
-#define SHAREMIND_TEMPLATEPREPENDONE_H
+#ifndef SHAREMIND_TEMPLATEPREPENDONETYPE_H
+#define SHAREMIND_TEMPLATEPREPENDONETYPE_H
 
 namespace sharemind {
 
-template <typename T, template <T ...> class Tmpl, typename TmplInstance, T v>
-struct TemplatePrependOne;
+template <template <typename ...> class Tmpl, typename, typename>
+struct TemplatePrependOneType;
 
-template <typename T, template <T ...> class Tmpl, T v, T ... vs>
-struct TemplatePrependOne<T, Tmpl, Tmpl<vs...>, v> {
-    using type = Tmpl<v, vs...>;
+template <template <typename ...> class Tmpl, typename T, typename ... Ts>
+struct TemplatePrependOneType<Tmpl, Tmpl<Ts...>, T> {
+    using type = Tmpl<T, Ts...>;
 };
 
 } /* namespace Sharemind { */
 
-#endif /* SHAREMIND_TEMPLATEPREPENDONE_H */
+#endif /* SHAREMIND_TEMPLATEPREPENDONETYPE_H */

@@ -21,7 +21,7 @@
 #define SHAREMIND_TEMPLATESUBTYPES_H
 
 #include <cstddef>
-#include "TemplatePrependOne.h"
+#include "TemplatePrependOneType.h"
 #include "TemplateTypeList.h"
 
 
@@ -39,7 +39,7 @@ struct TemplateSubTypes<0u, 0u, T, Ts...> { using type = TemplateTypeList<>; };
 template <size_t N, typename T, typename ... Ts>
 struct TemplateSubTypes<0u, N, T, Ts...> {
     using type =
-            typename TemplatePrependOne<
+            typename TemplatePrependOneType<
                 TemplateTypeList,
                 typename TemplateSubTypes<0u, N - 1u, Ts...>::type,
                 T
