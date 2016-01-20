@@ -17,40 +17,36 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_TEMPLATEAPPEND_H
-#define SHAREMIND_TEMPLATEAPPEND_H
+#ifndef SHAREMIND_TEMPLATEAPPENDTYPE_H
+#define SHAREMIND_TEMPLATEAPPENDTYPE_H
 
-#include "TemplateAppendOne.h"
+#include "TemplateAppendOneType.h"
 
 
 namespace sharemind {
 
-template <typename T,
-          template <T ...> class Tmpl,
+template <template <typename ...> class Tmpl,
           typename TmplInstance,
-          T ...>
-struct TemplateAppend;
+          typename ... Ts>
+struct TemplateAppendType;
 
-template <typename T,
-          template <T ...> class Tmpl,
+template <template <typename ...> class Tmpl,
           typename TmplInstance>
-struct TemplateAppend<T, Tmpl, TmplInstance>
+struct TemplateAppendType<Tmpl, TmplInstance>
 { using type = TmplInstance; };
 
-template <typename T,
-          template <T ...> class Tmpl,
+template <template <typename ...> class Tmpl,
           typename TmplInstance,
-          T v,
-          T ... vs>
-struct TemplateAppend<T, Tmpl, TmplInstance, v, vs...> {
+          typename T,
+          typename ... Ts>
+struct TemplateAppendType<Tmpl, TmplInstance, T, Ts...> {
     using type =
-            typename TemplateAppend<
-                T,
+            typename TemplateAppendType<
                 Tmpl,
-                typename TemplateAppendOne<T, Tmpl, TmplInstance, v>::type,
-                vs...>::type;
+                typename TemplateAppendOneType<Tmpl, TmplInstance, T>::type,
+                Ts...>::type;
 };
 
 } /* namespace Sharemind { */
 
-#endif /* SHAREMIND_TEMPLATEAPPEND_H */
+#endif /* SHAREMIND_TEMPLATEAPPENDTYPE_H */
