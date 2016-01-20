@@ -21,7 +21,7 @@
 #define SHAREMIND_TEMPLATEAPPEND_H
 
 #include "AlwaysTrueCond.h"
-#include "TemplateCondAppend.h"
+#include "TemplateCondAppendType.h"
 
 
 namespace sharemind {
@@ -29,7 +29,7 @@ namespace sharemind {
 template <template <typename ...> class Tmpl,
           typename Tpl,
           typename ... Ts>
-using TemplateAppend = TemplateCondAppend<AlwaysTrueCond, Tmpl, Tpl, Ts...>;
+using TemplateAppend = TemplateCondAppendType<AlwaysTrueCond, Tmpl, Tpl, Ts...>;
 
 } /* namespace Sharemind { */
 

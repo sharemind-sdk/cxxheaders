@@ -21,42 +21,38 @@
 #define SHAREMIND_TEMPLATECONDAPPEND_H
 
 #include <type_traits>
-#include "TemplateAppendOne.h"
+#include "TemplateAppendOneType.h"
 
 
 namespace sharemind {
 
-template <typename T,
-          template <T> class Pred,
-          template <T ...> class Tmpl,
+template <template <typename T> class Pred,
+          template <typename ...> class Tmpl,
           typename TmplInstance,
-          T ...>
-struct TemplateCondAppend;
+          typename ...>
+struct TemplateCondAppendType;
 
-template <typename T,
-          template <T> class Pred,
-          template <T ...> class Tmpl,
+template <template <typename T> class Pred,
+          template <typename ...> class Tmpl,
           typename TmplInstance>
-struct TemplateCondAppend<T, Pred, Tmpl, TmplInstance>
+struct TemplateCondAppendType<Pred, Tmpl, TmplInstance>
 { using type = TmplInstance; };
 
-template <typename T,
-          template <T> class Pred,
-          template <T ...> class Tmpl,
+template <template <typename T> class Pred,
+          template <typename ...> class Tmpl,
           typename TmplInstance,
-          T v,
-          T ... vs>
-struct TemplateCondAppend<T, Pred, Tmpl, TmplInstance, v, vs...> {
+          typename T,
+          typename ... Ts>
+struct TemplateCondAppendType<Pred, Tmpl, TmplInstance, T, Ts...> {
   using type =
       typename ::std::conditional<
-          Pred<v>::value,
-          typename TemplateCondAppend<T, Pred, Tmpl, TmplInstance, vs...>::type,
-          typename TemplateCondAppend<
-                  T,
+          Pred<T>::value,
+          typename TemplateCondAppendType<Pred, Tmpl, TmplInstance, Ts...>::type,
+          typename TemplateCondAppendType<
                   Pred,
                   Tmpl,
-                  typename TemplateAppendOne<T, Tmpl, TmplInstance, v>::type,
-                  vs...>::type
+                  typename TemplateAppendOneType<Tmpl, TmplInstance, T>::type,
+                  Ts...>::type
       >::type;
 };
 
