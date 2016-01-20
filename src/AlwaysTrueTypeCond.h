@@ -17,17 +17,17 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_ALWAYSTRUECOND_H
-#define SHAREMIND_ALWAYSTRUECOND_H
+#ifndef SHAREMIND_ALWAYSTRUETYPECOND_H
+#define SHAREMIND_ALWAYSTRUETYPECOND_H
 
-#include "AlwaysTrue.h"
+#include "AlwaysTrueType.h"
 
 
 namespace sharemind {
 
-template <typename T, T v>
-using AlwaysTrueCond = AlwaysTrue<T, v>;
+template <typename C>
+using AlwaysTrueTypeCond = AlwaysTrueType<C>;
 
 } /* namespace Sharemind { */
 
-#endif /* SHAREMIND_ALWAYSTRUECOND_H */
+#endif /* SHAREMIND_ALWAYSTRUETYPECOND_H */

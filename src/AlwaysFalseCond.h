@@ -20,13 +20,13 @@
 #ifndef SHAREMIND_ALWAYSFALSECOND_H
 #define SHAREMIND_ALWAYSFALSECOND_H
 
-#include "AlwaysFalseType.h"
+#include "AlwaysFalse.h"
 
 
 namespace sharemind {
 
-template <typename C>
-using AlwaysFalseCond = AlwaysFalseType<C>;
+template <typename T, T v>
+using AlwaysFalseCond = AlwaysFalse<T, v>;
 
 } /* namespace Sharemind { */
 
