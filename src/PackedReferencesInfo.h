@@ -33,9 +33,9 @@
 namespace sharemind {
 
 template <typename ... Ts>
-class __attribute__((packed)) PackedReferencesInfo {
+struct PackedReferencesInfo {
 
-public: /* Types: */
+/* Types: */
 
     using type = PackedReferencesInfo<Ts...>;
 
@@ -53,7 +53,7 @@ public: /* Types: */
 
     constexpr static std::size_t const numFields = sizeof...(Ts);
 
-public: /* Methods: */
+/* Methods: */
 
     template <std::size_t I>
     static ConstUnalignedReference<ElemType<I> > cref(void const * const data)
@@ -72,7 +72,7 @@ public: /* Methods: */
     static void set(void * const data, ElemType<I> const & v) noexcept
     { return ref<I>(data) = v; }
 
-}; /* class PackedReferencesInfo */
+}; /* struct PackedReferencesInfo */
 
 #define SHAREMIND_PACKEDREFERENCESINFO_DECLARE_MEMBER_TYPES(...) \
     private: /* Types: */ \
