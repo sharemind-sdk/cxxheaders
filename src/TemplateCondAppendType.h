@@ -17,8 +17,8 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_TEMPLATECONDAPPEND_H
-#define SHAREMIND_TEMPLATECONDAPPEND_H
+#ifndef SHAREMIND_TEMPLATECONDAPPENDTYPE_H
+#define SHAREMIND_TEMPLATECONDAPPENDTYPE_H
 
 #include <type_traits>
 #include "TemplateAppendOneType.h"
@@ -60,4 +60,4 @@ struct TemplateCondAppendType<Pred, Tmpl, TmplInstance, T, Ts...> {
 
 } /* namespace Sharemind { */
 
-#endif /* SHAREMIND_TEMPLATECONDAPPEND_H */
+#endif /* SHAREMIND_TEMPLATECONDAPPENDTYPE_H */
