@@ -68,24 +68,20 @@ struct IndexInNonNullTuple<I, std::tuple<T, Ts...> >
 /* makeNoNullptrTuple helpers: */
 
 template <typename ... Ts>
-constexpr static std::tuple<Ts...> makeNoNullTuple_(std::tuple<Ts...> tpl)
+constexpr std::tuple<Ts...> makeNoNullTuple_(std::tuple<Ts...> tpl)
 { return tpl; }
 
 template <typename ... Ts, typename T, typename ... Args>
-constexpr static NoNullTuple_t<Ts...,
-                               StripAndDecay_t<T>,
-                               StripAndDecay_t<Args>...>
+constexpr NoNullTuple_t<Ts..., StripAndDecay_t<T>, StripAndDecay_t<Args>...>
 makeNoNullTuple_(std::tuple<Ts...> tpl, T && t, Args && ... args);
 
 template <typename ... Ts, typename ... Args>
-constexpr static NoNullTuple_t<Ts..., StripAndDecay_t<Args>...>
+constexpr NoNullTuple_t<Ts..., StripAndDecay_t<Args>...>
 makeNoNullTuple_(std::tuple<Ts...> tpl, decltype(nullptr), Args && ... args)
 { return makeNoNullTuple_(std::move(tpl), std::forward<Args>(args)...); }
 
 template <typename ... Ts, typename T, typename ... Args>
-constexpr static NoNullTuple_t<Ts...,
-                               StripAndDecay_t<T>,
-                               StripAndDecay_t<Args>...>
+constexpr NoNullTuple_t<Ts..., StripAndDecay_t<T>, StripAndDecay_t<Args>...>
 makeNoNullTuple_(std::tuple<Ts...> tpl, T && t, Args && ... args)
 {
     return makeNoNullTuple_(
