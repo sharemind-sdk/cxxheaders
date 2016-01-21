@@ -139,14 +139,6 @@ constexpr typename MakeNoNullTuple<std::tuple<Ts...> >::type makeNoNullTuple(
                 std::forward<Ts>(ts)...);
 }
 
-template <typename Tpl>
-constexpr typename MakeNoNullTuple<Tpl>::type toNoNullTuple(Tpl && tpl) {
-    using Detail::NoNullTuple::ToNoNullptrTuple;
-    return ToNoNullptrTuple<typename ::std::decay<Tpl>::type>::convert(
-            ::std::tuple<>{},
-            std::forward<Tpl>(tpl));
-}
-
 } /* namespace Sharemind { */
 
 #endif /* SHAREMIND_NONULLTUPLE_H */
