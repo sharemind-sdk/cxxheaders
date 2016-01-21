@@ -36,6 +36,14 @@ struct TemplateInverseCondAppend;
 template <typename T,
           template <T> class Pred,
           template <T ...> class Tmpl,
+          typename TmplInstance,
+          T ... vs>
+using TemplateInverseCondAppend_t =
+        typename TemplateInverseCondAppend<T, Pred, Tmpl, TmplInstance, vs...>::type;
+
+template <typename T,
+          template <T> class Pred,
+          template <T ...> class Tmpl,
           typename TmplInstance>
 struct TemplateInverseCondAppend<T, Pred, Tmpl, TmplInstance>
 { using type = TmplInstance; };
@@ -50,15 +58,14 @@ struct TemplateInverseCondAppend<T, Pred, Tmpl, TmplInstance, v, vs...> {
     using type =
             typename ::std::conditional<
                 Pred<v>::value,
-                typename TemplateInverseCondAppend<T, Pred, Tmpl, TmplInstance, vs...>
-                        ::type,
-                typename TemplateInverseCondAppend<
+                TemplateInverseCondAppend_t<T, Pred, Tmpl, TmplInstance, vs...>,
+                TemplateInverseCondAppend<
                     T,
                     Pred,
                     Tmpl,
-                    typename TemplateAppendOne<T, Tmpl, TmplInstance, v>::type,
+                    TemplateAppendOne<T, Tmpl, TmplInstance, v>,
                     vs...
-                >::type
+                >
             >::type;
 };
 

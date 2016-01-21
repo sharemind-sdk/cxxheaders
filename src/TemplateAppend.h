@@ -33,6 +33,13 @@ struct TemplateAppend;
 
 template <typename T,
           template <T ...> class Tmpl,
+          typename TmplInstance,
+          T ... vs>
+using TemplateAppend_t =
+        typename TemplateAppend<T, Tmpl, TmplInstance, vs...>::type;
+
+template <typename T,
+          template <T ...> class Tmpl,
           typename TmplInstance>
 struct TemplateAppend<T, Tmpl, TmplInstance>
 { using type = TmplInstance; };
@@ -44,11 +51,11 @@ template <typename T,
           T ... vs>
 struct TemplateAppend<T, Tmpl, TmplInstance, v, vs...> {
     using type =
-            typename TemplateAppend<
+            TemplateAppend_t<
                 T,
                 Tmpl,
-                typename TemplateAppendOne<T, Tmpl, TmplInstance, v>::type,
-                vs...>::type;
+                TemplateAppendOne_t<T, Tmpl, TmplInstance, v>,
+                vs...>;
 };
 
 } /* namespace Sharemind { */

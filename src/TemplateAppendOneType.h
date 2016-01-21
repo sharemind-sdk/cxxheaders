@@ -26,10 +26,13 @@ namespace sharemind {
 template <template <typename ...> class Tmpl, typename, typename>
 struct TemplateAppendOneType;
 
+template <template <typename ...> class Tmpl, typename TmplInstance, typename T>
+using TemplateAppendOneType_t =
+        typename TemplateAppendOneType<Tmpl, TmplInstance, T>::type;
+
 template <template <typename ...> class Tmpl, typename T, typename ... Ts>
-struct TemplateAppendOneType<Tmpl, Tmpl<Ts...>, T> {
-  using type = Tmpl<Ts..., T>;
-};
+struct TemplateAppendOneType<Tmpl, Tmpl<Ts...>, T>
+{ using type = Tmpl<Ts..., T>; };
 
 } /* namespace Sharemind { */
 
