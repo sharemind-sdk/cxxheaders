@@ -25,7 +25,7 @@
 #include <type_traits>
 #include "compiler-support/GccPR54526.h"
 #include "IsNullPointer.h"
-#include "TemplateCondAppendType.h"
+#include "TemplateInverseCondAppendType.h"
 
 
 namespace sharemind {
@@ -57,7 +57,7 @@ struct IndexInNonNullTuple
 /* makeNoNullptrTuple helpers: */
 
 template <typename Tpl, typename ... Ts>
-using Filter2 = TemplateCondAppendType<IsNullPointer, std::tuple, Tpl, Ts...>;
+using Filter2 = TemplateInverseCondAppendType<IsNullPointer, std::tuple, Tpl, Ts...>;
 
 template <typename Tpl> struct MakeNoNullTuple__ {};
 template <typename ... Ts>
