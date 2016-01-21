@@ -49,7 +49,7 @@ template <typename T,
 struct TemplateCondAppend<T, Pred, Tmpl, TmplInstance, v, vs...> {
   using type =
       typename ::std::conditional<
-          Pred<v>::value,
+          !Pred<v>::value,
           typename TemplateCondAppend<T, Pred, Tmpl, TmplInstance, vs...>::type,
           typename TemplateCondAppend<
                   T,
