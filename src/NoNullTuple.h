@@ -59,11 +59,6 @@ struct IndexInNonNullTuple
 template <typename Tpl, typename ... Ts>
 using Filter2 = TemplateInverseCondAppendType<IsNullPointer, std::tuple, Tpl, Ts...>;
 
-template <typename Tpl> struct MakeNoNullTuple_ {};
-template <typename ... Ts>
-struct MakeNoNullTuple_<SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<Ts...> >
-        : Filter2<SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<>, Ts...> {};
-
 struct NoNullptrTupleExtender {
 
     template <typename Tpl>
@@ -114,9 +109,13 @@ struct ToNoNullptrTuple<SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<T, Ts...>,
 
 }} /* namespace Detail { namespace NoNullTuple { */
 
-template <typename Tpl> struct MakeNoNullTuple
-        : Detail::NoNullTuple::MakeNoNullTuple_<
-                typename ::std::decay<Tpl>::type> {};
+template <typename ... Ts>
+struct MakeNoNullTuple
+        : Detail::NoNullTuple::Filter2<
+            std::tuple<>,
+            Ts...
+        >
+{};
 
 template <size_t I, typename OriginalTuple, typename NoNullTuple>
 constexpr auto noNullGet(NoNullTuple && t)
@@ -131,7 +130,7 @@ constexpr auto noNullGet(NoNullTuple && t)
 }
 
 template <typename ... Ts>
-constexpr typename MakeNoNullTuple<std::tuple<Ts...> >::type makeNoNullTuple(
+constexpr typename MakeNoNullTuple<Ts...>::type makeNoNullTuple(
         Ts && ... ts)
 {
     return Detail::NoNullTuple::NoNullptrTupleExtender::extend(
