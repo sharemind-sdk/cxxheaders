@@ -47,17 +47,19 @@ template <typename T,
           T v,
           T ... vs>
 struct TemplateCondAppend<T, Pred, Tmpl, TmplInstance, v, vs...> {
-  using type =
-      typename ::std::conditional<
-          !Pred<v>::value,
-          typename TemplateCondAppend<T, Pred, Tmpl, TmplInstance, vs...>::type,
-          typename TemplateCondAppend<
-                  T,
-                  Pred,
-                  Tmpl,
-                  typename TemplateAppendOne<T, Tmpl, TmplInstance, v>::type,
-                  vs...>::type
-      >::type;
+    using type =
+            typename ::std::conditional<
+                Pred<v>::value,
+                typename TemplateCondAppend<
+                    T,
+                    Pred,
+                    Tmpl,
+                    typename TemplateAppendOne<T, Tmpl, TmplInstance, v>::type,
+                    vs...
+                >::type,
+                typename TemplateCondAppend<T, Pred, Tmpl, TmplInstance, vs...>
+                        ::type
+            >::type;
 };
 
 } /* namespace Sharemind { */
