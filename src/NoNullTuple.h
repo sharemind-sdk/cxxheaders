@@ -25,6 +25,7 @@
 #include <type_traits>
 #include "compiler-support/GccPR54526.h"
 #include "IsNullPointer.h"
+#include "StripAndDecay.h"
 #include "TemplateInverseCondAppendType.h"
 
 
@@ -48,26 +49,21 @@ namespace Detail {
 
 /* noNullGet helpers: */
 
-template <std::size_t I, typename Tpl> struct IndexInNonNullTuple_;
+template <std::size_t I, typename Tpl> struct IndexInNonNullTuple;
 template <typename T, typename ... Ts>
-struct IndexInNonNullTuple_<0u, std::tuple<T, Ts...> >
+struct IndexInNonNullTuple<0u, std::tuple<T, Ts...> >
         : std::enable_if<
               !IsNullPointer<T>::value,
               std::integral_constant<std::size_t, 0u>
           >::type
 {};
 template <std::size_t I, typename T, typename ... Ts>
-struct IndexInNonNullTuple_<I, std::tuple<T, Ts...> >
+struct IndexInNonNullTuple<I, std::tuple<T, Ts...> >
         : std::integral_constant<
                 std::size_t,
                 (IsNullPointer<T>::value ? 0u : 1u)
-                + IndexInNonNullTuple_<I - 1u, std::tuple<Ts...> >::value>
+                + IndexInNonNullTuple<I - 1u, std::tuple<Ts...> >::value>
 {};
-
-template <std::size_t I, typename Tpl>
-struct IndexInNonNullTuple
-        : IndexInNonNullTuple_<I, typename std::decay<Tpl>::type> {};
-
 
 /* makeNoNullptrTuple helpers: */
 
@@ -76,21 +72,20 @@ constexpr static std::tuple<Ts...> makeNoNullTuple_(std::tuple<Ts...> tpl)
 { return tpl; }
 
 template <typename ... Ts, typename T, typename ... Args>
-constexpr static NoNullTuple_t<typename std::decay<Ts>::type...,
-                               typename std::decay<T>::type,
-                               typename std::decay<Args>::type...>
+constexpr static NoNullTuple_t<Ts...,
+                               StripAndDecay_t<T>,
+                               StripAndDecay_t<Args>...>
 makeNoNullTuple_(std::tuple<Ts...> tpl, T && t, Args && ... args);
 
 template <typename ... Ts, typename ... Args>
-constexpr static NoNullTuple_t<typename std::decay<Ts>::type...,
-                               typename std::decay<Args>::type...>
+constexpr static NoNullTuple_t<Ts..., StripAndDecay_t<Args>...>
 makeNoNullTuple_(std::tuple<Ts...> tpl, decltype(nullptr), Args && ... args)
 { return makeNoNullTuple_(std::move(tpl), std::forward<Args>(args)...); }
 
 template <typename ... Ts, typename T, typename ... Args>
-constexpr static NoNullTuple_t<typename std::decay<Ts>::type...,
-                               typename std::decay<T>::type,
-                               typename std::decay<Args>::type...>
+constexpr static NoNullTuple_t<Ts...,
+                               StripAndDecay_t<T>,
+                               StripAndDecay_t<Args>...>
 makeNoNullTuple_(std::tuple<Ts...> tpl, T && t, Args && ... args)
 {
     return makeNoNullTuple_(
@@ -108,7 +103,7 @@ constexpr auto noNullGet(Tpl && t) ->
 { return std::get<Detail::IndexInNonNullTuple<I, OriginalTuple>::value>(t); }
 
 template <typename ... Ts>
-constexpr NoNullTuple_t<typename std::decay<Ts>::type...>
+constexpr NoNullTuple_t<StripAndDecay_t<Ts>...>
 makeNoNullTuple(Ts && ... ts)
 { return Detail::makeNoNullTuple_(std::tuple<>{}, std::forward<Ts>(ts)...); }
 
