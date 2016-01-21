@@ -29,16 +29,16 @@ class Stoppable {
 
 public: /* Types: */
 
-    template <typename Stoppable__, typename Exception__>
+    template <typename Stoppable_, typename Exception_>
     class CustomTestActor {
 
     public: /* Types: */
 
-        typedef Exception__ Exception;
+        typedef Exception_ Exception;
 
     public: /* Methods: */
 
-        inline CustomTestActor(Stoppable__ & stoppable) noexcept
+        inline CustomTestActor(Stoppable_ & stoppable) noexcept
             : m_stoppable(stoppable) {}
 
         inline void operator()() const noexcept(false)
@@ -46,12 +46,12 @@ public: /* Types: */
 
     private: /* Fields: */
 
-        Stoppable__ & m_stoppable;
+        Stoppable_ & m_stoppable;
 
     };
 
-    template <typename Exception__>
-    using TestActor = CustomTestActor<Stoppable, Exception__>;
+    template <typename Exception_>
+    using TestActor = CustomTestActor<Stoppable, Exception_>;
 
 public: /* Methods: */
 

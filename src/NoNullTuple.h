@@ -33,25 +33,25 @@ namespace Detail { namespace NoNullTuple {
 
 /* noNullGet helpers: */
 
-template <size_t I, typename Tpl> struct IndexInNonNullTuple__;
+template <size_t I, typename Tpl> struct IndexInNonNullTuple_;
 template <typename T, typename ... Ts>
-struct IndexInNonNullTuple__<0u, ::std::tuple<T, Ts...> >
+struct IndexInNonNullTuple_<0u, ::std::tuple<T, Ts...> >
         : ::std::enable_if<
               !IsNullPointer<T>::value,
               ::std::integral_constant<size_t, 0u>
           >::type
 {};
 template <size_t I, typename T, typename ... Ts>
-struct IndexInNonNullTuple__<I, ::std::tuple<T, Ts...> >
+struct IndexInNonNullTuple_<I, ::std::tuple<T, Ts...> >
         : ::std::integral_constant<
                 size_t,
                 (IsNullPointer<T>::value ? 0u : 1u)
-                + IndexInNonNullTuple__<I - 1u, ::std::tuple<Ts...> >::value>
+                + IndexInNonNullTuple_<I - 1u, ::std::tuple<Ts...> >::value>
 {};
 
 template <size_t I, typename Tpl>
 struct IndexInNonNullTuple
-        : IndexInNonNullTuple__<I, typename ::std::decay<Tpl>::type> {};
+        : IndexInNonNullTuple_<I, typename ::std::decay<Tpl>::type> {};
 
 
 /* makeNoNullptrTuple helpers: */
@@ -59,9 +59,9 @@ struct IndexInNonNullTuple
 template <typename Tpl, typename ... Ts>
 using Filter2 = TemplateInverseCondAppendType<IsNullPointer, std::tuple, Tpl, Ts...>;
 
-template <typename Tpl> struct MakeNoNullTuple__ {};
+template <typename Tpl> struct MakeNoNullTuple_ {};
 template <typename ... Ts>
-struct MakeNoNullTuple__<SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<Ts...> >
+struct MakeNoNullTuple_<SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<Ts...> >
         : Filter2<SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<>, Ts...> {};
 
 struct NoNullptrTupleExtender {
@@ -115,7 +115,7 @@ struct ToNoNullptrTuple<SHAREMIND_GCCPR54526_WORKAROUND::std::tuple<T, Ts...>,
 }} /* namespace Detail { namespace NoNullTuple { */
 
 template <typename Tpl> struct MakeNoNullTuple
-        : Detail::NoNullTuple::MakeNoNullTuple__<
+        : Detail::NoNullTuple::MakeNoNullTuple_<
                 typename ::std::decay<Tpl>::type> {};
 
 template <size_t I, typename OriginalTuple, typename NoNullTuple>

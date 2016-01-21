@@ -46,9 +46,9 @@ public: /* Methods: */
     }
 
     template <typename StopTest,
-              typename LoopDuration__ = StaticLoopDuration<5u> >
+              typename LoopDuration_ = StaticLoopDuration<5u> >
     inline void waitOrStop(StopTest && stopTest,
-                           LoopDuration__ && loopDuration = LoopDuration__())
+                           LoopDuration_ && loopDuration = LoopDuration_())
             noexcept(false)
     {
         std::unique_lock<std::mutex> lock(m_mutex);

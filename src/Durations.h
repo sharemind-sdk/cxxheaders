@@ -26,25 +26,25 @@
 
 namespace sharemind {
 
-template <typename CHRONO__ = std::chrono::milliseconds>
-class LoopDuration: public CHRONO__ {
+template <typename CHRONO_ = std::chrono::milliseconds>
+class LoopDuration: public CHRONO_ {
 
 public: /* Methods: */
 
     inline LoopDuration(const size_t ms)
-            noexcept(noexcept(CHRONO__(ms)))
-        : CHRONO__(ms) {}
+            noexcept(noexcept(CHRONO_(ms)))
+        : CHRONO_(ms) {}
 
 };
 
-template <size_t MS__ = 3u, typename CHRONO__ = std::chrono::milliseconds>
-class StaticLoopDuration: public LoopDuration<CHRONO__> {
+template <size_t MS_ = 3u, typename CHRONO_ = std::chrono::milliseconds>
+class StaticLoopDuration: public LoopDuration<CHRONO_> {
 
 public: /* Methods: */
 
     inline StaticLoopDuration()
-            noexcept(noexcept(LoopDuration<CHRONO__>(MS__)))
-        : LoopDuration<CHRONO__>(MS__) {}
+            noexcept(noexcept(LoopDuration<CHRONO_>(MS_)))
+        : LoopDuration<CHRONO_>(MS_) {}
 
 };
 

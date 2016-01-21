@@ -39,7 +39,7 @@ class ChildNodeBase {
                             typename ParentNodeType::ChildType,
                             typename ParentNodeType::MutexType>;
 
-    template <class ParentNodeType__, ParentNodeType__ (ParentNodeType__::ParentType::*parentMember)>
+    template <class ParentNodeType_, ParentNodeType_ (ParentNodeType_::ParentType::*parentMember)>
     friend class ChildNode;
 
 public: /* Methods: */
