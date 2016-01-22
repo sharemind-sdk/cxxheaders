@@ -17,17 +17,16 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_ALWAYSFALSETYPECOND_H
-#define SHAREMIND_ALWAYSFALSETYPECOND_H
+#ifndef SHAREMIND_ALWAYSFALSEPRED_H
+#define SHAREMIND_ALWAYSFALSEPRED_H
 
-#include "AlwaysFalseType.h"
+#include <type_traits>
 
 
 namespace sharemind {
 
-template <typename C>
-using AlwaysFalseTypeCond = AlwaysFalseType<C>;
+template <typename T, T> using AlwaysFalsePred = std::false_type;
 
 } /* namespace Sharemind { */
 
-#endif /* SHAREMIND_ALWAYSFALSETYPECOND_H */
+#endif /* SHAREMIND_ALWAYSFALSEPRED_H */
