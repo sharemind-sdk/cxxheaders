@@ -23,6 +23,7 @@
 #include <cstdint>
 #include "ConstPackedReferences.h"
 #include "PackedReferences.h"
+#include "PackedRawData.h"
 
 
 namespace sharemind {
@@ -59,12 +60,7 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    union __attribute__((packed)) {
-        uint8_t asUint8[type::size];
-        char asChar[type::size];
-        unsigned char asUChar[type::size];
-    } __attribute__((packed)) m_data;
-    static_assert(sizeof(m_data) == type::size, "");
+    PackedRawData<type::size> m_data;
 
 }; /* class PackedStruct */
 
