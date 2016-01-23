@@ -17,43 +17,51 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_CONSTPACKEDREFERENCES_H
-#define SHAREMIND_CONSTPACKEDREFERENCES_H
+#ifndef SHAREMIND_CONSTPACKEDSTRUCTACCESSOR_H
+#define SHAREMIND_CONSTPACKEDSTRUCTACCESSOR_H
 
-#include "PackedReferencesInfo.h"
+#include "PackedStructInfo.h"
 
-#include "PackedReferences.h"
+#include "PackedStructAccessor.h"
 
 
 namespace sharemind {
 
 template <typename ... Ts>
-class __attribute__((packed)) ConstPackedReferences {
-
-    SHAREMIND_PACKEDREFERENCESINFO_DECLARE_MEMBER_TYPES(Ts...)
+class __attribute__((packed)) ConstPackedStructAccessor {
 
 public: /* Types: */
 
-    using type = ConstPackedReferences<Ts...>;
+    using type = ConstPackedStructAccessor<Ts...>;
+
+    SHAREMIND_PACKEDSTRUCTINFO_DECLARE_MEMBER_TYPES(Ts...)
 
 public: /* Methods: */
 
-    ConstPackedReferences(void const * const data) noexcept : m_data(data) {}
+    ConstPackedStructAccessor(void const * const data) noexcept
+        : m_data(data)
+    {}
 
-    ConstPackedReferences(PackedReferences<Ts...> const & refs)
+    ConstPackedStructAccessor(PackedStructAccessor<Ts...> const & refs)
         : m_data(refs.data())
     {}
 
-    SHAREMIND_PACKEDREFERENCESINFO_DEFINE_READ_METHODS
+    ConstPackedStructAccessor(type &&) noexcept = default;
+    ConstPackedStructAccessor(type const &) noexcept = default;
+
+    type & operator=(type &&) noexcept = default;
+    type & operator=(type const &) noexcept = default;
+
+    SHAREMIND_PACKEDSTRUCTINFO_DEFINE_READ_METHODS(Ts...)
 
     void const * data() const noexcept { return m_data; }
 
 private: /* Fields: */
 
-    void const * const m_data;
+    void const * m_data;
 
-}; /* class PackedReferences */
+}; /* class ConstPackedStructAccessor */
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMIND_CONSTPACKEDREFERENCES_H */
+#endif /* SHAREMIND_CONSTPACKEDSTRUCTACCESSOR_H */

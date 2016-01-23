@@ -21,8 +21,9 @@
 #define SHAREMIND_PACKEDSTRUCT_H
 
 #include <cstdint>
-#include "ConstPackedReferences.h"
-#include "PackedReferences.h"
+#include "ConstPackedStructAccessor.h"
+#include "PackedStructAccessor.h"
+#include "PackedStructInfo.h"
 #include "PackedRawData.h"
 
 
@@ -31,20 +32,20 @@ namespace sharemind {
 template <typename ... Ts>
 class __attribute__((packed)) PackedStruct {
 
-    SHAREMIND_PACKEDREFERENCESINFO_DECLARE_MEMBER_TYPES(Ts...)
-
 public: /* Types: */
 
     using type = PackedStruct<Ts...>;
 
+    SHAREMIND_PACKEDSTRUCTINFO_DECLARE_MEMBER_TYPES(Ts...)
+
 public: /* Methods: */
 
-    PackedReferences<Ts...> refs() noexcept { return data(); }
-    ConstPackedReferences<Ts...> refs() const noexcept { return data(); }
-    ConstPackedReferences<Ts...> crefs() const noexcept { return data(); }
+    PackedStructAccessor<Ts...> refs() noexcept { return data(); }
+    ConstPackedStructAccessor<Ts...> refs() const noexcept { return data(); }
+    ConstPackedStructAccessor<Ts...> crefs() const noexcept { return data(); }
 
-    SHAREMIND_PACKEDREFERENCESINFO_DEFINE_READ_METHODS
-    SHAREMIND_PACKEDREFERENCESINFO_DEFINE_WRITE_METHODS()
+    SHAREMIND_PACKEDSTRUCTINFO_DEFINE_READ_METHODS(Ts...)
+    SHAREMIND_PACKEDSTRUCTINFO_DEFINE_WRITE_METHODS(,Ts...)
 
     void * data() noexcept { return &m_data; }
     void const * data() const noexcept { return &m_data; }

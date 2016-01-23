@@ -17,38 +17,44 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_PACKEDREFERENCES_H
-#define SHAREMIND_PACKEDREFERENCES_H
+#ifndef SHAREMIND_PACKEDSTRUCTACCESSOR_H
+#define SHAREMIND_PACKEDSTRUCTACCESSOR_H
 
-#include "PackedReferencesInfo.h"
+#include "PackedStructInfo.h"
 
 
 namespace sharemind {
 
 template <typename ... Ts>
-class PackedReferences {
-
-    SHAREMIND_PACKEDREFERENCESINFO_DECLARE_MEMBER_TYPES(Ts...)
+class PackedStructAccessor {
 
 public: /* Types: */
 
-    using type = PackedReferences<Ts...>;
+    using type = PackedStructAccessor<Ts...>;
+
+    SHAREMIND_PACKEDSTRUCTINFO_DECLARE_MEMBER_TYPES(Ts...)
 
 public: /* Methods: */
 
-    PackedReferences(void * const data) noexcept : m_data(data) {}
+    PackedStructAccessor(void * const data) noexcept : m_data(data) {}
 
-    SHAREMIND_PACKEDREFERENCESINFO_DEFINE_READ_METHODS
-    SHAREMIND_PACKEDREFERENCESINFO_DEFINE_WRITE_METHODS(const)
+    PackedStructAccessor(type &&) noexcept = default;
+    PackedStructAccessor(type const &) noexcept = default;
+
+    type & operator=(type &&) noexcept = default;
+    type & operator=(type const &) noexcept = default;
+
+    SHAREMIND_PACKEDSTRUCTINFO_DEFINE_READ_METHODS(Ts...)
+    SHAREMIND_PACKEDSTRUCTINFO_DEFINE_WRITE_METHODS(const,Ts...)
 
     void * data() const noexcept { return m_data; }
 
 private: /* Fields: */
 
-    void * const m_data;
+    void * m_data;
 
-}; /* class PackedReferences */
+}; /* class PackedStructAccessor */
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMIND_PACKEDREFERENCES_H */
+#endif /* SHAREMIND_PACKEDSTRUCTACCESSOR_H */
