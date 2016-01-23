@@ -31,6 +31,10 @@ namespace sharemind {
 template <typename T>
 class UnalignedReference: public Detail::UnalignedReferenceBase<T> {
 
+public: /* Types: */
+
+    using type = UnalignedReference<T>;
+
 public: /* Methods: */
 
     SHAREMIND_GCC_INHERITED_CONSTRUCTOR(UnalignedReference,
