@@ -26,10 +26,20 @@
 
 
 namespace sharemind {
+
+template <typename> class UnalignedReference;
+
 namespace Detail {
 
 template <typename T>
 class UnalignedReferenceBase {
+
+    // Due to std::memcpy not working on volatile:
+    static_assert(
+            !std::is_volatile<T>::value,
+            "Unaligned references to volatile storage are not yet supported!");
+
+    template <typename> friend class sharemind::UnalignedReference;
 
 public: /* Types: */
 
@@ -41,22 +51,18 @@ public: /* Methods: */
         : m_unalignedData(unalignedData)
     {}
 
-    StorageType * ptr() const noexcept { return m_unalignedData; }
-
-    void read(typename std::remove_cv<T>::type & v) const noexcept
-    { std::memcpy(&v, m_unalignedData, sizeof(T)); }
-
-    typename std::remove_cv<T>::type get() const noexcept {
+    operator typename std::remove_cv<T>::type () const noexcept {
         typename std::remove_cv<T>::type v;
-        read(v);
+        /** \todo Implement memcpy for any void volatile and remove the relevant
+                  static assertion above. Be sure to also augment the memcpy in
+                  UnaligneReference<T>::operator=. */
+        std::memcpy(&v, m_unalignedData, sizeof(T));
         return v;
     }
 
-    T operator*() const noexcept { return get(); }
-
 private: /* Fields: */
 
-    StorageType * m_unalignedData;
+    StorageType * const m_unalignedData;
 
 };
 

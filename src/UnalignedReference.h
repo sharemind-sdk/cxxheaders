@@ -41,8 +41,10 @@ public: /* Methods: */
                                         UnalignedReferenceBase,
                                         Detail::UnalignedReferenceBase<T>)
 
-    void operator=(T const & v) const noexcept
-    { std::memcpy(this->ptr(), &v, sizeof(T)); }
+    type & operator=(T const & v) noexcept {
+        std::memcpy(this->m_unalignedData, &v, sizeof(T));
+        return *this;
+    }
 
 };
 

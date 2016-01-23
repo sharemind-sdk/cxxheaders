@@ -66,10 +66,11 @@ struct PackedReferencesInfo {
 
     template <std::size_t I>
     static ElemType<I> get(void const * const data) noexcept
-    { return *cref<I>(data); }
+    { return cref<I>(data); }
 
     template <std::size_t I>
-    static void set(void * const data, ElemType<I> const & v) noexcept
+    static auto set(void * const data, ElemType<I> const & v) noexcept ->
+            decltype(ref<I>(data) = v)
     { return ref<I>(data) = v; }
 
 }; /* struct PackedReferencesInfo */
