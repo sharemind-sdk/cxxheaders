@@ -20,27 +20,13 @@
 #ifndef SHAREMIND_CONSTUNALIGNEDREFERENCE_H
 #define SHAREMIND_CONSTUNALIGNEDREFERENCE_H
 
-#include "detail/UnalignedReferenceBase.h"
-
-#include "compiler-support/GccInheritConstructor.h"
+#include "UnalignedReference.h"
 
 
 namespace sharemind {
 
 template <typename T>
-class ConstUnalignedReference: public Detail::UnalignedReferenceBase<T const> {
-
-public: /* Types: */
-
-    using type = ConstUnalignedReference<T>;
-
-public: /* Methods: */
-
-    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(ConstUnalignedReference,
-                                        UnalignedReferenceBase,
-                                        Detail::UnalignedReferenceBase<T const>)
-
-};
+using ConstUnalignedReference = UnalignedReference<T const>;
 
 } /* namespace sharemind { */
 

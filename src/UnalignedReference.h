@@ -20,16 +20,20 @@
 #ifndef SHAREMIND_UNALIGNEDREFERENCE_H
 #define SHAREMIND_UNALIGNEDREFERENCE_H
 
-#include "detail/UnalignedReferenceBase.h"
-
 #include <cstring>
-#include "compiler-support/GccInheritConstructor.h"
+#include <type_traits>
+#include "CopyCv.h"
 
 
 namespace sharemind {
 
 template <typename T>
-class UnalignedReference: public Detail::UnalignedReferenceBase<T> {
+class UnalignedReference {
+
+    // Due to std::memcpy not working on volatile:
+    static_assert(
+            !std::is_volatile<T>::value,
+            "Unaligned references to volatile storage are not yet supported!");
 
 public: /* Types: */
 
@@ -37,14 +41,32 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(UnalignedReference,
-                                        UnalignedReferenceBase,
-                                        Detail::UnalignedReferenceBase<T>)
+    UnalignedReference(CopyCv_t<void, T> * const unalignedData) noexcept
+        : m_unalignedData(unalignedData)
+    {}
 
-    type & operator=(T const & v) noexcept {
+    operator typename std::remove_cv<T>::type () const noexcept {
+        typename std::remove_cv<T>::type v;
+        /** \todo Implement memcpy for any void volatile and remove the relevant
+                  static assertion above. Be sure to also augment the memcpy in
+                  operator=. */
+        std::memcpy(&v, m_unalignedData, sizeof(T));
+        return v;
+    }
+
+    template <typename T_>
+    typename std::enable_if<
+        !std::is_const<T>::value && std::is_convertible<T_, T const &>::value,
+        type
+    >::type &
+    operator=(T_ && v) noexcept {
         std::memcpy(this->m_unalignedData, &v, sizeof(T));
         return *this;
     }
+
+private: /* Fields: */
+
+    CopyCv_t<void, T> * const m_unalignedData;
 
 };
 
