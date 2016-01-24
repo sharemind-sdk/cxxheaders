@@ -20,7 +20,7 @@
 #ifndef SHAREMIND_PACKEDSTRUCTACCESSOR_H
 #define SHAREMIND_PACKEDSTRUCTACCESSOR_H
 
-#include "PackedStructInfo.h"
+#include "PackingInfo.h"
 
 
 namespace sharemind {
@@ -32,7 +32,7 @@ public: /* Types: */
 
     using type = PackedStructAccessor<Ts...>;
 
-    SHAREMIND_PACKEDSTRUCTINFO_DECLARE_MEMBER_TYPES(Ts...)
+    SHAREMIND_PACKINGINFO_DECLARE_MEMBER_TYPES(Ts...)
 
 public: /* Methods: */
 
@@ -44,8 +44,8 @@ public: /* Methods: */
     type & operator=(type &&) noexcept = default;
     type & operator=(type const &) noexcept = default;
 
-    SHAREMIND_PACKEDSTRUCTINFO_DEFINE_READ_METHODS(Ts...)
-    SHAREMIND_PACKEDSTRUCTINFO_DEFINE_WRITE_METHODS(const,Ts...)
+    SHAREMIND_PACKINGINFO_DEFINE_READ_METHODS(Ts...)
+    SHAREMIND_PACKINGINFO_DEFINE_WRITE_METHODS(const,Ts...)
 
     void * data() const noexcept { return m_data; }
 

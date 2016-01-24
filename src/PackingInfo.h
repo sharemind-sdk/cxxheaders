@@ -17,8 +17,8 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_PACKEDSTRUCTINFO_H
-#define SHAREMIND_PACKEDSTRUCTINFO_H
+#ifndef SHAREMIND_PACKINGINFO_H
+#define SHAREMIND_PACKINGINFO_H
 
 #include <cstring>
 #include "ConstUnalignedReference.h"
@@ -33,11 +33,11 @@
 namespace sharemind {
 
 template <typename ... Ts>
-struct PackedStructInfo {
+struct PackingInfo {
 
 /* Types: */
 
-    using type = PackedStructInfo<Ts...>;
+    using type = PackingInfo<Ts...>;
 
     template <std::size_t I>
     using ElemType = typename TemplateGetTypeParam<I, Ts...>::type;
@@ -73,41 +73,41 @@ struct PackedStructInfo {
             decltype(ref<I>(data) = v)
     { return ref<I>(data) = v; }
 
-}; /* struct PackedStructInfo */
+}; /* struct PackingInfo */
 
-#define SHAREMIND_PACKEDSTRUCTINFO_DECLARE_MEMBER_TYPES(...) \
+#define SHAREMIND_PACKINGINFO_DECLARE_MEMBER_TYPES(...) \
     template <std::size_t I> using ElemType = \
-            typename PackedStructInfo<__VA_ARGS__>::template ElemType<I>; \
+            typename PackingInfo<__VA_ARGS__>::template ElemType<I>; \
     template <std::size_t I> using ElemOffset = \
-            typename PackedStructInfo<__VA_ARGS__>::template ElemOffset<I>; \
+            typename PackingInfo<__VA_ARGS__>::template ElemOffset<I>; \
     constexpr static std::size_t const size = \
-            PackedStructInfo<__VA_ARGS__>::size; \
+            PackingInfo<__VA_ARGS__>::size; \
     constexpr static std::size_t const numFields = \
-            PackedStructInfo<__VA_ARGS__>::numFields; \
+            PackingInfo<__VA_ARGS__>::numFields; \
 
-#define SHAREMIND_PACKEDSTRUCTINFO_DEFINE_READ_METHODS(...) \
+#define SHAREMIND_PACKINGINFO_DEFINE_READ_METHODS(...) \
     template <std::size_t I> \
     ConstUnalignedReference<ElemType<I> > cref() const noexcept \
-    { return PackedStructInfo<__VA_ARGS__>::template cref<I>(data()); } \
+    { return PackingInfo<__VA_ARGS__>::template cref<I>(data()); } \
     template <std::size_t I> \
     ConstUnalignedReference<ElemType<I> > ref() const noexcept \
-    { return PackedStructInfo<__VA_ARGS__>::template cref<I>(data()); } \
+    { return PackingInfo<__VA_ARGS__>::template cref<I>(data()); } \
     template <std::size_t I> \
     ElemType<I> get() const noexcept \
-    { return PackedStructInfo<__VA_ARGS__>::template get<I>(data()); } \
+    { return PackingInfo<__VA_ARGS__>::template get<I>(data()); } \
     bool operator==(type const & rhs) const noexcept \
     { return std::memcmp(data(), rhs.data(), size) == 0; } \
     bool operator!=(type const & rhs) const noexcept \
     { return std::memcmp(data(), rhs.data(), size) != 0; }
 
-#define SHAREMIND_PACKEDSTRUCTINFO_DEFINE_WRITE_METHODS(maybeConst,...) \
+#define SHAREMIND_PACKINGINFO_DEFINE_WRITE_METHODS(maybeConst,...) \
     template <std::size_t I> \
     UnalignedReference<ElemType<I> > ref() maybeConst noexcept \
-    { return PackedStructInfo<__VA_ARGS__>::template ref<I>(data()); } \
+    { return PackingInfo<__VA_ARGS__>::template ref<I>(data()); } \
     template <std::size_t I> \
     void set(ElemType<I> const & v) maybeConst noexcept \
-    { PackedStructInfo<__VA_ARGS__>::template set<I>(data(), v); } \
+    { PackingInfo<__VA_ARGS__>::template set<I>(data(), v); } \
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMIND_PACKEDSTRUCTINFO_H */
+#endif /* SHAREMIND_PACKINGINFO_H */

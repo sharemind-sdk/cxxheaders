@@ -23,8 +23,8 @@
 #include <cstdint>
 #include "ConstPackedStructAccessor.h"
 #include "PackedStructAccessor.h"
-#include "PackedStructInfo.h"
 #include "PackedRawData.h"
+#include "PackingInfo.h"
 
 
 namespace sharemind {
@@ -36,7 +36,7 @@ public: /* Types: */
 
     using type = PackedStruct<Ts...>;
 
-    SHAREMIND_PACKEDSTRUCTINFO_DECLARE_MEMBER_TYPES(Ts...)
+    SHAREMIND_PACKINGINFO_DECLARE_MEMBER_TYPES(Ts...)
 
 public: /* Methods: */
 
@@ -44,8 +44,8 @@ public: /* Methods: */
     ConstPackedStructAccessor<Ts...> refs() const noexcept { return data(); }
     ConstPackedStructAccessor<Ts...> crefs() const noexcept { return data(); }
 
-    SHAREMIND_PACKEDSTRUCTINFO_DEFINE_READ_METHODS(Ts...)
-    SHAREMIND_PACKEDSTRUCTINFO_DEFINE_WRITE_METHODS(,Ts...)
+    SHAREMIND_PACKINGINFO_DEFINE_READ_METHODS(Ts...)
+    SHAREMIND_PACKINGINFO_DEFINE_WRITE_METHODS(,Ts...)
 
     void * data() noexcept { return &m_data; }
     void const * data() const noexcept { return &m_data; }
