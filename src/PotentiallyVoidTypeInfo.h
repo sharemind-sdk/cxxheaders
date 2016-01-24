@@ -64,6 +64,9 @@ struct ArithBase {
     constexpr static inline T * ptrAdd(T * const p, const size_t size) noexcept
     { return p + size; }
 
+    constexpr static inline T * ptrSub(T * const p, const size_t size) noexcept
+    { return p - size; }
+
 };
 
 template <typename T>
@@ -75,6 +78,9 @@ struct ArithBase<T, typename std::enable_if<std::is_void<T>::value>::type> {
 
     constexpr static inline T * ptrAdd(T * const p, const size_t size) noexcept
     { return static_cast<typename CopyCV<T, char>::type *>(p) + size; }
+
+    constexpr static inline T * ptrSub(T * const p, const size_t size) noexcept
+    { return static_cast<typename CopyCV<T, char>::type *>(p) - size; }
 
 };
 
@@ -128,6 +134,10 @@ void copy(const T * const from, T * const to, const size_t size)
 template <typename T>
 constexpr T * ptrAdd(T * const ptr, const size_t size) noexcept
 { return PotentiallyVoidTypeInfo<T>::ptrAdd(ptr, size); }
+
+template <typename T>
+constexpr T * ptrSub(T * const ptr, const size_t size) noexcept
+{ return PotentiallyVoidTypeInfo<T>::ptrSub(ptr, size); }
 
 
 template <typename T>
