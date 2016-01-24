@@ -28,12 +28,19 @@
 #include "TemplateGetTypeParam.h"
 #include "TemplatePrefixTypes.h"
 #include "UnalignedReference.h"
+#include "UnalignedPointer.h"
 
 
 namespace sharemind {
 
 template <typename ... Ts>
 struct PackingInfo {
+
+/* Constants: */
+
+    constexpr static std::size_t const size = sizeOfTypes<Ts...>();
+
+    constexpr static std::size_t const numFields = sizeof...(Ts);
 
 /* Types: */
 
@@ -49,20 +56,44 @@ struct PackingInfo {
                 SizeOfTypes
             >::type::type;
 
-    constexpr static std::size_t const size = sizeOfTypes<Ts...>();
+    template <std::size_t I>
+    using ReferenceType = UnalignedReference<ElemType<I> >;
 
-    constexpr static std::size_t const numFields = sizeof...(Ts);
+    template <std::size_t I>
+    using ConstReferenceType = ConstUnalignedReference<ElemType<I> >;
+
+    template <std::size_t I>
+    using PointerType = UnalignedPointer<ElemType<I> >;
+
+    template <std::size_t I>
+    using ConstPointerType = UnalignedPointer<ElemType<I> const>;
 
 /* Methods: */
 
     template <std::size_t I>
-    static ConstUnalignedReference<ElemType<I> > cref(void const * const data)
-            noexcept
+    static void * voidPtr(void * const data) noexcept
     { return ptrAdd(data, ElemOffset<I>::value); }
 
     template <std::size_t I>
-    static UnalignedReference<ElemType<I> > ref(void * const data) noexcept
+    static void const * constVoidPtr(void const * const data) noexcept
     { return ptrAdd(data, ElemOffset<I>::value); }
+
+    template <std::size_t I>
+    static PointerType<I> ptr(void * const data) noexcept
+    { return voidPtr<I>(data); }
+
+    template <std::size_t I>
+    static ConstPointerType<I> constPtr(void const * const data) noexcept
+    { return constVoidPtr<I>(data); }
+
+    template <std::size_t I>
+    static ConstReferenceType<I> cref(void const * const data)
+            noexcept
+    { return constVoidPtr<I>(data); }
+
+    template <std::size_t I>
+    static ReferenceType<I> ref(void * const data) noexcept
+    { return voidPtr<I>(data); }
 
     template <std::size_t I>
     static ElemType<I> get(void const * const data) noexcept
@@ -80,6 +111,14 @@ struct PackingInfo {
             typename PackingInfo<__VA_ARGS__>::template ElemType<I>; \
     template <std::size_t I> using ElemOffset = \
             typename PackingInfo<__VA_ARGS__>::template ElemOffset<I>; \
+    template <std::size_t I> using ReferenceType = \
+            typename PackingInfo<__VA_ARGS__>::template ReferenceType<I>; \
+    template <std::size_t I> using ConstReferenceType = \
+            typename PackingInfo<__VA_ARGS__>::template ConstReferenceType<I>; \
+    template <std::size_t I> using PointerType = \
+            typename PackingInfo<__VA_ARGS__>::template PointerType<I>; \
+    template <std::size_t I> using ConstPointerType = \
+            typename PackingInfo<__VA_ARGS__>::template ConstPointerType<I>; \
     constexpr static std::size_t const size = \
             PackingInfo<__VA_ARGS__>::size; \
     constexpr static std::size_t const numFields = \
@@ -87,10 +126,22 @@ struct PackingInfo {
 
 #define SHAREMIND_PACKINGINFO_DEFINE_READ_METHODS(...) \
     template <std::size_t I> \
-    ConstUnalignedReference<ElemType<I> > cref() const noexcept \
+    void const * voidPtr() const noexcept \
+    { return PackingInfo<__VA_ARGS__>::template constVoidPtr<I>(data()); } \
+    template <std::size_t I> \
+    void const * constVoidPtr() const noexcept \
+    { return PackingInfo<__VA_ARGS__>::template constVoidPtr<I>(data()); } \
+    template <std::size_t I> \
+    ConstPointerType<I> ptr() const noexcept \
+    { return PackingInfo<__VA_ARGS__>::template constPtr<I>(data()); } \
+    template <std::size_t I> \
+    ConstPointerType<I> constVoidPtr() const noexcept \
+    { return PackingInfo<__VA_ARGS__>::template constPtr<I>(data()); } \
+    template <std::size_t I> \
+    ConstReferenceType<I> cref() const noexcept \
     { return PackingInfo<__VA_ARGS__>::template cref<I>(data()); } \
     template <std::size_t I> \
-    ConstUnalignedReference<ElemType<I> > ref() const noexcept \
+    ConstReferenceType<I> ref() const noexcept \
     { return PackingInfo<__VA_ARGS__>::template cref<I>(data()); } \
     template <std::size_t I> \
     ElemType<I> get() const noexcept \
@@ -102,7 +153,13 @@ struct PackingInfo {
 
 #define SHAREMIND_PACKINGINFO_DEFINE_WRITE_METHODS(maybeConst,...) \
     template <std::size_t I> \
-    UnalignedReference<ElemType<I> > ref() maybeConst noexcept \
+    void * voidPtr() maybeConst noexcept \
+    { return PackingInfo<__VA_ARGS__>::template voidPtr<I>(data()); } \
+    template <std::size_t I> \
+    PointerType<I> ptr() maybeConst noexcept \
+    { return PackingInfo<__VA_ARGS__>::template ptr<I>(data()); } \
+    template <std::size_t I> \
+    ReferenceType<I> ref() maybeConst noexcept \
     { return PackingInfo<__VA_ARGS__>::template ref<I>(data()); } \
     template <std::size_t I> \
     void set(ElemType<I> const & v) maybeConst noexcept \
