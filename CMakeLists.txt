@@ -69,6 +69,7 @@ ADD_CUSTOM_TARGET("include_SHAREMIND_CXXHEADERS_INFILES_in_IDE"
 
 # Tests:
 ENABLE_TESTING()
+ADD_CUSTOM_TARGET(check COMMAND "${CMAKE_CTEST_COMMAND}")
 ADD_COMPILE_OPTIONS(
   "-std=c++11" "-Wall" "-Wextra" "-O2"
   "$<$<NOT:$<STREQUAL:$<CONFIGURATION>,Release>>:-ggdb>"
@@ -102,7 +103,8 @@ ADD_CUSTOM_TARGET("include_SHAREMIND_CXXHEADERS_TESTS_in_IDE"
                   SOURCES ${SHAREMIND_CXXHEADERS_TESTS})
 FOREACH(test IN LISTS SHAREMIND_CXXHEADERS_TESTS)
     GET_FILENAME_COMPONENT(testName "${test}" NAME_WE)
-    ADD_EXECUTABLE("testImpl_${testName}" "${test}")
+    ADD_EXECUTABLE("testImpl_${testName}" EXCLUDE_FROM_ALL "${test}")
+    ADD_DEPENDENCIES(check "testImpl_${testName}")
     ADD_TEST(NAME "test_${testName}" COMMAND "testImpl_${testName}")
 ENDFOREACH()
 
