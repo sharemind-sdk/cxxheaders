@@ -179,6 +179,20 @@ public: /* Methods: */
                          std::declval<void *>(), v))
     { return m_sizes.template set<I>(m_data.get(), v); }
 
+    bool operator==(type const & rhs) const noexcept {
+        auto const s = size();
+        if (s != rhs.size())
+            return false;
+        return std::memcmp(m_data.get(), rhs.m_data.get(), size()) == 0;
+    }
+
+    bool operator!=(type const & rhs) const noexcept {
+        auto const s = size();
+        if (s != rhs.size())
+            return true;
+        return std::memcmp(m_data.get(), rhs.m_data.get(), size()) != 0;
+    }
+
 private: /* Fields: */
 
     DataPtr m_data;
