@@ -67,6 +67,41 @@ FILE(GLOB_RECURSE SHAREMIND_CXXHEADERS_INFILES
 ADD_CUSTOM_TARGET("include_SHAREMIND_CXXHEADERS_INFILES_in_IDE"
                   SOURCES ${SHAREMIND_CXXHEADERS_INFILES})
 
+# Tests:
+ENABLE_TESTING()
+ADD_COMPILE_OPTIONS(
+  "-std=c++11" "-Wall" "-Wextra" "-O2"
+  "$<$<NOT:$<STREQUAL:$<CONFIGURATION>,Release>>:-ggdb>"
+  "$<$<NOT:$<STREQUAL:$<CONFIGURATION>,Release>>:-fno-omit-frame-pointer>"
+  "$<$<STREQUAL:$<CONFIGURATION>,Release>:-DNDEBUG>"
+  "$<$<STREQUAL:$<CONFIGURATION>,Release>:-fomit-frame-pointer>"
+)
+INCLUDE(CheckCXXCompilerFlag)
+FUNCTION(CHECK_ADD_COMPILER_FLAG flag)
+    STRING(SUBSTRING "${flag}" 1 -1 FlagName)
+    CHECK_CXX_COMPILER_FLAG("${flag}" CXX_COMPILER_HAS_${FlagName}_FLAG)
+    IF(CXX_COMPILER_HAS_${FlagName}_FLAG)
+        ADD_COMPILE_OPTIONS("${flag}")
+    ENDIF()
+ENDFUNCTION()
+CHECK_ADD_COMPILER_FLAG("-Weverything")
+CHECK_ADD_COMPILER_FLAG("-Wlogical-op")
+CHECK_ADD_COMPILER_FLAG("-Wno-c++98-compat")
+CHECK_ADD_COMPILER_FLAG("-Wno-c++98-compat-pedantic")
+CHECK_ADD_COMPILER_FLAG("-Wno-float-equal")
+CHECK_ADD_COMPILER_FLAG("-Wno-covered-switch-default")
+CHECK_ADD_COMPILER_FLAG("-Wno-packed")
+
+FILE(GLOB_RECURSE SHAREMIND_CXXHEADERS_TESTS
+     "${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp")
+ADD_CUSTOM_TARGET("include_SHAREMIND_CXXHEADERS_TESTS_in_IDE"
+                  SOURCES ${SHAREMIND_CXXHEADERS_TESTS})
+FOREACH(test IN LISTS SHAREMIND_CXXHEADERS_TESTS)
+    GET_FILENAME_COMPONENT(testName "${test}" NAME_WE)
+    ADD_EXECUTABLE("testImpl_${testName}" "${test}")
+    ADD_TEST(NAME "test_${testName}" COMMAND "testImpl_${testName}")
+ENDFOREACH()
+
 CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/SharemindCxxHeadersConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/SharemindCxxHeadersConfig.cmake"

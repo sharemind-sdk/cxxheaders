@@ -27,13 +27,13 @@
 namespace sharemind {
 
 template <typename To, typename From>
-using CopyCv = CopyConst<typename CopyVolatile<To, From>::type, From>;
+using CopyCv = CopyConst<CopyVolatile_t<To, From>, From>;
 
 template <typename To, typename From>
 using CopyCv_t = typename CopyCv<To, From>::type;
 
 template <typename To, typename From>
-using OrCv = OrConst<OrVolatile<To, From>, From>;
+using OrCv = OrConst<OrVolatile_t<To, From>, From>;
 
 template <typename To, typename From>
 using OrCv_t = typename OrCv<To, From>::type;

@@ -38,20 +38,6 @@ using CopyVolatile_ =
             >::type
         >;
 
-#define SHAREMIND_COPYVOLATILE_TEST(t,f,c,r) \
-    static_assert( \
-            std::is_same<CopyVolatile_<int t, int f, c>::type, int r>::value, \
-            "")
-SHAREMIND_COPYVOLATILE_TEST(        ,        ,false,        );
-SHAREMIND_COPYVOLATILE_TEST(        ,        ,true ,        );
-SHAREMIND_COPYVOLATILE_TEST(volatile,        ,false,volatile);
-SHAREMIND_COPYVOLATILE_TEST(volatile,        ,true ,        );
-SHAREMIND_COPYVOLATILE_TEST(        ,volatile,false,volatile);
-SHAREMIND_COPYVOLATILE_TEST(        ,volatile,true ,volatile);
-SHAREMIND_COPYVOLATILE_TEST(volatile,volatile,false,volatile);
-SHAREMIND_COPYVOLATILE_TEST(volatile,volatile,true ,volatile);
-#undef SHAREMIND_COPYVOLATILE_TEST
-
 } /* namespace Detail { */
 
 template <typename To, typename From>

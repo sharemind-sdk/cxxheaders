@@ -38,20 +38,6 @@ using CopyConst_ =
             >::type
         >;
 
-#define SHAREMIND_COPYCONST_TEST(t,f,c,r) \
-    static_assert( \
-            std::is_same<CopyConst_<int t, int f, c>::type, int r>::value, \
-            "")
-SHAREMIND_COPYCONST_TEST(     ,     ,false,     );
-SHAREMIND_COPYCONST_TEST(     ,     ,true ,     );
-SHAREMIND_COPYCONST_TEST(const,     ,false,const);
-SHAREMIND_COPYCONST_TEST(const,     ,true ,     );
-SHAREMIND_COPYCONST_TEST(     ,const,false,const);
-SHAREMIND_COPYCONST_TEST(     ,const,true ,const);
-SHAREMIND_COPYCONST_TEST(const,const,false,const);
-SHAREMIND_COPYCONST_TEST(const,const,true ,const);
-#undef SHAREMIND_COPYCONST_TEST
-
 } /* namespace Detail { */
 
 template <typename To, typename From>
