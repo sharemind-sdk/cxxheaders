@@ -51,7 +51,8 @@ struct PackedStructEqualityChecker {
 template <typename Msg>
 void checkPackedStruct(Msg const & m) noexcept {
     static_assert(std::is_pod<Msg>::value, "");
-    static_assert(sizeof(Msg) == Msg::size, "");
+    static_assert(sizeof(Msg) == Msg::staticSize, "");
+    assert(m.size() == Msg::staticSize);
     Msg m2;
     std::memcpy(&m2, &m, sizeof(Msg));
     PackedStructEqualityChecker<Msg>::check(m, m2);

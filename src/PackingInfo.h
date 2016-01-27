@@ -119,12 +119,14 @@ struct PackingInfo {
             typename PackingInfo<__VA_ARGS__>::template PointerType<I>; \
     template <std::size_t I> using ConstPointerType = \
             typename PackingInfo<__VA_ARGS__>::template ConstPointerType<I>; \
-    constexpr static std::size_t const size = \
+    constexpr static std::size_t const staticSize = \
             PackingInfo<__VA_ARGS__>::size; \
     constexpr static std::size_t const numFields = \
-            PackingInfo<__VA_ARGS__>::numFields; \
+            PackingInfo<__VA_ARGS__>::numFields;
 
 #define SHAREMIND_PACKINGINFO_DEFINE_READ_METHODS(...) \
+    constexpr static std::size_t size() noexcept \
+    { return PackingInfo<__VA_ARGS__>::size; } \
     template <std::size_t I> \
     void const * voidPtr() const noexcept \
     { return PackingInfo<__VA_ARGS__>::template constVoidPtr<I>(data()); } \
@@ -147,9 +149,9 @@ struct PackingInfo {
     ElemType<I> get() const noexcept \
     { return PackingInfo<__VA_ARGS__>::template get<I>(data()); } \
     bool operator==(type const & rhs) const noexcept \
-    { return std::memcmp(data(), rhs.data(), size) == 0; } \
+    { return std::memcmp(data(), rhs.data(), staticSize) == 0; } \
     bool operator!=(type const & rhs) const noexcept \
-    { return std::memcmp(data(), rhs.data(), size) != 0; }
+    { return std::memcmp(data(), rhs.data(), staticSize) != 0; }
 
 #define SHAREMIND_PACKINGINFO_DEFINE_WRITE_METHODS(maybeConst,...) \
     template <std::size_t I> \

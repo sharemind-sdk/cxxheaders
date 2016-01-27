@@ -61,7 +61,7 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    PackedRawData<type::size> m_data;
+    PackedRawData<type::staticSize> m_data;
 
 }; /* class PackedStruct */
 
