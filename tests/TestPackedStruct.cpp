@@ -26,7 +26,14 @@
 #include <utility>
 
 
-using sharemind::PackedStruct;
+using namespace sharemind;
+
+template <typename ...> struct T {};
+static_assert(
+        std::is_same<
+            PackedStructFromTemplate_t<T<int, char> >,
+            PackedStruct<int, char>
+        >::value, "");
 
 template <typename Msg, std::size_t N = Msg::numFields>
 struct PackedStructEqualityChecker;

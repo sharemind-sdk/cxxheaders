@@ -65,6 +65,15 @@ private: /* Fields: */
 
 }; /* class PackedStruct */
 
+template <typename T> struct PackedStructFromTemplate {};
+
+template <template <typename...> class Tmpl, typename ... Ts>
+struct PackedStructFromTemplate<Tmpl<Ts...> >
+{ using type = PackedStruct<Ts...>; };
+
+template <typename T>
+using PackedStructFromTemplate_t = typename PackedStructFromTemplate<T>::type;
+
 } /* namespace sharemind { */
 
 #endif /* SHAREMIND_PACKEDSTRUCT_H */
