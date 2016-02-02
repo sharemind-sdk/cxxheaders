@@ -198,7 +198,7 @@ private: /* Fields: */
     DataPtr m_data;
     AccumArray m_sizes;
 
-};
+}; /* class DynamicPackedStruct */
 
 template <typename T> struct DynamicPackedStructFromTemplate {};
 
