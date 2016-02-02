@@ -36,6 +36,16 @@ using MaybeDynamicPackedStruct =
             PackedStruct<Ts...>
         >::type;
 
+template <typename T> struct MaybeDynamicPackedStructFromTemplate {};
+
+template <template <typename...> class Tmpl, typename ... Ts>
+struct MaybeDynamicPackedStructFromTemplate<Tmpl<Ts...> >
+{ using type = MaybeDynamicPackedStruct<Ts...>; };
+
+template <typename T>
+using MaybeDynamicPackedStructFromTemplate_t =
+        typename MaybeDynamicPackedStructFromTemplate<T>::type;
+
 } /* namespace sharemind { */
 
 #endif /* SHAREMIND_MAYBEDYNAMICPACKEDSTRUCT_H */

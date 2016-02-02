@@ -38,6 +38,13 @@ template <typename ... Ts> constexpr bool testStatic() noexcept
 template <typename ... Ts> constexpr bool testDynamic() noexcept
 { return test<D, Ts...>(); }
 
+template <typename ...> struct T {};
+static_assert(
+        std::is_same<
+            MaybeDynamicPackedStructFromTemplate_t<T<A<int>, char> >,
+            MaybeDynamicPackedStruct<A<int>, char>
+        >::value, "");
+
 int main() {
     static_assert(testStatic<>(), "");
     static_assert(testStatic<int>(), "");
