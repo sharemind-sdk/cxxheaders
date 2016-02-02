@@ -200,6 +200,16 @@ private: /* Fields: */
 
 };
 
+template <typename T> struct DynamicPackedStructFromTemplate {};
+
+template <template <typename...> class Tmpl, typename ... Ts>
+struct DynamicPackedStructFromTemplate<Tmpl<Ts...> >
+{ using type = DynamicPackedStruct<Ts...>; };
+
+template <typename T>
+using DynamicPackedStructFromTemplate_t =
+        typename DynamicPackedStructFromTemplate<T>::type;
+
 } /* namespace sharemind { */
 
 #endif /* SHAREMIND_DYNAMICPACKEDSTRUCT_H */

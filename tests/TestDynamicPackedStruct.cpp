@@ -21,11 +21,20 @@
 
 #include <cassert>
 #include <iostream>
+#include <type_traits>
+
 
 using namespace sharemind;
 
 using R = DynamicFieldPlaceholder;
 template <typename T> using A = DynamicVectorFieldPlaceholder<T>;
+
+template <typename ...> struct T {};
+static_assert(
+        std::is_same<
+            DynamicPackedStructFromTemplate_t<T<int, char> >,
+            DynamicPackedStruct<int, char>
+        >::value, "");
 
 int main() {
     DynamicPackedStruct<int64_t, char, R, char, A<int32_t>, uint16_t> m(3u, 10u);
