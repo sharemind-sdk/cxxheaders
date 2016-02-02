@@ -55,7 +55,7 @@ int main() {
     assert(m.elemOffset<3u>() == m.elemOffset<2u>() + 3u);
     assert(m.elemOffset<4u>() == m.elemOffset<3u>() + sizeof(char));
     assert(m.elemOffset<5u>() == m.elemOffset<4u>() + sizeof(int32_t) * 10u);
-    char test3[3u] = { '1', '2', '3' };
+    char const test3[3u] = { '1', '2', '3' };
     m.set<0u>(42);
     m.set<1u>('X');
     static_assert(std::is_same<decltype(m.ptr<2u>()), void *>::value, "");
