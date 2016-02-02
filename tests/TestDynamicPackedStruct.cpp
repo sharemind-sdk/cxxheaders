@@ -38,7 +38,8 @@ static_assert(
 
 int main() {
     DynamicPackedStruct<int64_t, char, R, char, A<int32_t>, uint16_t> m(3u, 10u);
-    /*std::cout << "Data is at " << m.data() << std::endl;
+#if 0
+    std::cout << "Data is at " << m.data() << std::endl;
     std::cout << "Size is " << m.size() << std::endl;
     std::cout << "0u offset is " << m.elemOffset<0u>() << std::endl;
     std::cout << "1u offset is " << m.elemOffset<1u>() << std::endl;
@@ -47,7 +48,8 @@ int main() {
     std::cout << "4u offset is " << m.elemOffset<4u>() << std::endl;
     std::cout << "5u offset is " << m.elemOffset<5u>() << std::endl;
     std::cout << "Accum[0u] is " << m.m_sizes.at(0u) << std::endl;
-    std::cout << "Accum[1u] is " << m.m_sizes.at(1u) << std::endl;*/
+    std::cout << "Accum[1u] is " << m.m_sizes.at(1u) << std::endl;
+#endif
     assert(m.size() == 55u);
     assert(m.elemOffset<0u>() == 0u);
     assert(m.elemOffset<1u>() == m.elemOffset<0u>() + sizeof(int64_t));
