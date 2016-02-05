@@ -387,11 +387,11 @@ struct DynamicPackingInfo<Ts...>::AccumArrayType
         : AccumArrayType(const_cast<type const &>(copy))
     {}
 
-    AccumArrayType(type && move) noexcept = default;
-    AccumArrayType(type const & copy) noexcept = default;
+    AccumArrayType(type &&) noexcept = default;
+    AccumArrayType(type const &) noexcept = default;
 
-    type & operator=(type && move) noexcept = default;
-    type & operator=(type const & copy) noexcept = default;
+    type & operator=(type &&) noexcept = default;
+    type & operator=(type const &) noexcept = default;
 
     std::size_t structSizeInBytes() const noexcept
     { return DynamicPackingInfo<Ts...>::sizeFromAccum(*this); }
