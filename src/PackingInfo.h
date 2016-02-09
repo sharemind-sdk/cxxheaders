@@ -70,6 +70,8 @@ struct PackingInfo {
 
 /* Methods: */
 
+    constexpr static std::size_t sizeInBytes() noexcept { return size; }
+
     template <std::size_t I>
     static void * voidPtr(void * const data) noexcept
     { return ptrAdd(data, ElemOffset<I>::value); }
