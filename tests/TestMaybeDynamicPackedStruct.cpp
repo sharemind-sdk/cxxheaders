@@ -21,6 +21,7 @@
 
 #include <type_traits>
 
+
 using namespace sharemind;
 using R = DynamicFieldPlaceholder;
 template <typename T> using A = DynamicVectorFieldPlaceholder<T>;
