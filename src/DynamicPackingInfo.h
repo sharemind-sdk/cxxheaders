@@ -108,6 +108,25 @@ struct FieldTraits<DynamicVectorFieldPlaceholder<T, min_, max_> > {
             DynamicVectorFieldPlaceholder<T, min_, max_>::maxBytes;
 };
 
+template <typename ... Ts> struct ValidSizes;
+
+template <> struct ValidSizes<>
+{ constexpr static bool isValid() noexcept { return true; } };
+
+template <typename T, typename ... Ts>
+struct ValidSizes<T, Ts...> {
+
+    template <typename ... Args>
+    constexpr static bool isValid(std::size_t const size, Args && ... args)
+            noexcept
+    {
+        return (size >= FieldTraits<T>::min)
+               && (size <= FieldTraits<T>::max)
+               && ValidSizes<Ts...>::isValid(std::forward<Args>(args)...);
+    }
+
+};
+
 template <typename T>
 using DynamicFieldPred =
         std::integral_constant<bool, !FieldTraits<T>::isStatic>;
@@ -264,6 +283,14 @@ struct DynamicPackingInfo {
     using ConstPointerType = typename TypeTraits<I>::ConstPointerType;
 
 /* Methods: */
+
+    template <typename ... Args>
+    constexpr static bool validSizes(Args && ... args) noexcept {
+        return TemplateCopyTypeParams_t<
+                    Detail::DynamicPacking::DynamicFieldFilter<Ts...>,
+                    Detail::DynamicPacking::ValidSizes
+                >::isValid(std::forward<Args>(args)...);
+    }
 
     template <typename ... Args>
     constexpr static std::size_t sizeInBytes(Args && ... args) noexcept {
