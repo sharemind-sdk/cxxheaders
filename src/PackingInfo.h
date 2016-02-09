@@ -40,6 +40,10 @@ struct PackingInfo {
 
     constexpr static std::size_t const size = sizeOfTypes<Ts...>();
 
+    constexpr static std::size_t const minSizeInBytes = size;
+
+    constexpr static std::size_t const maxSizeInBytes = size;
+
     constexpr static std::size_t const numFields = sizeof...(Ts);
 
 /* Types: */
