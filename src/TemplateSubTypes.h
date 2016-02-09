@@ -30,6 +30,9 @@ namespace sharemind {
 template <size_t S, size_t N, typename ... Ts>
 struct TemplateSubTypes;
 
+template <>
+struct TemplateSubTypes<0u, 0u> { using type = TemplateTypeList<>; };
+
 template <typename T>
 struct TemplateSubTypes<0u, 0u, T> { using type = TemplateTypeList<>; };
 
