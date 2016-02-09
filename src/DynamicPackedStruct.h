@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_DYNAMICPACKEDSTRUCT_H
 #define SHAREMIND_DYNAMICPACKEDSTRUCT_H
 
+#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <memory>
@@ -81,9 +82,10 @@ public: /* Methods: */
     template <typename ... Args>
     DynamicPackedStruct(Args && ... args)
         : m_data(
-              ::operator new(
+              ( assert(DynamicPackingInfo<Ts...>::validSizes(args...)),
+                ::operator new(
                   DynamicPackingInfo<Ts...>::sizeInBytes(
-                      std::forward<Args>(args)...)))
+                      std::forward<Args>(args)...))))
         , m_sizes(std::forward<Args>(args)...)
     {}
 
