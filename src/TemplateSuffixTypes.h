@@ -26,7 +26,7 @@
 namespace sharemind {
 
 template <size_t N, typename ... Ts>
-using TemplateSuffixTypes = TemplateSubTypes<sizeof...(Ts) - 0u, N, Ts...>;
+using TemplateSuffixTypes = TemplateSubTypes<sizeof...(Ts) - N, N, Ts...>;
 
 template <size_t N, typename ... Ts>
 using TemplateSuffixTypes_t = typename TemplateSuffixTypes<N, Ts...>::type;
