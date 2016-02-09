@@ -30,7 +30,7 @@ namespace sharemind {
 template <typename ... Ts>
 using MaybeDynamicPackingInfo =
         typename std::conditional<
-            DynamicPackingInfo<Ts...>::hasDynamicTypes,
+            DynamicPackingInfo<Ts...>::hasDynamicFields,
             DynamicPackingInfo<Ts...>,
             PackingInfo<Ts...>
         >::type;

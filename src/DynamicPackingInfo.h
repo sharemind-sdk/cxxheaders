@@ -190,12 +190,12 @@ struct DynamicPackingInfo {
 
 /* Constants: */
 
-    constexpr static std::size_t const numTypes = sizeof...(Ts);
+    constexpr static std::size_t const numFields = sizeof...(Ts);
 
-    constexpr static auto const numDynamicTypes =
+    constexpr static auto const numDynamicFields =
             Detail::DynamicPacking::DynamicFieldFilter<Ts...>::size;
 
-    constexpr static bool const hasDynamicTypes = numDynamicTypes > 0u;
+    constexpr static bool const hasDynamicFields = numDynamicFields > 0u;
 
 /* Types: */
 
@@ -234,7 +234,7 @@ struct DynamicPackingInfo {
     static void populateAccumArray(std::size_t * const accumSizes,
                                    Args && ... args) noexcept
     {
-        static_assert(sizeof...(Args) == numDynamicTypes,
+        static_assert(sizeof...(Args) == numDynamicFields,
                       "The number of arguments must match the number of "
                       "dynamic fields.");
         using P = Detail::DynamicPacking::AccumVecPopulator<Ts...>;
@@ -246,7 +246,7 @@ struct DynamicPackingInfo {
             noexcept
     {
         return Detail::DynamicPacking::StaticTailSize<Ts...>::value
-               + accumSizes[numDynamicTypes - 1u];
+               + accumSizes[numDynamicFields - 1u];
     }
 
     template <std::size_t I, typename AccumSizes>
@@ -342,14 +342,14 @@ struct DynamicPackingInfo {
 
 template <typename ... Ts>
 struct DynamicPackingInfo<Ts...>::AccumArrayType
-        : std::array<std::size_t, numDynamicTypes>
+        : std::array<std::size_t, numDynamicFields>
 {
 
 /* Types: */
 
     using type = AccumArrayType;
 
-    using base = std::array<std::size_t, numDynamicTypes>;
+    using base = std::array<std::size_t, numDynamicFields>;
 
     template <std::size_t I> using ElemType =
             typename DynamicPackingInfo<Ts...>::template ElemType<I>;
