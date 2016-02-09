@@ -23,7 +23,7 @@
 
 
 using namespace sharemind;
-using R = DynamicFieldPlaceholder;
+using R = DynamicFieldPlaceholder<>;
 template <typename T> using A = DynamicVectorFieldPlaceholder<T>;
 template <typename ... Ts> using D = DynamicPackingInfo<Ts...>;
 template <typename ... Ts> using M = MaybeDynamicPackingInfo<Ts...>;

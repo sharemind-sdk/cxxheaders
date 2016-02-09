@@ -22,8 +22,10 @@
 
 #include <array>
 #include <cstddef>
+#include <limits>
 #include <type_traits>
 #include <utility>
+#include "Add.h"
 #include "ConstUnalignedReference.h"
 #include "SizeOfTypes.h"
 #include "TemplateCopyTypeParams.h"
@@ -36,13 +38,26 @@
 
 namespace sharemind {
 
-struct DynamicFieldPlaceholder
-{ using type = DynamicFieldPlaceholder; };
+template <std::size_t min_ = std::numeric_limits<std::size_t>::min(),
+          std::size_t max_ = std::numeric_limits<std::size_t>::max()>
+struct DynamicFieldPlaceholder {
+    using type = DynamicFieldPlaceholder;
+    constexpr static std::size_t const min = min_;
+    constexpr static std::size_t const max = max_;
+    constexpr static std::size_t const minBytes = min;
+    constexpr static std::size_t const maxBytes = max;
+};
 
-template <typename T>
+template <typename T,
+          std::size_t min_ = std::numeric_limits<std::size_t>::min(),
+          std::size_t max_ = std::numeric_limits<std::size_t>::max()>
 struct DynamicVectorFieldPlaceholder {
     using type = DynamicVectorFieldPlaceholder<T>;
     using valueType = T;
+    constexpr static std::size_t const min = min_;
+    constexpr static std::size_t const max = max_;
+    constexpr static std::size_t const minBytes = min * sizeof(valueType);
+    constexpr static std::size_t const maxBytes = max * sizeof(valueType);
 };
 
 namespace Detail {
@@ -55,22 +70,42 @@ struct FieldTraits {
     using PointerType = UnalignedPointer<T>;
     using ConstPointerType = UnalignedPointer<T const>;
     constexpr static bool const isStatic = true;
+    constexpr static std::size_t const min = 1u;
+    constexpr static std::size_t const max = 1u;
+    constexpr static std::size_t const minBytes = sizeof(T);
+    constexpr static std::size_t const maxBytes = sizeof(T);
 };
 
-template <>
-struct FieldTraits<DynamicFieldPlaceholder> {
+template <std::size_t min_, std::size_t max_>
+struct FieldTraits<DynamicFieldPlaceholder<min_, max_> > {
     using PointerType = void *;
     using ConstPointerType = void const *;
     constexpr static bool const isStatic = false;
+    constexpr static std::size_t const min =
+            DynamicFieldPlaceholder<min_, max_>::min;
+    constexpr static std::size_t const max =
+            DynamicFieldPlaceholder<min_, max_>::max;
+    constexpr static std::size_t const minBytes =
+            DynamicFieldPlaceholder<min_, max_>::minBytes;
+    constexpr static std::size_t const maxBytes =
+            DynamicFieldPlaceholder<min_, max_>::maxBytes;
 };
 
-template <typename T>
-struct FieldTraits<DynamicVectorFieldPlaceholder<T> > {
+template <typename T, std::size_t min_, std::size_t max_>
+struct FieldTraits<DynamicVectorFieldPlaceholder<T, min_, max_> > {
     using ReferenceType = UnalignedReference<T>;
     using ConstReferenceType = ConstUnalignedReference<T>;
     using PointerType = UnalignedPointer<T>;
     using ConstPointerType = UnalignedPointer<T const>;
     constexpr static bool const isStatic = false;
+    constexpr static std::size_t const min =
+            DynamicVectorFieldPlaceholder<T, min_, max_>::min;
+    constexpr static std::size_t const max =
+            DynamicVectorFieldPlaceholder<T, min_, max_>::max;
+    constexpr static std::size_t const minBytes =
+            DynamicVectorFieldPlaceholder<T, min_, max_>::minBytes;
+    constexpr static std::size_t const maxBytes =
+            DynamicVectorFieldPlaceholder<T, min_, max_>::maxBytes;
 };
 
 template <typename T>
@@ -86,16 +121,16 @@ template <>
 struct AccumSize<>
 { constexpr static std::size_t value() noexcept { return 0u; } };
 
-template <typename ... Ts>
-struct AccumSize<DynamicFieldPlaceholder, Ts...> {
+template <std::size_t limit_, typename ... Ts>
+struct AccumSize<DynamicFieldPlaceholder<limit_>, Ts...> {
     template <typename ... Args>
     constexpr static std::size_t value(std::size_t const size,
                                        Args && ... args) noexcept
     { return size + AccumSize<Ts...>::value(std::forward<Args>(args)...); }
 };
 
-template <typename T, typename ... Ts>
-struct AccumSize<DynamicVectorFieldPlaceholder<T>, Ts...> {
+template <typename T, std::size_t limit_, typename ... Ts>
+struct AccumSize<DynamicVectorFieldPlaceholder<T, limit_>, Ts...> {
     template <typename ... Args>
     constexpr static std::size_t value(std::size_t const size,
                                        Args && ... args) noexcept
@@ -136,8 +171,8 @@ struct AccumVecPopulator<> {
     {}
 };
 
-template <typename ... Ts>
-struct AccumVecPopulator<DynamicFieldPlaceholder, Ts...> {
+template <std::size_t limit_, typename ... Ts>
+struct AccumVecPopulator<DynamicFieldPlaceholder<limit_>, Ts...> {
     template <typename ... Args>
     static void populate(std::size_t * const ptr,
                          std::size_t accum,
@@ -152,8 +187,8 @@ struct AccumVecPopulator<DynamicFieldPlaceholder, Ts...> {
     }
 };
 
-template <typename T, typename ... Ts>
-struct AccumVecPopulator<DynamicVectorFieldPlaceholder<T>, Ts...> {
+template <typename T, std::size_t limit_, typename ... Ts>
+struct AccumVecPopulator<DynamicVectorFieldPlaceholder<T, limit_>, Ts...> {
     template <typename ... Args>
     static void populate(std::size_t * const ptr,
                          std::size_t accum,
@@ -189,6 +224,12 @@ template <typename ... Ts>
 struct DynamicPackingInfo {
 
 /* Constants: */
+
+    constexpr static std::size_t const minSizeInBytes =
+            add(Detail::DynamicPacking::FieldTraits<Ts>::minBytes...);
+
+    constexpr static std::size_t const maxSizeInBytes =
+            add(Detail::DynamicPacking::FieldTraits<Ts>::maxBytes...);
 
     constexpr static std::size_t const numFields = sizeof...(Ts);
 
