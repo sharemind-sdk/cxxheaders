@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_APPLYTUPLES_H
 #define SHAREMIND_APPLYTUPLES_H
 
+#include <cstddef>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -43,7 +44,7 @@ namespace Detail { namespace ApplyTuples {
         SHAREMIND_APPLYTUPLES_CHOOSEELEM(AppendElem) \
     )
 
-template <size_t NT, size_t N, size_t ... Ns>
+template <std::size_t NT, std::size_t N, std::size_t ... Ns>
 struct Apply {
     template<typename F, typename Tuples, typename ... Args>
     static inline auto apply(F && f, Tuples && tuples, Args && ... args)
@@ -51,7 +52,7 @@ struct Apply {
     { return SHAREMIND_APPLYTUPLES_CALLAPPLY(N, NT, N - 1u, Ns...); }
 };
 
-template <size_t NT, size_t N, size_t ... Ns>
+template <std::size_t NT, std::size_t N, std::size_t ... Ns>
 struct Apply<NT, 1u, N, Ns...> {
     template<typename F, typename Tuples, typename ... Args>
     static inline auto apply(F && f, Tuples && tuples, Args && ... args)
@@ -59,7 +60,7 @@ struct Apply<NT, 1u, N, Ns...> {
     { return SHAREMIND_APPLYTUPLES_CALLAPPLY(1u, NT - 1u, N, Ns...); }
 };
 
-template <size_t NT>
+template <std::size_t NT>
 struct Apply<NT, 1u> {
     template<typename F, typename Tuples, typename ... Args>
     static inline auto apply(F && f, Tuples && tuples, Args && ... args)
