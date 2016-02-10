@@ -21,6 +21,7 @@
 #define SHAREMIND_DATUM
 
 #include <algorithm>
+#include <cstddef>
 #include <boost/functional/hash.hpp>
 #include <boost/static_assert.hpp>
 #include <fstream>
@@ -36,7 +37,12 @@ class Datum {
 
 private: /* Types: */
 
-    typedef std::vector<char> Container;
+    using Container = std::vector<char>;
+
+public: /* Types: */
+
+    using size_type = Container::size_type;
+    using value_type = Container::value_type;
 
 public: /* Methods: */
 
@@ -48,20 +54,21 @@ public: /* Methods: */
             noexcept(std::is_nothrow_move_constructible<Container>::value)
         : m_data(std::move(move.m_data)) {}
 
-    inline Datum(const Datum & copy) : m_data(copy.m_data) {}
+    inline Datum(Datum const & copy) : m_data(copy.m_data) {}
 
-    inline Datum(Container::size_type size,
-                 Container::value_type initial = Container::value_type())
-        : m_data(size, initial) {}
+    inline Datum(size_type size, value_type initial = value_type())
+        : m_data(size, initial)
+    {}
 
-    inline Datum(const void * const data, const size_t size)
-        : m_data(static_cast<Container::value_type const *>(data),
-                 static_cast<Container::value_type const *>(data) + size) {}
+    inline Datum(void const * const data, size_type const size)
+        : m_data(static_cast<value_type const *>(data),
+                 static_cast<value_type const *>(data) + size)
+    {}
 
-    inline Datum(const std::string & filename)
+    inline Datum(std::string const & filename)
     { loadFileToVector(m_data, filename); }
 
-    inline Datum & operator=(const Datum & copy) {
+    inline Datum & operator=(Datum const & copy) {
         m_data = copy.m_data;
         return *this;
     }
@@ -73,54 +80,56 @@ public: /* Methods: */
         return *this;
     }
 
-    inline bool operator==(const Datum & rhs) const noexcept
+    inline bool operator==(Datum const & rhs) const noexcept
     { return m_data == rhs.m_data; }
 
-    inline bool operator!=(const Datum & rhs) const noexcept
+    inline bool operator!=(Datum const & rhs) const noexcept
     { return m_data != rhs.m_data; }
 
-    inline void resize(const size_t size,
-                       Container::value_type initial = Container::value_type())
+    inline void resize(size_type const size, value_type initial = value_type())
     { m_data.resize(size, initial); }
 
-    inline void loadFromFile(const std::string & filename) {
+    inline void loadFromFile(std::string const & filename) {
         std::vector<char> newData;
         loadFileToVector(newData, filename);
         m_data = newData;
     }
 
-    inline void assign(const void * const data, const size_t size) {
+    inline void assign(void const * const data, size_type const size) {
         m_data.resize(size);
-        std::copy(static_cast<const char *>(data),
-                  static_cast<const char *>(data) + size,
+        std::copy(static_cast<char const *>(data),
+                  static_cast<char const *>(data) + size,
                   &m_data[0]);
     }
 
     inline void clear() noexcept { m_data.clear(); }
     inline bool empty() const noexcept { return m_data.empty(); }
-    inline Container::size_type size() const noexcept { return m_data.size(); }
+    inline size_type size() const noexcept { return m_data.size(); }
     inline void * data() noexcept { return &m_data[0u]; }
     inline void * dataEnd() noexcept { return &*m_data.end(); }
-    inline const void * constData() const noexcept { return &m_data[0u]; }
-    inline const void * constDataEnd() const noexcept
+    inline void const * constData() const noexcept { return &m_data[0u]; }
+    inline void const * constDataEnd() const noexcept
     { return &*m_data.end(); }
 
     template <class T>
     inline static void loadFileToVector(std::vector<T> & outData,
-                                        const std::string & filename)
+                                        std::string const & filename)
     {
         std::ifstream inFile(filename.c_str(),
                              std::ios_base::in | std::ios_base::binary);
         inFile.seekg(0, std::ios::end);
-        const std::streamoff fileSize = inFile.tellg();
+        std::streamoff const fileSize = inFile.tellg();
         assert(fileSize >= 0u);
         inFile.seekg(0, std::ios::beg);
-        outData.resize(static_cast<size_t>(fileSize));
+        outData.resize(static_cast<size_type>(fileSize));
         inFile.read(static_cast<char *>(&outData[0]), fileSize);
     }
 
-    static std::size_t hashData(const void * data, const size_t size) noexcept {
-        const char * dataStart = static_cast<const char *>(data);
+    template <typename SizeType>
+    static std::size_t hashData(void const * data,
+                                SizeType const size) noexcept
+    {
+        char const * const dataStart = static_cast<char const *>(data);
         std::size_t hash = size;
         boost::hash_range(hash, dataStart, dataStart + size);
         return hash;
@@ -132,7 +141,7 @@ private: /* Fields: */
 
 };
 
-inline std::size_t hash_value(const Datum & datum) noexcept
+inline std::size_t hash_value(Datum const & datum) noexcept
 { return Datum::hashData(datum.constData(), datum.size()); }
 
 } /* namespace sharemind { */
