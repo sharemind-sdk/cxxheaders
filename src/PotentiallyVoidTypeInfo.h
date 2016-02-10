@@ -24,28 +24,12 @@
 #include <cstddef>
 #include <cstring>
 #include <type_traits>
+#include "CopyCv.h"
 
 
 namespace sharemind {
 namespace Detail {
 namespace PotentiallyVoidTypeInfo {
-
-template <typename From, typename To>
-struct CopyCV {
-    typedef typename std::conditional<
-                std::is_volatile<From>::value,
-                typename std::conditional<
-                    std::is_const<From>::value,
-                    const volatile To,
-                    volatile To
-                >::type,
-                typename std::conditional<
-                    std::is_const<From>::value,
-                    const To,
-                    To
-                >::type
-            >::type type;
-};
 
 template <typename T, typename Enable = void>
 struct AllocBase { typedef typename std::remove_const<T>::type allocType; };
@@ -77,10 +61,10 @@ struct ArithBase<T, typename std::enable_if<std::is_void<T>::value>::type> {
     { return static_cast<const char *>(a) - static_cast<const char *>(b); }
 
     constexpr static inline T * ptrAdd(T * const p, const size_t size) noexcept
-    { return static_cast<typename CopyCV<T, char>::type *>(p) + size; }
+    { return static_cast<CopyCv_t<char, T> *>(p) + size; }
 
     constexpr static inline T * ptrSub(T * const p, const size_t size) noexcept
-    { return static_cast<typename CopyCV<T, char>::type *>(p) - size; }
+    { return static_cast<CopyCv_t<char, T> *>(p) - size; }
 
 };
 
