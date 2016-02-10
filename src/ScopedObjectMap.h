@@ -36,7 +36,7 @@ namespace sharemind {
 template <class Key,
           class T,
           class Compare = std::less<Key>,
-          class Allocator = std::allocator<std::pair<const Key, T *> > >
+          class Allocator = std::allocator<std::pair<Key const, T *> > >
 class ScopedObjectMap {
 
     static_assert(std::is_nothrow_destructible<T>::value,
@@ -67,7 +67,7 @@ public: /* Methods: */
 
     inline ScopedObjectMap() {}
     ScopedObjectMap(ScopedObjectMap &&) = default;
-    ScopedObjectMap(const ScopedObjectMap &) = default;
+    ScopedObjectMap(ScopedObjectMap const &) = default;
 
     inline ~ScopedObjectMap() noexcept {
         for (value_type & valuePair : m_map)
@@ -75,7 +75,7 @@ public: /* Methods: */
     }
 
     ScopedObjectMap & operator=(ScopedObjectMap &&) = default;
-    ScopedObjectMap & operator=(const ScopedObjectMap &) = default;
+    ScopedObjectMap & operator=(ScopedObjectMap const &) = default;
 
     /*************
      * Iterators *
@@ -113,19 +113,19 @@ public: /* Methods: */
     { return m_map.emplace(std::forward<Args>(args)...); }
     #endif
 
-    inline std::pair<iterator, bool> insert(const value_type & value)
+    inline std::pair<iterator, bool> insert(value_type const & value)
     { return m_map.insert(value); }
 
-    inline std::pair<iterator, bool> insert(const key_type & key,
-                                            const mapped_type value)
+    inline std::pair<iterator, bool> insert(key_type const & key,
+                                            mapped_type const value)
     { return m_map.insert(value_type(key, value)); }
 
     template <typename ... Args>
     inline std::pair<iterator, bool> constructAndInsert(
-            const std::string & name,
+            std::string const & name,
             Args && ... args)
     {
-        const T * const value = new T(std::forward<Args>(args)...);
+        T const * const value = new T(std::forward<Args>(args)...);
         try {
             return insert(name, value);
         } catch (...) {
@@ -134,30 +134,30 @@ public: /* Methods: */
         }
     }
 
-    inline void replaceOrInsert(const key_type & key, const mapped_type value) {
-        const std::pair<iterator, bool> r = m_map.insert(value_type(key,
-                                                                    value));
+    inline void replaceOrInsert(key_type const & key, mapped_type const value) {
+        std::pair<iterator, bool> const r =
+                m_map.insert(value_type(key, value));
         if (!r.second) {
-            const mapped_type old = r.first->second;
+            mapped_type const old = r.first->second;
             r.first->second = value;
             delete old;
         }
     }
 
     /// \todo Make noexcept:
-    inline void erase(const iterator pos)
+    inline void erase(iterator const pos)
             noexcept(noexcept(std::declval<impl_t &>()
-                                  .erase(std::declval<const iterator &>())))
+                                  .erase(std::declval<iterator const &>())))
     {
         delete (*pos).second;
         m_map.erase(pos);
     }
 
     /// \todo Make noexcept:
-    inline void erase(const iterator first, const iterator last)
+    inline void erase(iterator const first, iterator const last)
         noexcept(noexcept(std::declval<impl_t &>()
-                              .erase(std::declval<const iterator &>(),
-                                     std::declval<const iterator &>())))
+                              .erase(std::declval<iterator const &>(),
+                                     std::declval<iterator const &>())))
     {
         for (iterator it(first); it != last; ++it)
             delete (*it).second;
@@ -165,13 +165,13 @@ public: /* Methods: */
     }
 
     /// \todo Make noexcept:
-    inline size_type erase(const key_type & key)
+    inline size_type erase(key_type const & key)
             noexcept(noexcept(std::declval<impl_t &>()
-                              .find(std::declval<const key_type &>()))
+                              .find(std::declval<key_type const &>()))
                      && noexcept(std::declval<impl_t &>()
-                                 .erase(std::declval<const iterator &>())))
+                                 .erase(std::declval<iterator const &>())))
     {
-        const iterator it = m_map.find(key);
+        iterator const it = m_map.find(key);
         if (it == m_map.end())
             return 0u;
 
@@ -181,22 +181,22 @@ public: /* Methods: */
     }
 
     /// \todo Make noexcept:
-    inline void eraseNoDelete(const iterator pos)
+    inline void eraseNoDelete(iterator const pos)
             noexcept(noexcept(std::declval<impl_t &>()
-                                  .erase(std::declval<const iterator &>())))
+                                  .erase(std::declval<iterator const &>())))
     { m_map.erase(pos); }
 
     /// \todo Make noexcept:
-    inline void eraseNoDelete(const iterator first, const iterator last)
+    inline void eraseNoDelete(iterator const first, iterator const last)
             noexcept(noexcept(std::declval<impl_t &>()
-                                  .erase(std::declval<const iterator &>(),
-                                         std::declval<const iterator &>())))
+                                  .erase(std::declval<iterator const &>(),
+                                         std::declval<iterator const &>())))
     { m_map.erase(first, last); }
 
     /// \todo Make noexcept:
-    inline size_type eraseNoDelete(const key_type & key)
+    inline size_type eraseNoDelete(key_type const & key)
             noexcept(noexcept(std::declval<impl_t &>().erase(
-                                  std::declval<const key_type &>())))
+                                  std::declval<key_type const &>())))
     { return m_map.erase(key); }
 
     /**********
@@ -204,35 +204,35 @@ public: /* Methods: */
      **********/
 
     /// \todo Make noexcept:
-    inline size_type count(const key_type & key)
-            const noexcept(noexcept(std::declval<const impl_t &>().count(
-                                       std::declval<const key_type &>())))
+    inline size_type count(key_type const & key)
+            const noexcept(noexcept(std::declval<impl_t const &>().count(
+                                       std::declval<key_type const &>())))
     { return m_map.count(key); }
 
     /// \todo Make noexcept:
-    inline iterator find(const key_type & key)
+    inline iterator find(key_type const & key)
             noexcept(noexcept(std::declval<impl_t &>().find(
-                                 std::declval<const key_type &>())))
+                                 std::declval<key_type const &>())))
     { return m_map.find(key); }
 
     /// \todo Make noexcept:
-    inline const_iterator find(const key_type & key)
-            const noexcept(noexcept(std::declval<const impl_t &>().find(
-                                       std::declval<const key_type &>())))
+    inline const_iterator find(key_type const & key)
+            const noexcept(noexcept(std::declval<impl_t const &>().find(
+                                       std::declval<key_type const &>())))
     { return m_map.find(key); }
 
     /// \todo Make noexcept:
-    inline mapped_type maybeAt(const key_type & key)
-            const noexcept(noexcept(std::declval<const impl_t &>().find(
-                                       std::declval<const key_type &>())))
+    inline mapped_type maybeAt(key_type const & key)
+            const noexcept(noexcept(std::declval<impl_t const &>().find(
+                                       std::declval<key_type const &>())))
     {
-        const const_iterator it = m_map.find(key);
+        const_iterator const it = m_map.find(key);
         return it == m_map.end() ? nullptr : it->second;
     }
 
     /// \todo Make noexcept:
-    inline T & at(const key_type & key)
-            const noexcept(noexcept(*std::declval<const impl_t &>().at(key)))
+    inline T & at(key_type const & key)
+            const noexcept(noexcept(*std::declval<impl_t const &>().at(key)))
     { return *m_map.at(key); }
 
 private: /* Fields: */
