@@ -20,15 +20,16 @@
 #ifndef SHAREMIND_TEMPLATEPREFIXTYPES_H
 #define SHAREMIND_TEMPLATEPREFIXTYPES_H
 
+#include <cstddef>
 #include "TemplateSubTypes.h"
 
 
 namespace sharemind {
 
-template <size_t N, typename ... Ts>
+template <std::size_t N, typename ... Ts>
 using TemplatePrefixTypes = TemplateSubTypes<0u, N, Ts...>;
 
-template <size_t N, typename ... Ts>
+template <std::size_t N, typename ... Ts>
 using TemplatePrefixTypes_t = typename TemplatePrefixTypes<N, Ts...>::type;
 
 } /* namespace sharemind { */

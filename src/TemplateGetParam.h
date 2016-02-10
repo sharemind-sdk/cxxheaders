@@ -26,16 +26,16 @@
 
 namespace sharemind {
 
-template <typename T, size_t I, T ... vs>
+template <typename T, std::size_t I, T ... vs>
 struct TemplateGetParam;
 
 template <typename T, T v, T ... vs>
 struct TemplateGetParam<T, 0u, v, vs...>: std::integral_constant<T, v> {};
 
-template <typename T, size_t I, T v, T ... vs>
+template <typename T, std::size_t I, T v, T ... vs>
 struct TemplateGetParam<T, I, v, vs...>: TemplateGetParam<T, I - 1u, vs...> {};
 
-template <typename T, size_t I, T ... vs>
+template <typename T, std::size_t I, T ... vs>
 using TemplateGetParam_t = typename TemplateGetParam<T, I, vs...>::type;
 
 } /* namespace sharemind { */

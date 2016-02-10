@@ -20,15 +20,16 @@
 #ifndef SHAREMIND_TEMPLATESUFFIXTYPES_H
 #define SHAREMIND_TEMPLATESUFFIXTYPES_H
 
+#include <cstddef>
 #include "TemplateSubTypes.h"
 
 
 namespace sharemind {
 
-template <size_t N, typename ... Ts>
+template <std::size_t N, typename ... Ts>
 using TemplateSuffixTypes = TemplateSubTypes<sizeof...(Ts) - N, N, Ts...>;
 
-template <size_t N, typename ... Ts>
+template <std::size_t N, typename ... Ts>
 using TemplateSuffixTypes_t = typename TemplateSuffixTypes<N, Ts...>::type;
 
 } /* namespace sharemind { */

@@ -25,17 +25,17 @@
 
 namespace sharemind {
 
-template <size_t I, typename ... Ts>
+template <std::size_t I, typename ... Ts>
 struct TemplateGetTypeParam;
 
 template <typename T, typename ... Ts>
 struct TemplateGetTypeParam<0u, T, Ts...> { using type = T; };
 
-template <size_t I, typename T, typename ... Ts>
+template <std::size_t I, typename T, typename ... Ts>
 struct TemplateGetTypeParam<I, T, Ts...>
 { using type = typename TemplateGetTypeParam<I - 1u, Ts...>::type; };
 
-template <size_t I, typename ... Ts>
+template <std::size_t I, typename ... Ts>
 using TemplateGetTypeParam_t = typename TemplateGetTypeParam<I, Ts...>::type;
 
 } /* namespace sharemind { */

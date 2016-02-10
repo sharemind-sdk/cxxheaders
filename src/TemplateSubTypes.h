@@ -27,7 +27,7 @@
 
 namespace sharemind {
 
-template <size_t S, size_t N, typename ... Ts>
+template <std::size_t S, std::size_t N, typename ... Ts>
 struct TemplateSubTypes;
 
 template <>
@@ -39,7 +39,7 @@ struct TemplateSubTypes<0u, 0u, T> { using type = TemplateTypeList<>; };
 template <typename T, typename ... Ts>
 struct TemplateSubTypes<0u, 0u, T, Ts...> { using type = TemplateTypeList<>; };
 
-template <size_t N, typename T, typename ... Ts>
+template <std::size_t N, typename T, typename ... Ts>
 struct TemplateSubTypes<0u, N, T, Ts...> {
     using type =
             typename TemplatePrependOneType<
@@ -49,10 +49,10 @@ struct TemplateSubTypes<0u, N, T, Ts...> {
             >::type;
 };
 
-template <size_t S, size_t N, typename T, typename ... Ts>
+template <std::size_t S, std::size_t N, typename T, typename ... Ts>
 struct TemplateSubTypes<S, N, T, Ts...>: TemplateSubTypes<S - 1u, N, Ts...> {};
 
-template <size_t S, size_t N, typename ... Ts>
+template <std::size_t S, std::size_t N, typename ... Ts>
 using TemplateSubTypes_t = typename TemplateSubTypes<S, N, Ts...>::type;
 
 } /* namespace sharemind { */
