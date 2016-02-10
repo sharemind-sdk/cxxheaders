@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_HOMEDIRECTORY_H
 #define SHAREMIND_HOMEDIRECTORY_H
 
+#include <cstddef>
 #include <limits>
 #include <new>
 #include <pwd.h>
@@ -42,8 +43,8 @@ SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(std::exception,
 inline std::string getHomeDirectory() {
     try {
         long const maxSize = ::sysconf(_SC_GETPW_R_SIZE_MAX);
-        size_t bufferSize =
-                (maxSize < 1) ? 1024u : static_cast<size_t>(maxSize);
+        std::size_t bufferSize =
+                (maxSize < 1) ? 1024u : static_cast<std::size_t>(maxSize);
         passwd result;
         passwd * resultPtr;
         struct BufferDeleter { void operator()(char * const p) { ::free(p); } };
@@ -58,11 +59,11 @@ inline std::string getHomeDirectory() {
                                  bufferSize,
                                  &resultPtr)) == ERANGE)
         {
-            size_t const newSize = bufferSize + 1024u;
+            std::size_t const newSize = bufferSize + 1024u;
             if (newSize < bufferSize) {
-                if (bufferSize == std::numeric_limits<size_t>::max())
+                if (bufferSize == std::numeric_limits<std::size_t>::max())
                     throw std::bad_alloc{};
-                bufferSize = std::numeric_limits<size_t>::max();
+                bufferSize = std::numeric_limits<std::size_t>::max();
             }
             Buffer newBuffer{static_cast<char *>(::realloc(buffer.get(), newSize))};
             if (!newBuffer)
