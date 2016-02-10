@@ -60,7 +60,7 @@ namespace sharemind {
         do { \
             char * const c = strerror_r((e), (buf), (bufsize)); \
             if (c != buf) { \
-                const size_t len = std::strlen(c); \
+                auto const len = std::strlen(c); \
                 if (len < (bufsize)) { \
                     std::memmove((buf), c, len + 1u); \
                 } else { \
@@ -122,7 +122,7 @@ class ErrnoException: public Exception {
 
 public: /* Constants: */
 
-    constexpr static const size_t BUFFER_SIZE = 1024u;
+    constexpr static std::size_t const BUFFER_SIZE = 1024u;
 
 public: /* Methods: */
 

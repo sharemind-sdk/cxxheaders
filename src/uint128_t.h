@@ -258,7 +258,8 @@ inline bool operator >= (uint128_t x, uint128_t y) { return !(x < y); }
  */
 
 inline std::ostream& operator << (std::ostream& os, uint128_t x) {
-    constexpr size_t const buff_size = 64; // enough to fit the number in base 8 + extra
+    // enough to fit the number in base 8 + extra:
+    constexpr std::size_t const buff_size = 64;
     static char const lower[] = "0123456789abcdef";
     static char const upper[] = "0123456789ABCDEF";
     char buff[buff_size];
@@ -271,7 +272,7 @@ inline std::ostream& operator << (std::ostream& os, uint128_t x) {
         if (os.flags () & std::ios::oct) base = 8;
         if (os.flags () & std::ios::uppercase) table = upper;
         uint128_t r;
-        size_t i = buff_size;
+        auto i = buff_size;
         while (x > 0) {
             uint128_t::divMod (x, base, x, r);
             buff[-- i] = table[r.lower()];

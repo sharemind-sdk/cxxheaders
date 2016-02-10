@@ -149,7 +149,7 @@ public: /* Methods: */
         return childrenNoLock();
     }
 
-    inline size_t numChildren() const noexcept {
+    inline typename ChildNodes::size_type numChildren() const noexcept {
         lock_guard lock(m_mutex);
         return m_childNodes.size();
     }

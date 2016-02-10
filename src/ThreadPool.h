@@ -78,7 +78,9 @@ private: /* Types: */
 
         std::unique_ptr<TaskBase> m_value;
         Task m_next;
-    };
+    }
+    ;
+    using Pool = std::vector<std::thread>;
 
     using TasksMutex = sharemind::QueueingMutex;
     using TasksLock = sharemind::QueueingMutex::Lock;
@@ -86,6 +88,7 @@ private: /* Types: */
     using ThreadsMutex = std::mutex;
     using ThreadsGuard = std::lock_guard<ThreadsMutex>;
     using ThreadsLock = std::unique_lock<ThreadsMutex>;
+
 
 public: /* Methods: */
 
@@ -99,7 +102,7 @@ public: /* Methods: */
             }()}
     {}
 
-    inline ThreadPool(size_t const numThreads)
+    inline ThreadPool(Pool::size_type const numThreads)
         : ThreadPool{(assert(numThreads > 0u), numThreads),
                      new TaskWrapper{nullptr}}
     {}
@@ -211,7 +214,7 @@ private: /* Methods: */
         return Task{new TaskWrapper{std::unique_ptr<TaskBase>{task}}};
     }
 
-    inline ThreadPool(size_t const numThreads,
+    inline ThreadPool(Pool::size_type const numThreads,
                       TaskWrapper * const emptyTaskWrapper)
         : m_tail{emptyTaskWrapper}
         , m_head{emptyTaskWrapper}
@@ -272,7 +275,7 @@ private: /* Fields: */
     bool m_stop = false;
 
     ThreadsMutex m_threadsMutex;
-    std::vector<std::thread> m_threads;
+    Pool m_threads;
 
     std::atomic_flag m_stopStarted = ATOMIC_FLAG_INIT;
 

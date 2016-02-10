@@ -121,7 +121,7 @@ public: /* Types: */
 
     using type = UnalignedPointer<T>;
 
-    using difference_type = size_t;
+    using difference_type = std::size_t;
     using value_type = T;
     using reference = UnalignedReference<T>;
 

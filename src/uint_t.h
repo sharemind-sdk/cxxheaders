@@ -25,11 +25,13 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
 #include <type_traits>
+#include "Min.h"
 
 
 namespace sharemind {
@@ -116,20 +118,21 @@ class uint_detail {
 public: /* Types: */
     typedef B block_t;
 
-    static constexpr size_t bytes_in_block = sizeof(block_t);
-    static constexpr size_t num_of_bits = N;
-    static constexpr size_t bits_in_block = bytes_in_block*8u;
-    static constexpr size_t num_of_bytes = (num_of_bits + 7u) / 8u;
-    static constexpr size_t num_of_blocks = (num_of_bytes + bytes_in_block - 1u) / bytes_in_block;
+    static constexpr std::size_t bytes_in_block = sizeof(block_t);
+    static constexpr std::size_t num_of_bits = N;
+    static constexpr std::size_t bits_in_block = bytes_in_block*8u;
+    static constexpr std::size_t num_of_bytes = (num_of_bits + 7u) / 8u;
+    static constexpr std::size_t num_of_blocks =
+            (num_of_bytes + bytes_in_block - 1u) / bytes_in_block;
 
 public: /* Methods: */
 
-    inline block_t& block (size_t i) {
+    inline block_t& block (std::size_t const i) {
         assert (i < num_of_blocks);
         return m_blocks[i];
     }
 
-    inline block_t block (size_t i) const {
+    inline block_t block (std::size_t const i) const {
         assert (i < num_of_blocks);
         return m_blocks[i];
     }
@@ -263,18 +266,16 @@ public: /* Methods: */
 
     friend bool operator ! (uint_t x) {
         block_t acc = 0;
-        for (size_t i = 0; i < num_of_blocks; ++ i) {
+        for (std::size_t i = 0u; i < num_of_blocks; ++i)
             acc |= x.block(i);
-        }
 
         return !acc;
     }
 
     friend uint_t operator ~ (uint_t x) {
         uint_t result;
-        for (size_t i = 0; i < num_of_blocks; ++ i) {
+        for (std::size_t i = 0u; i < num_of_blocks; ++i)
             result.block(i) = ~x.block(i);
-        }
 
         result.clear_unused_bits_();
         return result;
@@ -290,17 +291,17 @@ public: /* Methods: */
      **************/
 
 
-    inline bool operator [] (size_t i) const {
+    inline bool operator [] (std::size_t const i) const {
         assert (i < N && "Index out of bounds.");
-        const size_t block_index = i / bits_in_block;
+        std::size_t const block_index = i / bits_in_block;
         const block_t bit_index = i % bits_in_block;
         const block_t bit_mask = block_t(1) << bit_index;
         return bit_mask & block(block_index);
     }
 
-    inline bit_reference operator [] (size_t i) {
+    inline bit_reference operator [] (std::size_t const i) {
         assert (i < N && "Index out of bounds.");
-        const size_t block_index = i / bits_in_block;
+        std::size_t const block_index = i / bits_in_block;
         const block_t bit_index = i % bits_in_block;
         return bit_reference(block(block_index), bit_index);
     }
@@ -339,28 +340,22 @@ public: /* Methods: */
 
     friend uint_t operator & (uint_t x, uint_t y) {
         uint_t result;
-        for (size_t i = 0; i < num_of_blocks; ++ i) {
+        for (std::size_t i = 0u; i < num_of_blocks; ++i)
             result.block(i) = x.block(i) & y.block(i);
-        }
-
         return result;
     }
 
     friend uint_t operator ^ (uint_t x, uint_t y) {
         uint_t result;
-        for (size_t i = 0; i < num_of_blocks; ++ i) {
+        for (std::size_t i = 0u; i < num_of_blocks; ++i)
             result.block(i) = x.block(i) ^ y.block(i);
-        }
-
         return result;
     }
 
     friend uint_t operator | (uint_t x, uint_t y) {
         uint_t result;
-        for (size_t i = 0; i < num_of_blocks; ++ i) {
+        for (std::size_t i = 0u; i < num_of_blocks; ++ i)
             result.block(i) = x.block(i) | y.block(i);
-        }
-
         return result;
     }
 
@@ -381,8 +376,8 @@ public: /* Methods: */
 
         uint_t result;
 
-        const size_t blockShift = shift / bits_in_block; // how many blocks need shifting
-        const size_t bitShift = shift % bits_in_block; // how many bits in the block need shifting
+        std::size_t const blockShift = shift / bits_in_block; // how many blocks need shifting
+        std::size_t const bitShift = shift % bits_in_block; // how many bits in the block need shifting
 
         if (bitShift == 0) {
             result = x;
@@ -392,17 +387,15 @@ public: /* Methods: */
 
         assert (0 < bitShift && bitShift < bits_in_block && "Undefined behaviour!");
 
-        for (size_t i = 0; i < blockShift; ++ i) {
+        for (std::size_t i = 0u; i < blockShift; ++ i)
             result.block(i) = 0;
-        }
 
         result.block(blockShift) = x.block(0) << bitShift;
 
-        for (size_t i = blockShift + 1; i < num_of_blocks; ++ i) {
+        for (std::size_t i = blockShift + 1; i < num_of_blocks; ++ i)
             result.block(i) =
                     (x.block(i - blockShift) << bitShift) |
                     (x.block(i - blockShift - 1) >> (bits_in_block - bitShift));
-        }
 
         result.clear_unused_bits_();
         return result;
@@ -415,9 +408,11 @@ public: /* Methods: */
 
         uint_t result;
 
-        const size_t blockShift = shift / bits_in_block; // how many blocks need shifting
-        const size_t blockKeep = num_of_blocks - blockShift - 1;
-        const size_t bitShift = shift % bits_in_block; // how many bits in the block need shifting
+        // how many blocks need shifting:
+        std::size_t const blockShift = shift / bits_in_block;
+        std::size_t const blockKeep = num_of_blocks - blockShift - 1;
+        // how many bits in the block need shifting:
+        std::size_t const bitShift = shift % bits_in_block;
 
         if (bitShift == 0) {
             result = x;
@@ -427,17 +422,15 @@ public: /* Methods: */
 
         assert (0 < bitShift && bitShift < bits_in_block && "Undefined behaviour!");
 
-        for (size_t i = 0; i < blockKeep; ++ i) {
+        for (std::size_t i = 0u; i < blockKeep; ++i)
             result.block(i) =
                     (x.block(i + blockShift) >> bitShift) |
                     (x.block(i + blockShift + 1) << (bits_in_block - bitShift));
-        }
 
         result.block(blockKeep) = x.most_significant_block() >> bitShift;
 
-        for (size_t i = blockKeep + 1; i < num_of_blocks; ++ i) {
+        for (std::size_t i = blockKeep + 1; i < num_of_blocks; ++i)
             result.block(i) = 0;
-        }
 
         result.clear_unused_bits_();
         return result;
@@ -452,7 +445,7 @@ public: /* Methods: */
     friend uint_t operator + (uint_t x, uint_t y) {
         bool carry = false;
         uint_t result;
-        for (size_t i = 0; i < num_of_blocks; ++ i) {
+        for (std::size_t i = 0u; i < num_of_blocks; ++i) {
             const block_t temp = x.block(i) + y.block(i) + carry;
             const block_t limit = std::min(x.block(i), y.block(i));
             result.block(i) = temp;
@@ -466,7 +459,7 @@ public: /* Methods: */
     friend uint_t operator - (uint_t x, uint_t y) {
         bool borrow = false;
         uint_t result;
-        for (size_t i = 0; i < num_of_blocks; ++ i) {
+        for (std::size_t i = 0u; i < num_of_blocks; ++i) {
             const block_t temp = x.block(i) - borrow;
             borrow = y.block(i) > temp || (borrow && x.block(i) == 0);
             result.block(i) = temp - y.block(i);
@@ -490,9 +483,9 @@ public: /* Methods: */
 
         uint_t result = 0;
         uint_t carry = 0;
-        for (size_t i = 0; i < num_of_blocks; ++ i) {
-            for (size_t j = 0; j <= i; ++ j) {
-                const size_t k = i - j;
+        for (std::size_t i = 0u; i < num_of_blocks; ++i) {
+            for (std::size_t j = 0u; j <= i; ++j) {
+                std::size_t const k = i - j;
                 const mul_t<block_t> mult = multHiLo(x.block(j), y.block(k));
                 uint_t temp = mult.hi;
                 temp.shift_blocks_left_();
@@ -524,18 +517,16 @@ public: /* Methods: */
 
     // TODO: it might be more efficient to avoid any branching
     friend bool operator == (uint_t x, uint_t y) {
-        for (size_t i = 0; i < num_of_blocks; ++ i) {
+        for (std::size_t i = 0u; i < num_of_blocks; ++i)
             if (x.block(i) != y.block(i))
                 return false;
-        }
-
         return true;
     }
 
     friend bool operator != (uint_t x, uint_t y) { return !(x == y); }
 
     friend bool operator < (uint_t x, uint_t y) {
-        for (size_t i = num_of_blocks; i --> 0u; ) {
+        for (std::size_t i = num_of_blocks; i --> 0u; ) {
             if (x.block(i) < y.block(i)) return true;
             if (x.block(i) > y.block(i)) return false;
         }
@@ -584,8 +575,10 @@ public: /* Methods: */
     }
 
     friend std::ostream& operator << (std::ostream& os, uint_t x) {
-        static constexpr size_t buff_size = 1 + (num_of_bits + 2u)/3u; // each octal digit represents 3 bits + room for sign
-        static constexpr size_t max_static_buffer_size = 256u;
+        // each octal digit represents 3 bits + room for sign:
+        static constexpr std::size_t buff_size =
+                1 + (num_of_bits + 2u)/3u;
+        static constexpr std::size_t max_static_buffer_size = 256u;
         static constexpr bool dynamicBuffer = buff_size > max_static_buffer_size;
 
         const char lower[] = "0123456789abcdef";
@@ -606,7 +599,7 @@ public: /* Methods: */
             if (os.flags () & std::ios::hex) base = 16;
             if (os.flags () & std::ios::oct) base = 8;
             if (os.flags () & std::ios::uppercase) table = upper;
-            size_t i = buff_size;
+            auto i = buff_size;
 
             div_t temp;
             temp.quot = x;
@@ -660,7 +653,7 @@ public: /* Methods: */
     demote () const {
         T out = 0;
         // TODO: can be optimized
-        for (size_t i = num_of_blocks; i --> 0u; ) {
+        for (std::size_t i = num_of_blocks; i --> 0u; ) {
             out <<= bits_in_block;
             out += block(i);
         }
@@ -669,10 +662,8 @@ public: /* Methods: */
     }
 
     inline void dump_blocks (std::ostream& os) const {
-        for (size_t i = 0; i < num_of_blocks; ++i) {
+        for (std::size_t i = 0u; i < num_of_blocks; ++i)
             os << std::hex << static_cast<uint64_t>(block(i)) << ' ';
-        }
-
         os << std::endl;
     }
 
@@ -687,7 +678,7 @@ public: /* Methods: */
     demote_to_other_uint_t () const {
         uint_t<N1, B1> out = 0;
         // TODO: can be optimized
-        for (size_t i = num_of_blocks; i --> 0u; ) {
+        for (std::size_t i = num_of_blocks; i --> 0u; ) {
             out <<= bits_in_block;
             out += block(i);
         }
@@ -710,28 +701,20 @@ private: /* Methods: */
     inline const block_t& least_significant_block () const { return *begin(); }
     inline const block_t& most_significant_block () const { return *(end() - 1); }
 
-    inline void shift_blocks_right_(size_t offset = 1) {
+    inline void shift_blocks_right_(std::size_t const offset = 1u) {
         assert(offset <= num_of_blocks);
-        for (size_t i = offset; i < num_of_blocks; ++i) {
+        for (std::size_t i = offset; i < num_of_blocks; ++i)
             block(i - offset) = block(i);
-        }
-
-        for (size_t i = num_of_blocks - offset; i < num_of_blocks; ++i) {
+        for (std::size_t i = num_of_blocks - offset; i < num_of_blocks; ++i)
             block(i) = 0;
-        }
     }
 
-    inline void shift_blocks_left_(size_t offset = 1) {
+    inline void shift_blocks_left_(std::size_t offset = 1u) {
         assert(offset <= num_of_blocks);
-
-        for (size_t i = num_of_blocks; i --> offset; ) {
+        for (std::size_t i = num_of_blocks; i --> offset; )
             block(i) = block(i - offset);
-        }
-
-        for (size_t i = 0; i < offset; ++i) {
+        for (std::size_t i = 0u; i < offset; ++i)
             block(i) = 0;
-        }
-
         clear_unused_bits_();
     }
 
@@ -740,7 +723,7 @@ private: /* Methods: */
     }
 
     inline void increment_ (block_t carry) {
-        for (size_t i = 0; i < num_of_blocks; ++ i) {
+        for (std::size_t i = 0u; i < num_of_blocks; ++i) {
             block(i) += carry;
             carry = block(i) < carry;
         }
@@ -749,7 +732,7 @@ private: /* Methods: */
     }
 
     inline void decrement_ (block_t borrow) {
-        for (size_t i = 0; i < num_of_blocks; ++ i) {
+        for (std::size_t i = 0u; i < num_of_blocks; ++i) {
             const block_t temp = block(i);
             block(i) -= borrow;
             borrow = borrow > temp;
@@ -761,11 +744,9 @@ private: /* Methods: */
     // TODO: we are assuming that blocks are not greater than 64 bits!
     inline uint64_t as_uint64_t () const {
         uint64_t out = 0;
-        const size_t s = num_of_bits > 64 ? 64 : num_of_bits;
-        for (size_t i = 0, j = 0; j < s; ++ i, j += bits_in_block) {
+        std::size_t const s = min(num_of_bits, 64u);
+        for (std::size_t i = 0u, j = 0u; j < s; ++i, j += bits_in_block)
             out ^= static_cast<uint64_t>(block (i)) << j;
-        }
-
         return out;
     }
 
@@ -796,7 +777,7 @@ private: /* Methods: */
         static void impl (uint_t<N, B>& dest, const T& val) {
             assert (bits_in_block < sizeof(T)*8);
             T temp = val;
-            for (size_t i = uint_t<N, B>::num_of_blocks; i --> 0u; ) {
+            for (std::size_t i = uint_t<N, B>::num_of_blocks; i --> 0u; ) {
                 dest.block(i) = temp;
                 temp >>= uint_t<N, B>::bits_in_block;
             }
@@ -808,9 +789,11 @@ private: /* Methods: */
     template <unsigned N2, typename B2>
     struct copy_bits_<uint_t<N2, B2>, void> {
         static void impl(uint_t<N, B>& dest, const uint_t<N2, B2>& other) {
-            const size_t s1 = uint_t<N, B>::num_of_blocks*sizeof (typename uint_t<N, B>::block_t);
-            const size_t s2 = uint_t<N2, B2>::num_of_blocks*sizeof(B2);
-            const size_t n = std::min(s1, s2);
+            std::size_t const s1 =
+                    uint_t<N, B>::num_of_blocks
+                    * sizeof(typename uint_t<N, B>::block_t);
+            std::size_t const s2 = uint_t<N2, B2>::num_of_blocks*sizeof(B2);
+            std::size_t const n = std::min(s1, s2);
             std::fill(dest.begin(), dest.end(), uint_t<N, B>::block_t(0));
             std::memcpy(dest.begin (), other.begin(), n);
         }

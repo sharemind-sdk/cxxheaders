@@ -31,13 +31,13 @@ class LoopDuration: public CHRONO_ {
 
 public: /* Methods: */
 
-    inline LoopDuration(const size_t ms)
+    inline LoopDuration(std::size_t const ms)
             noexcept(noexcept(CHRONO_(ms)))
         : CHRONO_(ms) {}
 
 };
 
-template <size_t MS_ = 3u, typename CHRONO_ = std::chrono::milliseconds>
+template <std::size_t MS_ = 3u, typename CHRONO_ = std::chrono::milliseconds>
 class StaticLoopDuration: public LoopDuration<CHRONO_> {
 
 public: /* Methods: */

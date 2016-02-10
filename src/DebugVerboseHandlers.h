@@ -21,6 +21,7 @@
 #define SHAREMIND_DEBUGVERBOSEHANDLERS_H
 
 #include <cassert>
+#include <cstddef>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -39,7 +40,7 @@ inline void verbosePrintException(std::exception_ptr e,
     #define SHAREMIND_T "<unknown type>"
     #endif
     assert(e);
-    for (size_t n = 1u;; n++) {
+    for (std::size_t n = 1u;; n++) {
         try {
             std::rethrow_exception(e);
         } catch (const std::exception & se) {
