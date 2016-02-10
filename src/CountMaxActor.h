@@ -48,9 +48,9 @@ private: /* Types: */
 
 public: /* Methods: */
 
-    CountMaxActor(const CountMaxActor<Actor, COUNT_PARTIAL> &) = delete;
+    CountMaxActor(CountMaxActor<Actor, COUNT_PARTIAL> const &) = delete;
     CountMaxActor<Actor> & operator=(
-            const CountMaxActor<Actor, COUNT_PARTIAL> &) = delete;
+            CountMaxActor<Actor, COUNT_PARTIAL> const &) = delete;
     CountMaxActor(CountMaxActor<Actor, COUNT_PARTIAL> &&) = default;
     CountMaxActor<Actor> & operator=(
             CountMaxActor<Actor, COUNT_PARTIAL> &&) = default;
@@ -61,18 +61,19 @@ public: /* Methods: */
         : m_actor(std::forward<Args>(args)...)
         , m_count(0u) {}
 
-    inline size_t operator()(WantDataType * const data, const size_t size)
+    inline std::size_t operator()(WantDataType * const data,
+                                  std::size_t const size)
             noexcept(noexcept(std::declval<Actor &>()(data, size)))
     {
         assert(data);
         assert(size > 0u);
-        const size_t maxTransfer =
-                std::numeric_limits<size_t>::max() - m_count;
+        std::size_t const maxTransfer =
+                std::numeric_limits<std::size_t>::max() - m_count;
         if (maxTransfer == 0u)
             return 0u;
-        const size_t canTransfer = std::min(size, maxTransfer);
+        std::size_t const canTransfer = std::min(size, maxTransfer);
         try {
-            const size_t transferred = m_actor(data, canTransfer);
+            std::size_t const transferred = m_actor(data, canTransfer);
             assert(transferred <= canTransfer);
             m_count += transferred;
             return transferred;
@@ -88,12 +89,12 @@ public: /* Methods: */
         }
     }
 
-    inline size_t count() const noexcept { return m_count; }
+    inline std::size_t count() const noexcept { return m_count; }
 
 private: /* Fields: */
 
     Actor m_actor;
-    size_t m_count;
+    std::size_t m_count;
 
 };
 
