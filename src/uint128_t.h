@@ -23,6 +23,7 @@
 #include "integer_demotion.h"
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <limits>

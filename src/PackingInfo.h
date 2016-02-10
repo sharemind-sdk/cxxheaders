@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_PACKINGINFO_H
 #define SHAREMIND_PACKINGINFO_H
 
+#include <cstddef>
 #include <cstring>
 #include "ConstUnalignedReference.h"
 #include "PotentiallyVoidTypeInfo.h"

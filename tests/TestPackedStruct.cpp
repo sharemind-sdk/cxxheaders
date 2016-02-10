@@ -21,6 +21,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstddef>
 #include <cstring>
 #include <type_traits>
 #include <utility>

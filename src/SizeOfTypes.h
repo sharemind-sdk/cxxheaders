@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_SIZEOFTYPES_H
 #define SHAREMIND_SIZEOFTYPES_H
 
+#include <cstddef>
 #include <type_traits>
 
 

@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_UNALIGNEDPOINTER_H
 #define SHAREMIND_UNALIGNEDPOINTER_H
 
+#include <cstddef>
 #include <type_traits>
 #include "CopyCv.h"
 #include "PotentiallyVoidTypeInfo.h"
