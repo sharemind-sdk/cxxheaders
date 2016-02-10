@@ -23,6 +23,7 @@
 #include "Exception.h"
 
 #include <cassert>
+#include <cstddef>
 #include <limits>
 #include "compiler-support/GccNoreturn.h"
 
@@ -33,18 +34,19 @@ class PartialStreamOperationException: public Exception {
 
 public: /* Methods: */
 
-    inline PartialStreamOperationException(size_t const doneSize) noexcept
+    inline PartialStreamOperationException(std::size_t const doneSize) noexcept
         : m_doneSize((assert(doneSize > 0u), doneSize)) {}
 
-    inline const char * what() const noexcept final override
+    inline char const * what() const noexcept final override
     { return "Partial operation"; }
 
-    void addToSize(size_t const moreDoneSize) noexcept {
-        assert(std::numeric_limits<size_t>::max() - m_doneSize >= moreDoneSize);
+    void addToSize(std::size_t const moreDoneSize) noexcept {
+        assert(std::numeric_limits<std::size_t>::max() - m_doneSize
+               >= moreDoneSize);
         m_doneSize += moreDoneSize;
     }
 
-    inline size_t size() const noexcept
+    inline std::size_t size() const noexcept
     { return (assert(m_doneSize > 0u), m_doneSize); }
 
     SHAREMIND_GCC_NORETURN_PART1
@@ -58,7 +60,7 @@ public: /* Methods: */
     }
 
     SHAREMIND_GCC_NORETURN_PART1
-    static inline void throwWithCurrent(size_t const doneSize)
+    static inline void throwWithCurrent(std::size_t const doneSize)
             SHAREMIND_GCC_NORETURN_PART2
     {
         if (doneSize > 0u)
@@ -68,7 +70,7 @@ public: /* Methods: */
 
 private: /* Types: */
 
-    size_t m_doneSize;
+    std::size_t m_doneSize;
 
 };
 
