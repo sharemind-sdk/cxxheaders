@@ -37,13 +37,13 @@ class DynamicPackedStruct {
 
 public: /* Constants: */
 
-    constexpr static auto const numFields =
+    constexpr static std::size_t const numFields =
             DynamicPackingInfo<Ts...>::numFields;
 
-    constexpr static auto const numDynamicFields =
+    constexpr static std::size_t const numDynamicFields =
             DynamicPackingInfo<Ts...>::numDynamicFields;
 
-    constexpr static auto const hasDynamicFields =
+    constexpr static std::size_t const hasDynamicFields =
             DynamicPackingInfo<Ts...>::hasDynamicFields;
 
 public: /* Types: */

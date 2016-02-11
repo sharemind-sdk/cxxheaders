@@ -252,7 +252,7 @@ struct DynamicPackingInfo {
 
     constexpr static std::size_t const numFields = sizeof...(Ts);
 
-    constexpr static auto const numDynamicFields =
+    constexpr static std::size_t const numDynamicFields =
             Detail::DynamicPacking::DynamicFieldFilter<Ts...>::size;
 
     constexpr static bool const hasDynamicFields = numDynamicFields > 0u;
