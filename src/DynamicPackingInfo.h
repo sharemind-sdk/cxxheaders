@@ -250,10 +250,10 @@ struct DynamicPackingInfo {
 /* Constants: */
 
     constexpr static std::size_t const minSizeInBytes =
-            add(Detail::DynamicPacking::FieldTraits<Ts>::minBytes...);
+            add(0u, Detail::DynamicPacking::FieldTraits<Ts>::minBytes...);
 
     constexpr static std::size_t const maxSizeInBytes =
-            add(Detail::DynamicPacking::FieldTraits<Ts>::maxBytes...);
+            add(0u, Detail::DynamicPacking::FieldTraits<Ts>::maxBytes...);
 
     constexpr static std::size_t const numFields = sizeof...(Ts);
 
