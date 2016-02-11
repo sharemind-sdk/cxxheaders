@@ -120,9 +120,14 @@ struct ValidSizes<T, Ts...> {
     constexpr static bool isValid(std::size_t const size, Args && ... args)
             noexcept
     {
+        /* Ignore -Wtype-limits "comparison is always true" warnings if min/max
+           are SIZE_MIN/SIZE_MAX, which is the default. */
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wtype-limits"
         return (size >= FieldTraits<T>::min)
                && (size <= FieldTraits<T>::max)
                && ValidSizes<Ts...>::isValid(std::forward<Args>(args)...);
+        #pragma GCC diagnostic pop
     }
 
 };
