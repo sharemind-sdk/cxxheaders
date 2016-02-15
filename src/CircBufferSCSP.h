@@ -158,14 +158,14 @@ private: /* Types: */
     #warning Using workaround for unknown GCC 4.7 bug.
     #define Self CircBufferBase<T, Locking>
     #else
-    typedef CircBufferBase<T, Locking> Self;
+    using Self = CircBufferBase<T, Locking>;
     #endif
 
 public: /* Types: */
 
-    typedef T ValueType;
-    typedef sharemind::PotentiallyVoidTypeInfo<T> ValueTypeInfo;
-    typedef typename ValueTypeInfo::allocType ValueAllocType;
+    using ValueType = T;
+    using ValueTypeInfo = sharemind::PotentiallyVoidTypeInfo<T>;
+    using ValueAllocType = typename ValueTypeInfo::allocType;
 
     class ReadActor {
 
@@ -664,8 +664,8 @@ private: /* Types: */
     struct FifoBufferActions {
         static_assert(std::is_const<BufferSideType_>::value
                       != std::is_const<OtherSideType_>::value, "");
-        typedef BufferSideType_ BufferSideType;
-        typedef OtherSideType_ OtherSideType;
+        using BufferSideType = BufferSideType_;
+        using OtherSideType = OtherSideType_;
         static inline void copyAction(BufferSideType_ * const a,
                                       OtherSideType_ * const b,
                                       std::size_t const size) noexcept
@@ -704,7 +704,8 @@ private: /* Types: */
         { return (thisPtr->*DONE_RET_UBE_)(size); }
     };
 
-    typedef FifoBufferActions<typename Self::ValueType,
+    using WriteActions =
+            FifoBufferActions<typename Self::ValueType,
                               typename Self::ValueType const,
                               &Self::copySecondToFirstData,
                               &Self::writeOffset,
@@ -713,9 +714,10 @@ private: /* Types: */
                               &Self::haveWritten,
                               &Self::haveWrittenNoRet,
                               &Self::haveWrittenRetPair,
-                              &Self::haveWrittenRetUbe> WriteActions;
+                              &Self::haveWrittenRetUbe>;
 
-    typedef FifoBufferActions<typename Self::ValueType const,
+    using ReadActions =
+            FifoBufferActions<typename Self::ValueType const,
                               typename Self::ValueType,
                               &Self::copyFirstToSecondData,
                               &Self::readOffset,
@@ -724,7 +726,7 @@ private: /* Types: */
                               &Self::haveRead,
                               &Self::haveReadNoRet,
                               &Self::haveReadRetPair,
-                              &Self::haveReadRetUbe> ReadActions;
+                              &Self::haveReadRetUbe>;
 
 public: /* Methods */
 
