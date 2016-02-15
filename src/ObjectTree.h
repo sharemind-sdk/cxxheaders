@@ -103,15 +103,15 @@ class ParentNode {
 
 private: /* Types: */
 
-    typedef class ParentNode<ParentT, ChildT, MutexT> SelfType;
-    typedef class ChildNodeBase<SelfType> ChildNodeType;
+    using SelfType = ParentNode<ParentT, ChildT, MutexT>;
+    using ChildNodeType = ChildNodeBase<SelfType>;
     friend class ChildNodeBase<SelfType>;
 
 public: /* Types: */
 
-    typedef ChildT ChildType;
-    typedef ParentT ParentType;
-    typedef MutexT MutexType;
+    using ChildType = ChildT;
+    using ParentType = ParentT;
+    using MutexType = MutexT;
 
 private: /* Types: */
 
@@ -128,7 +128,7 @@ private: /* Types: */
 
     };
 
-    typedef std::set<ChildNodeType *> ChildNodes;
+    using ChildNodes = std::set<ChildNodeType *>;
 
 public: /* Methods: */
 
@@ -137,10 +137,9 @@ public: /* Methods: */
         : m_childDestructor(std::forward<Args>(args)...) {}
 
     inline ~ParentNode() {
-        typedef typename ChildNodes::const_iterator CNCI;
         lock_guard lock(m_mutex);
-        for (CNCI it = m_childNodes.begin(); it != m_childNodes.end(); ++it)
-            m_childDestructor((*it)->freeByParent());
+        for (ChildNodeType * const node : m_childNodes)
+            m_childDestructor(node->freeByParent());
         /* m_childNodes.clear(); */
     }
 
@@ -171,10 +170,9 @@ private: /* Methods: */
     }
 
     inline std::set<ChildType *> childrenNoLock() const {
-        typedef typename ChildNodes::iterator CNCI;
         std::set<ChildType *> cs;
-        for (CNCI it = m_childNodes.begin(); it != m_childNodes.end(); ++it)
-            cs.insert((*it)->realChild());
+        for (ChildType const * const childNode : m_childNodes)
+            cs.insert(childNode->realChild());
         return cs;
     }
 
@@ -207,7 +205,7 @@ struct Parent {
     inline Parent() : parentNode(&Parent::freeChild) {}
     static void freeChild(Child * child);
 
-    typedef ObjectTree::ParentNode<Parent, Child, std::mutex> ParentNodeType;
+    using ParentNodeType = ObjectTree::ParentNode<Parent, Child, std::mutex>;
     ParentNodeType parentNode;
 };
 
