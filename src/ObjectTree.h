@@ -171,7 +171,7 @@ private: /* Methods: */
 
     inline std::set<ChildType *> childrenNoLock() const {
         std::set<ChildType *> cs;
-        for (ChildType const * const childNode : m_childNodes)
+        for (ChildType * const childNode : m_childNodes)
             cs.insert(childNode->realChild());
         return cs;
     }
