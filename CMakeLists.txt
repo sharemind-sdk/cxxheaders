@@ -80,7 +80,7 @@ ADD_COMPILE_OPTIONS(
 INCLUDE(CheckCXXCompilerFlag)
 FUNCTION(CHECK_ADD_COMPILER_FLAG flag)
     STRING(SUBSTRING "${flag}" 1 -1 FlagName)
-    STRING(REPLACE "+" "[plus]" TestName "${FlagName}")
+    STRING(REPLACE "+" "--plus--" TestName "${FlagName}")
     CHECK_CXX_COMPILER_FLAG("${flag}" "${TestName}")
     IF(${TestName})
         ADD_COMPILE_OPTIONS("${flag}")
