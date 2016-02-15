@@ -34,7 +34,7 @@ public: /* Types: */
 
     public: /* Types: */
 
-        typedef Exception_ Exception;
+        using Exception = Exception_;
 
     public: /* Methods: */
 

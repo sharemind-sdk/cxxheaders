@@ -49,7 +49,7 @@ struct __attribute__ ((visibility("internal"))) can_demote_primitives
 { };
 
 template <typename T, typename U, class Enable = void> struct __attribute__ ((visibility("internal"))) demote_integer_impl {
-    typedef void void_if_disabled; // DO NOT DEFINE IN SPECIALIZATION
+    using void_if_disabled = void; // DO NOT DEFINE IN SPECIALIZATION
 };
 
 template <typename T, typename U>

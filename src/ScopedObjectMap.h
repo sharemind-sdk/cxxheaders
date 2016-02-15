@@ -48,7 +48,7 @@ class ScopedObjectMap {
 
 private: /* Types: */
 
-    typedef std::map<Key, T *, Compare, Allocator> impl_t;
+    using impl_t = std::map<Key, T *, Compare, Allocator>;
     #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION >= 40800)
     static_assert(std::is_nothrow_destructible<impl_t>::value,
                   "impl_t is required to be nothrow destructible");
@@ -56,12 +56,12 @@ private: /* Types: */
 
 public: /* Types: */
 
-    typedef typename impl_t::key_type key_type;
-    typedef typename impl_t::mapped_type mapped_type;
-    typedef typename impl_t::value_type value_type;
-    typedef typename impl_t::iterator iterator;
-    typedef typename impl_t::const_iterator const_iterator;
-    typedef typename impl_t::size_type size_type;
+    using key_type = typename impl_t::key_type;
+    using mapped_type = typename impl_t::mapped_type;
+    using value_type = typename impl_t::value_type;
+    using iterator = typename impl_t::iterator;
+    using const_iterator = typename impl_t::const_iterator;
+    using size_type = typename impl_t::size_type;
 
 public: /* Methods: */
 

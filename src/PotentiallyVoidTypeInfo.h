@@ -32,11 +32,11 @@ namespace Detail {
 namespace PotentiallyVoidTypeInfo {
 
 template <typename T, typename Enable = void>
-struct AllocBase { typedef typename std::remove_const<T>::type allocType; };
+struct AllocBase { using allocType = typename std::remove_const<T>::type; };
 
 template <typename T>
 struct AllocBase<T, typename std::enable_if<std::is_void<T>::value>::type>
-{ typedef char allocType; };
+{ using allocType = char; };
 
 template <typename T, typename Enable = void>
 struct ArithBase {

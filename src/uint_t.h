@@ -39,9 +39,9 @@ namespace sharemind {
 namespace detail {
 
 template <typename T> struct double_size {};
-template <> struct double_size<uint8_t>  { typedef uint16_t type_t; };
-template <> struct double_size<uint16_t> { typedef uint32_t type_t; };
-template <> struct double_size<uint32_t> { typedef uint64_t type_t; };
+template <> struct double_size<uint8_t>  { using type_t = uint16_t; };
+template <> struct double_size<uint16_t> { using type_t = uint32_t; };
+template <> struct double_size<uint32_t> { using type_t = uint64_t; };
 
 } /* namespace detail { */
 
@@ -52,7 +52,7 @@ template <typename T> struct mul_t { T hi, lo; };
  */
 template <typename T>
 inline mul_t<T> multHiLo(T u, T v) {
-    typedef typename detail::double_size<T>::type_t double_T;
+    using double_T = typename detail::double_size<T>::type_t;
     const double_T uu = u, vv = v;
     const double_T resValue = uu*vv;
     mul_t<T> res;
@@ -116,7 +116,7 @@ inline mul_t<uint64_t> multHiLo<uint64_t>(uint64_t u, uint64_t v) {
 template <unsigned N, typename B>
 class uint_detail {
 public: /* Types: */
-    typedef B block_t;
+    using block_t = B;
 
     static constexpr std::size_t bytes_in_block = sizeof(block_t);
     static constexpr std::size_t num_of_bits = N;
@@ -157,7 +157,7 @@ public:
     static_assert (std::is_unsigned<B>::value && ! std::is_same<B, bool>::value,
                    "Block size of uint_t must be unsigned non-boolean type.");
 
-    typedef typename uint_detail<N, B>::block_t block_t;
+    using block_t = typename uint_detail<N, B>::block_t;
     using uint_detail<N, B>::num_of_bits;
     using uint_detail<N, B>::num_of_blocks;
     using uint_detail<N, B>::bits_in_block;
