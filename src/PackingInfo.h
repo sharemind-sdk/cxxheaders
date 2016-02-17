@@ -120,8 +120,16 @@ struct PackingInfo {
 #define SHAREMIND_PACKINGINFO_DECLARE_MEMBER_CONSTANTS(...) \
     constexpr static std::size_t const staticSize = \
             PackingInfo<__VA_ARGS__>::size; \
+    constexpr static std::size_t const minSizeInBytes = \
+            PackingInfo<__VA_ARGS__>::minSizeInBytes; \
+    constexpr static std::size_t const maxSizeInBytes = \
+            PackingInfo<__VA_ARGS__>::maxSizeInBytes; \
     constexpr static std::size_t const numFields = \
-            PackingInfo<__VA_ARGS__>::numFields;
+            PackingInfo<__VA_ARGS__>::numFields; \
+    constexpr static std::size_t const numDynamicFields = \
+            PackingInfo<__VA_ARGS__>::numDynamicFields; \
+    constexpr static bool const hasDynamicFields = \
+            PackingInfo<__VA_ARGS__>::hasDynamicFields;
 
 #define SHAREMIND_PACKINGINFO_DECLARE_MEMBER_TYPES(...) \
     template <std::size_t I> using ElemType = \
