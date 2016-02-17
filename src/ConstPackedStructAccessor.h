@@ -30,6 +30,10 @@ namespace sharemind {
 template <typename ... Ts>
 class __attribute__((packed)) ConstPackedStructAccessor {
 
+public: /* Constants: */
+
+    SHAREMIND_PACKINGINFO_DECLARE_MEMBER_CONSTANTS(Ts...)
+
 public: /* Types: */
 
     using type = ConstPackedStructAccessor<Ts...>;

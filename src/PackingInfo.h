@@ -117,6 +117,12 @@ struct PackingInfo {
 
 }; /* struct PackingInfo */
 
+#define SHAREMIND_PACKINGINFO_DECLARE_MEMBER_CONSTANTS(...) \
+    constexpr static std::size_t const staticSize = \
+            PackingInfo<__VA_ARGS__>::size; \
+    constexpr static std::size_t const numFields = \
+            PackingInfo<__VA_ARGS__>::numFields;
+
 #define SHAREMIND_PACKINGINFO_DECLARE_MEMBER_TYPES(...) \
     template <std::size_t I> using ElemType = \
             typename PackingInfo<__VA_ARGS__>::template ElemType<I>; \
@@ -129,11 +135,7 @@ struct PackingInfo {
     template <std::size_t I> using PointerType = \
             typename PackingInfo<__VA_ARGS__>::template PointerType<I>; \
     template <std::size_t I> using ConstPointerType = \
-            typename PackingInfo<__VA_ARGS__>::template ConstPointerType<I>; \
-    constexpr static std::size_t const staticSize = \
-            PackingInfo<__VA_ARGS__>::size; \
-    constexpr static std::size_t const numFields = \
-            PackingInfo<__VA_ARGS__>::numFields;
+            typename PackingInfo<__VA_ARGS__>::template ConstPointerType<I>;
 
 #define SHAREMIND_PACKINGINFO_DEFINE_READ_METHODS(...) \
     constexpr static std::size_t size() noexcept \
