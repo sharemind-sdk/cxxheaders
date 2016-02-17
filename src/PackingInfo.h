@@ -47,6 +47,10 @@ struct PackingInfo {
 
     constexpr static std::size_t const numFields = sizeof...(Ts);
 
+    constexpr static std::size_t const numDynamicFields = 0u;
+
+    constexpr static bool const hasDynamicFields = false;
+
 /* Types: */
 
     using type = PackingInfo<Ts...>;
