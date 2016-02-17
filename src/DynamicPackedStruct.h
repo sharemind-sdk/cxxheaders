@@ -37,6 +37,12 @@ class DynamicPackedStruct {
 
 public: /* Constants: */
 
+    constexpr static std::size_t const minSizeInBytes =
+            DynamicPackingInfo<Ts...>::minSizeInBytes;
+
+    constexpr static std::size_t const maxSizeInBytes =
+            DynamicPackingInfo<Ts...>::maxSizeInBytes;
+
     constexpr static std::size_t const numFields =
             DynamicPackingInfo<Ts...>::numFields;
 
