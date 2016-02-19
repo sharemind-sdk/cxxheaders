@@ -27,6 +27,7 @@
 #include <sharemind/AlignToCacheLine.h>
 #include <type_traits>
 #include <utility>
+#include "AlignedAllocator.h"
 
 
 namespace sharemind {
@@ -50,6 +51,8 @@ public: /* Types: */
             , data{std::forward<Args>(args)...}
         {}
 
+        SHAREMIND_ALIGNEDALLOCATION_MEMBERS(alignof(Node))
+
         SHAREMIND_ALIGN_TO_CACHE_SIZE std::atomic<Node *> next;
         T data;
 
@@ -70,6 +73,8 @@ public: /* Methods: */
         while (pop());
         delete m_head.load(std::memory_order_relaxed);
     }
+
+    SHAREMIND_ALIGNEDALLOCATION_MEMBERS(alignof(MpscWaitFreeSemiIntrusiveQueue))
 
     inline void push(std::unique_ptr<Node> node) noexcept {
         assert(node);
