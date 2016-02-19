@@ -21,7 +21,11 @@
 #define SHAREMIND_ALIGNEDALLOCATOR_H
 
 #include <cstdlib>
+/* #include <limits> */
 #include <new>
+#include <memory>
+/* #include <type_traits> */
+/* #include <utility> */
 
 
 namespace sharemind {
@@ -62,6 +66,93 @@ inline void freeAlignedStorage(void * const ptr) noexcept { std::free(ptr); }
     { ::sharemind::freeAlignedStorage(p); } \
     void operator delete[](void * p, std::nothrow_t const &) \
     { ::sharemind::freeAlignedStorage(p); }
+
+template <typename T>
+struct AlignedAllocator {
+
+    /* The commented-out members are optional. To access their default
+       implementations, use template std::allocator_traits on this class. */
+
+/* Types: */
+
+    using type = AlignedAllocator<T>;
+
+    using pointer = T *;
+
+    /*
+    using const_pointer =
+            typename std::pointer_traits<pointer>::template rebind<T const>;
+    using void_pointer =
+            typename std::pointer_traits<pointer>::template rebind<void>;
+    using const_void_pointer =
+            typename std::pointer_traits<pointer>::template rebind<void const>;
+    */
+
+    using value_type = T;
+    using difference_type =
+            typename std::pointer_traits<pointer>::difference_type;
+    using size_type =
+            typename std::make_unsigned<difference_type>::type;
+
+    /*
+    template <typename U> struct rebind { using other = AlignedAllocator<U>; };
+
+    using propagate_on_container_copy_assignment = std::false_type;
+    using propagate_on_container_move_assignment = std::false_type;
+    using propagate_on_container_swap = std::false_type;
+    */
+
+/* Methods: */
+
+    AlignedAllocator() noexcept {}
+    AlignedAllocator(type &&) noexcept {}
+    AlignedAllocator(type const &) noexcept {}
+
+    template <typename U>
+    AlignedAllocator(AlignedAllocator<U> &&) noexcept {}
+
+    template <typename U>
+    AlignedAllocator(AlignedAllocator<U> const &) noexcept {}
+
+    inline static pointer allocate(size_type const n) {
+        return static_cast<pointer>(
+                    allocateAlignedStorage<alignof(T)>(n * sizeof(T)));
+    }
+
+    /*
+    inline static pointer allocate(size_type const n,
+                                   const_pointer const = nullptr)
+    { return allocate(n); }
+    */
+
+    inline static void deallocate(pointer const p, size_type const) noexcept
+    { freeAlignedStorage(p); }
+
+    /*
+    constexpr static size_type max_size() noexcept
+    { return std::numeric_limits<size_type>::max(); }
+
+    template <typename U, typename ... Args>
+    static void construct(U * const p, Args && ... args)
+    { ::new(static_cast<void *>(p)) U(std::forward<Args>(args)...); }
+
+    template <typename U> static void destroy(U * const p) { p->~U(); }
+
+    static type select_on_container_copy_construction() noexcept
+    { return type(); }
+    */
+
+};
+
+template <typename T1, typename T2>
+constexpr bool operator==(AlignedAllocator<T1> const &,
+                          AlignedAllocator<T2> const &) noexcept
+{ return true; }
+
+template <typename T1, typename T2>
+constexpr bool operator!=(AlignedAllocator<T1> const &,
+                          AlignedAllocator<T2> const &) noexcept
+{ return false; }
 
 } /* namespace sharemind { */
 
