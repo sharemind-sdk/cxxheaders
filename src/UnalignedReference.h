@@ -21,6 +21,7 @@
 #define SHAREMIND_UNALIGNEDREFERENCE_H
 
 #include <cstring>
+#include <memory>
 #include <type_traits>
 #include "CopyCv.h"
 
@@ -50,7 +51,7 @@ public: /* Methods: */
         /** \todo Implement memcpy for any void volatile and remove the relevant
                   static assertion above. Be sure to also augment the memcpy in
                   operator=. */
-        std::memcpy(&v, m_unalignedData, sizeof(T));
+        std::memcpy(std::addressof(v), m_unalignedData, sizeof(T));
         return v;
     }
 
@@ -60,7 +61,7 @@ public: /* Methods: */
         type
     >::type &
     operator=(T_ && v) noexcept {
-        std::memcpy(this->m_unalignedData, &v, sizeof(T));
+        std::memcpy(this->m_unalignedData, std::addressof(v), sizeof(T));
         return *this;
     }
 
