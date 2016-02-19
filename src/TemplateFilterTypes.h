@@ -17,8 +17,8 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_TEMPLATETYPEFILTER_H
-#define SHAREMIND_TEMPLATETYPEFILTER_H
+#ifndef SHAREMIND_TEMPLATEFILTERTYPES_H
+#define SHAREMIND_TEMPLATEFILTERTYPES_H
 
 #include <type_traits>
 #include "TemplatePrependOneType.h"
@@ -28,29 +28,29 @@
 namespace sharemind {
 
 template <template <typename> class Filter, typename ... Ts>
-struct TemplateTypeFilter;
+struct TemplateFilterTypes;
 
 template <template <typename> class Filter, typename ... Ts>
-using TemplateTypeFilter_t = typename TemplateTypeFilter<Filter, Ts...>::type;
+using TemplateFilterTypes_t = typename TemplateFilterTypes<Filter, Ts...>::type;
 
 template <template <typename> class Filter>
-struct TemplateTypeFilter<Filter>
+struct TemplateFilterTypes<Filter>
 { using type = TemplateTypeList<>; };
 
 template <template <typename> class Filter, typename T, typename ... Ts>
-struct TemplateTypeFilter<Filter, T, Ts...> {
+struct TemplateFilterTypes<Filter, T, Ts...> {
     using type =
             typename std::conditional<
                 Filter<T>::value,
                 typename TemplatePrependOneType<
                     TemplateTypeList,
-                    typename TemplateTypeFilter<Filter, Ts...>::type,
+                    typename TemplateFilterTypes<Filter, Ts...>::type,
                     T
                 >::type,
-                typename TemplateTypeFilter<Filter, Ts...>::type
+                typename TemplateFilterTypes<Filter, Ts...>::type
             >::type;
 };
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMIND_TEMPLATETYPEFILTER_H */
+#endif /* SHAREMIND_TEMPLATEFILTERTYPES_H */

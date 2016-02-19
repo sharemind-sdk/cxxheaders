@@ -29,9 +29,9 @@
 #include "ConstUnalignedReference.h"
 #include "SizeOfTypes.h"
 #include "TemplateCopyTypeParams.h"
+#include "TemplateFilterTypes.h"
 #include "TemplateGetTypeParam.h"
 #include "TemplatePrefixTypes.h"
-#include "TemplateTypeFilter.h"
 #include "UnalignedPointer.h"
 #include "UnalignedReference.h"
 
@@ -137,7 +137,7 @@ using DynamicFieldPred =
         std::integral_constant<bool, !FieldTraits<T>::isStatic>;
 
 template <typename ... Ts>
-using DynamicFieldFilter = TemplateTypeFilter_t<DynamicFieldPred, Ts...>;
+using DynamicFieldFilter = TemplateFilterTypes_t<DynamicFieldPred, Ts...>;
 
 template <typename ... Ts> struct AccumSize;
 
