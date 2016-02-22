@@ -27,7 +27,7 @@ struct GlobalDeleter {
     using type = GlobalDeleter;
     constexpr GlobalDeleter() noexcept = default;
     GlobalDeleter(GlobalDeleter const &) noexcept {}
-    void operator()(void * const ptr) noexcept { ::operator delete(ptr); }
+    void operator()(void * const ptr) const noexcept { ::operator delete(ptr); }
 };
 
 } /* namespace Sharemind { */
