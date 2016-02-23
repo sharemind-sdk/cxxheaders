@@ -26,6 +26,7 @@
 #include <type_traits>
 #include <utility>
 #include "Add.h"
+#include "compiler-support/ClangPR26692.h"
 #include "ConstUnalignedReference.h"
 #include "SizeOfTypes.h"
 #include "TemplateCopyTypeParams.h"
@@ -243,6 +244,7 @@ struct AccumVecPopulator<T, Ts...> {
 } /* namespace DynamicPacking { */
 } /* namespace Detail { */
 
+template <typename ... Ts> struct DynamicPackingInfo;
 
 template <typename ... Ts>
 struct DynamicPackingInfo {
@@ -286,6 +288,12 @@ struct DynamicPackingInfo {
 
     template <std::size_t I>
     using ConstPointerType = typename TypeTraits<I>::ConstPointerType;
+
+    template <std::size_t I>
+    using PrefixType =
+            TemplateCopyTypeParams_t<
+                TemplatePrefixTypes_t<I, Ts...>,
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)DynamicPackingInfo>;
 
 /* Methods: */
 

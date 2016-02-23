@@ -26,8 +26,11 @@
 #include <memory>
 #include <type_traits>
 #include <utility>
+#include "compiler-support/ClangPR26692.h"
 #include "DynamicPackingInfo.h"
 #include "GlobalDeleter.h"
+#include "TemplateCopyTypeParams.h"
+#include "TemplatePrefixTypes.h"
 
 
 namespace sharemind {
@@ -82,6 +85,13 @@ public: /* Types: */
     template <std::size_t I>
     using ConstPointerType =
             typename DynamicPackingInfo<Ts...>::template ConstPointerType<I>;
+
+    template <std::size_t I>
+    using PrefixType =
+            TemplateCopyTypeParams_t<
+                TemplatePrefixTypes_t<I, Ts...>,
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)
+                    DynamicPackedStruct>;
 
 public: /* Methods: */
 
