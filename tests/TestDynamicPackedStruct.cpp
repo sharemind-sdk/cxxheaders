@@ -38,7 +38,7 @@ static_assert(
 
 static_assert(
         std::is_same<
-            DynamicPackedStruct<int64_t, char, R, char, A<int32_t>, uint16_t>::template PrefixType<3u>,
+            DynamicPackedStruct<int64_t, char, R, char, A<int32_t>, uint16_t>::PrefixType<3u>,
             DynamicPackedStruct<int64_t, char, R>
         >::value, "");
 
