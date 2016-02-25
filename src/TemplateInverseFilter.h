@@ -22,7 +22,7 @@
 
 #include <type_traits>
 #include "TemplateList.h"
-#include "TemplatePrependOne.h"
+#include "TemplatePrepend.h"
 
 
 namespace sharemind {
@@ -43,7 +43,7 @@ struct TemplateInverseFilter<T, Filter, v, vs...> {
     using type =
             typename std::conditional<
                 !Filter<v>::value,
-                TemplatePrependOne_t<
+                TemplatePrepend_t<
                     T,
                     TemplateInverseFilter_t<T, Filter, vs...>,
                     v

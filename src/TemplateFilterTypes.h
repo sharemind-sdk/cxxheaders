@@ -21,7 +21,7 @@
 #define SHAREMIND_TEMPLATEFILTERTYPES_H
 
 #include <type_traits>
-#include "TemplatePrependOneType.h"
+#include "TemplatePrependTypes.h"
 #include "TemplateTypeList.h"
 
 
@@ -42,7 +42,7 @@ struct TemplateFilterTypes<Filter, T, Ts...> {
     using type =
             typename std::conditional<
                 Filter<T>::value,
-                TemplatePrependOneType_t<
+                TemplatePrependTypes_t<
                     TemplateFilterTypes_t<Filter, Ts...>,
                     T
                 >,

@@ -21,7 +21,7 @@
 #define SHAREMIND_TEMPLATEINVERSETYPEFILTER_H
 
 #include <type_traits>
-#include "TemplatePrependOneType.h"
+#include "TemplatePrependTypes.h"
 #include "TemplateTypeList.h"
 
 
@@ -43,7 +43,7 @@ struct TemplateInverseTypeFilter<Filter, T, Ts...> {
     using type =
             typename std::conditional<
                 !Filter<T>::value,
-                TemplatePrependOneType_t<
+                TemplatePrependTypes_t<
                     TemplateInverseTypeFilter_t<Filter, Ts...>,
                     T
                 >,
