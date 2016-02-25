@@ -22,13 +22,15 @@
 
 namespace sharemind {
 
-template <typename T, template <T ...> class Tmpl, typename TmplInstance, T v>
+template <typename T, typename TmplInstance, T v>
 struct TemplatePrependOne;
 
-template <typename T, template <T ...> class Tmpl, T v, T ... vs>
-struct TemplatePrependOne<T, Tmpl, Tmpl<vs...>, v> {
-    using type = Tmpl<v, vs...>;
-};
+template <typename T, typename TmplInstance, T v>
+using TemplatePrependOne_t =
+        typename TemplatePrependOne<T, TmplInstance, v>::type;
+
+template <typename T, template <T ...> class Tmpl, T ... vs, T v>
+struct TemplatePrependOne<T, Tmpl<vs...>, v> { using type = Tmpl<v, vs...>; };
 
 } /* namespace Sharemind { */
 
