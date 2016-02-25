@@ -21,7 +21,7 @@
 #define SHAREMIND_TEMPLATEINVERSECONDAPPEND_H
 
 #include <type_traits>
-#include "TemplateAppendOne.h"
+#include "TemplateAppend.h"
 
 
 namespace sharemind {
@@ -63,7 +63,7 @@ struct TemplateInverseCondAppend<T, Pred, Tmpl, TmplInstance, v, vs...> {
                     T,
                     Pred,
                     Tmpl,
-                    TemplateAppendOne<T, Tmpl, TmplInstance, v>,
+                    TemplateAppend<T, TmplInstance, v>,
                     vs...
                 >
             >::type;

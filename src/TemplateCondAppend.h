@@ -21,7 +21,7 @@
 #define SHAREMIND_TEMPLATECONDAPPEND_H
 
 #include <type_traits>
-#include "TemplateAppendOne.h"
+#include "TemplateAppend.h"
 
 
 namespace sharemind {
@@ -62,7 +62,7 @@ struct TemplateCondAppend<T, Pred, Tmpl, TmplInstance, v, vs...> {
                     T,
                     Pred,
                     Tmpl,
-                    TemplateAppendOne_t<T, Tmpl, TmplInstance, v>,
+                    TemplateAppend_t<T, TmplInstance, v>,
                     vs...
                 >,
                 TemplateCondAppend_t<T, Pred, Tmpl, TmplInstance, vs...>
