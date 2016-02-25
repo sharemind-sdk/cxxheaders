@@ -21,7 +21,6 @@
 #define SHAREMIND_TEMPLATEINVERSECONDAPPENDTYPE_H
 
 #include <type_traits>
-#include "TemplateAppendTypes.h"
 
 
 namespace sharemind {
