@@ -43,10 +43,10 @@ struct TemplateInverseTypeFilter<Filter, T, Ts...> {
     using type =
             typename std::conditional<
                 !Filter<T>::value,
-                typename TemplatePrependOneType<
+                TemplatePrependOneType_t<
                     typename TemplateInverseTypeFilter<Filter, Ts...>::type,
                     T
-                >::type,
+                >,
                 typename TemplateInverseTypeFilter<Filter, Ts...>::type
             >::type;
 };

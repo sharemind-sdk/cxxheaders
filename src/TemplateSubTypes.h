@@ -45,10 +45,7 @@ struct TemplateSubTypes<0u, 0u, T, Ts...> { using type = TemplateTypeList<>; };
 template <std::size_t N, typename T, typename ... Ts>
 struct TemplateSubTypes<0u, N, T, Ts...> {
     using type =
-            typename TemplatePrependOneType<
-                TemplateSubTypes_t<0u, N - 1u, Ts...>,
-                T
-            >::type;
+            TemplatePrependOneType_t<TemplateSubTypes_t<0u, N - 1u, Ts...>, T>;
 };
 
 template <std::size_t S, std::size_t N, typename T, typename ... Ts>
