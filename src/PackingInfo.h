@@ -85,6 +85,8 @@ struct PackingInfo {
                 TemplatePrefixTypes_t<I, Ts...>
             >;
 
+    using StaticPrefixType = type;
+
 /* Methods: */
 
     constexpr static std::size_t sizeInBytes() noexcept { return size; }

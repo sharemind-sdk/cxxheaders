@@ -53,6 +53,8 @@ public: /* Types: */
                 TemplatePrefixTypes_t<I, Ts...>
             >;
 
+    using StaticPrefixType = type;
+
 public: /* Methods: */
 
     PackedStructAccessor<Ts...> refs() noexcept { return data(); }

@@ -94,6 +94,13 @@ public: /* Types: */
                 TemplatePrefixTypes_t<I, Ts...>
             >;
 
+    using StaticPrefixType =
+            TemplateInstantiateWithTypeParams_t<
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)
+                    DynamicPackedStruct,
+                typename DynamicPackingInfo<Ts...>::StaticPrefixType
+            >;
+
 public: /* Methods: */
 
     template <typename ... Args>

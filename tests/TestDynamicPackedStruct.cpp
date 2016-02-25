@@ -47,6 +47,11 @@ static_assert(
             DynamicPackedStruct<int64_t, char, R, char, A<int32_t>, uint16_t>::PrefixType<3u>,
             DynamicPackedStruct<int64_t, char, R>
         >::value, "");
+static_assert(
+        std::is_same<
+            typename DynamicPackedStruct<int64_t, char, R, char, A<int32_t>, uint16_t>::StaticPrefixType,
+            DynamicPackedStruct<int64_t, char>
+        >::value, "");
 
 int main() {
     DynamicPackedStruct<int64_t, char, R, char, A<int32_t>, uint16_t> m(3u, 10u);

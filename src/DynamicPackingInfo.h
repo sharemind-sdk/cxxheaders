@@ -29,6 +29,7 @@
 #include "compiler-support/ClangPR26692.h"
 #include "ConstUnalignedReference.h"
 #include "SizeOfTypes.h"
+#include "TemplateCommonPrefixTypes.h"
 #include "TemplateFilterTypes.h"
 #include "TemplateGetTypeParam.h"
 #include "TemplateInstantiateWithTypeParams.h"
@@ -132,6 +133,13 @@ struct ValidSizes<T, Ts...> {
     }
 
 };
+
+template <typename T>
+using StaticFieldPred =
+        std::integral_constant<bool, FieldTraits<T>::isStatic>;
+
+template <typename ... Ts>
+using StaticFieldFilter = TemplateFilterTypes_t<StaticFieldPred, Ts...>;
 
 template <typename T>
 using DynamicFieldPred =
@@ -294,6 +302,15 @@ struct DynamicPackingInfo {
             TemplateInstantiateWithTypeParams_t<
                 SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) DynamicPackingInfo,
                 TemplatePrefixTypes_t<I, Ts...>
+            >;
+
+    using StaticPrefixType =
+            TemplateInstantiateWithTypeParams_t<
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) DynamicPackingInfo,
+                TemplateCommonPrefixTypes_t<
+                    TemplateTypeList<Ts...>,
+                    Detail::DynamicPacking::StaticFieldFilter<Ts...>
+                >
             >;
 
 /* Methods: */

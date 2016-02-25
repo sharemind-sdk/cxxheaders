@@ -51,6 +51,8 @@ public: /* Types: */
                 TemplatePrefixTypes_t<I, Ts...>
             >;
 
+    using StaticPrefixType = type;
+
 public: /* Methods: */
 
     PackedStructAccessor(void * const data) noexcept : m_data(data) {}
