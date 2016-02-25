@@ -29,7 +29,7 @@
 #include "compiler-support/ClangPR26692.h"
 #include "DynamicPackingInfo.h"
 #include "GlobalDeleter.h"
-#include "TemplateCopyTypeParams.h"
+#include "TemplateInstantiateWithTypeParams.h"
 #include "TemplatePrefixTypes.h"
 
 
@@ -88,10 +88,11 @@ public: /* Types: */
 
     template <std::size_t I>
     using PrefixType =
-            TemplateCopyTypeParams_t<
-                TemplatePrefixTypes_t<I, Ts...>,
+            TemplateInstantiateWithTypeParams_t<
                 SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)
-                    DynamicPackedStruct>;
+                    DynamicPackedStruct,
+                TemplatePrefixTypes_t<I, Ts...>
+            >;
 
 public: /* Methods: */
 

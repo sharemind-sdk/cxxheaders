@@ -29,9 +29,9 @@
 #include "compiler-support/ClangPR26692.h"
 #include "ConstUnalignedReference.h"
 #include "SizeOfTypes.h"
-#include "TemplateCopyTypeParams.h"
 #include "TemplateFilterTypes.h"
 #include "TemplateGetTypeParam.h"
+#include "TemplateInstantiateWithTypeParams.h"
 #include "TemplatePrefixTypes.h"
 #include "UnalignedPointer.h"
 #include "UnalignedReference.h"
@@ -291,17 +291,18 @@ struct DynamicPackingInfo {
 
     template <std::size_t I>
     using PrefixType =
-            TemplateCopyTypeParams_t<
-                TemplatePrefixTypes_t<I, Ts...>,
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)DynamicPackingInfo>;
+            TemplateInstantiateWithTypeParams_t<
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) DynamicPackingInfo,
+                TemplatePrefixTypes_t<I, Ts...>
+            >;
 
 /* Methods: */
 
     template <typename ... Args>
     constexpr static bool validSizes(Args && ... args) noexcept {
-        return TemplateCopyTypeParams_t<
-                    Detail::DynamicPacking::DynamicFieldFilter<Ts...>,
-                    Detail::DynamicPacking::ValidSizes
+        return TemplateInstantiateWithTypeParams_t<
+                    Detail::DynamicPacking::ValidSizes,
+                    Detail::DynamicPacking::DynamicFieldFilter<Ts...>
                 >::isValid(std::forward<Args>(args)...);
     }
 
@@ -333,37 +334,39 @@ struct DynamicPackingInfo {
     template <std::size_t I, typename AccumSizes>
     constexpr static
     typename std::enable_if<
-        (TemplateCopyTypeParams_t<
-            TemplatePrefixTypes_t<I, Ts...>,
-            Detail::DynamicPacking::DynamicFieldFilter
+        (TemplateInstantiateWithTypeParams_t<
+            Detail::DynamicPacking::DynamicFieldFilter,
+            TemplatePrefixTypes_t<I, Ts...>
         >::size > 0u) ? true : false,
         std::size_t
     >::type
     elemOffset(AccumSizes const & accumSizes) noexcept
     {
         return accumSizes[
-                TemplateCopyTypeParams_t<
-                    TemplatePrefixTypes_t<I, Ts...>,
-                    Detail::DynamicPacking::DynamicFieldFilter
+                TemplateInstantiateWithTypeParams_t<
+                    Detail::DynamicPacking::DynamicFieldFilter,
+                    TemplatePrefixTypes_t<I, Ts...>
                 >::size - 1u]
-               + TemplateCopyTypeParams_t<
-                    TemplatePrefixTypes_t<I, Ts...>,
-                    Detail::DynamicPacking::StaticTailSize
+               + TemplateInstantiateWithTypeParams_t<
+                    Detail::DynamicPacking::StaticTailSize,
+                    TemplatePrefixTypes_t<I, Ts...>
                 >::value;
     }
 
     template <std::size_t I, typename AccumSizes>
     constexpr static
     typename std::enable_if<
-        (TemplateCopyTypeParams_t<
-            TemplatePrefixTypes_t<I, Ts...>,
-            Detail::DynamicPacking::DynamicFieldFilter
+        (TemplateInstantiateWithTypeParams_t<
+            Detail::DynamicPacking::DynamicFieldFilter,
+            TemplatePrefixTypes_t<I, Ts...>
         >::size > 0u) ? false : true,
         std::size_t
     >::type
     elemOffset(AccumSizes const &) noexcept {
-        return TemplateCopyTypeParams_t<TemplatePrefixTypes_t<I, Ts...>,
-                                        SizeOfTypes>::value;
+        return TemplateInstantiateWithTypeParams_t<
+                    SizeOfTypes,
+                    TemplatePrefixTypes_t<I, Ts...>
+                >::value;
     }
 
     template <std::size_t I, typename AccumSizes>

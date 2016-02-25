@@ -27,7 +27,7 @@
 #include "PackedStructAccessor.h"
 #include "PackedRawData.h"
 #include "PackingInfo.h"
-#include "TemplateCopyTypeParams.h"
+#include "TemplateInstantiateWithTypeParams.h"
 #include "TemplatePrefixTypes.h"
 
 
@@ -48,9 +48,10 @@ public: /* Types: */
 
     template <std::size_t I>
     using PrefixType =
-            TemplateCopyTypeParams_t<
-                TemplatePrefixTypes_t<I, Ts...>,
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackedStruct>;
+            TemplateInstantiateWithTypeParams_t<
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackedStruct,
+                TemplatePrefixTypes_t<I, Ts...>
+            >;
 
 public: /* Methods: */
 

@@ -20,7 +20,7 @@
 #ifndef SHAREMIND_TEMPLATELASTTYPE_H
 #define SHAREMIND_TEMPLATELASTTYPE_H
 
-#include "TemplateCopyTypeParams.h"
+#include "TemplateInstantiateWithTypeParams.h"
 #include "TemplateFirstType.h"
 #include "TemplateSuffixTypes.h"
 
@@ -31,9 +31,9 @@ namespace sharemind {
 
 template <typename ... Ts>
 using TemplateLastType =
-        TemplateCopyTypeParams_t<
-            typename TemplateSuffixTypes<1u, Ts...>::type,
-            TemplateFirstType
+        TemplateInstantiateWithTypeParams_t<
+            TemplateFirstType,
+            typename TemplateSuffixTypes_t<1u, Ts...>::type
         >;
 
 } /* namespace sharemind { */

@@ -24,7 +24,7 @@
 
 #include <cstddef>
 #include "compiler-support/ClangPR26692.h"
-#include "TemplateCopyTypeParams.h"
+#include "TemplateInstantiateWithTypeParams.h"
 #include "TemplatePrefixTypes.h"
 
 
@@ -45,10 +45,11 @@ public: /* Types: */
 
     template <std::size_t I>
     using PrefixType =
-            TemplateCopyTypeParams_t<
-                TemplatePrefixTypes_t<I, Ts...>,
+            TemplateInstantiateWithTypeParams_t<
                 SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)
-                    PackedStructAccessor>;
+                    PackedStructAccessor,
+                TemplatePrefixTypes_t<I, Ts...>
+            >;
 
 public: /* Methods: */
 

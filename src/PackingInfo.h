@@ -26,8 +26,8 @@
 #include "ConstUnalignedReference.h"
 #include "PotentiallyVoidTypeInfo.h"
 #include "SizeOfTypes.h"
-#include "TemplateCopyTypeParams.h"
 #include "TemplateGetTypeParam.h"
+#include "TemplateInstantiateWithTypeParams.h"
 #include "TemplatePrefixTypes.h"
 #include "UnalignedReference.h"
 #include "UnalignedPointer.h"
@@ -61,10 +61,10 @@ struct PackingInfo {
 
     template <std::size_t I>
     using ElemOffset =
-            typename TemplateCopyTypeParams<
-                typename TemplatePrefixTypes<I, Ts...>::type,
-                SizeOfTypes
-            >::type::type;
+            TemplateInstantiateWithTypeParams_t<
+                SizeOfTypes,
+                typename TemplatePrefixTypes<I, Ts...>::type
+            >;
 
     template <std::size_t I>
     using ReferenceType = UnalignedReference<ElemType<I> >;
@@ -80,9 +80,10 @@ struct PackingInfo {
 
     template <std::size_t I>
     using PrefixType =
-            TemplateCopyTypeParams_t<
-                TemplatePrefixTypes_t<I, Ts...>,
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackingInfo>;
+            TemplateInstantiateWithTypeParams_t<
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackingInfo,
+                TemplatePrefixTypes_t<I, Ts...>
+            >;
 
 /* Methods: */
 
