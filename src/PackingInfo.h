@@ -22,6 +22,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include "compiler-support/ClangPR26692.h"
 #include "ConstUnalignedReference.h"
 #include "PotentiallyVoidTypeInfo.h"
 #include "SizeOfTypes.h"
@@ -76,6 +77,12 @@ struct PackingInfo {
 
     template <std::size_t I>
     using ConstPointerType = UnalignedPointer<ElemType<I> const>;
+
+    template <std::size_t I>
+    using PrefixType =
+            TemplateCopyTypeParams_t<
+                TemplatePrefixTypes_t<I, Ts...>,
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackingInfo>;
 
 /* Methods: */
 

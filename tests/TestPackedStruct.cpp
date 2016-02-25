@@ -36,6 +36,12 @@ static_assert(
             PackedStruct<int, char>
         >::value, "");
 
+static_assert(
+        std::is_same<
+            PackedStruct<int, char, float, double>::PrefixType<2u>,
+            PackedStruct<int, char>
+        >::value, "");
+
 template <typename Msg, std::size_t N = Msg::numFields>
 struct PackedStructEqualityChecker;
 

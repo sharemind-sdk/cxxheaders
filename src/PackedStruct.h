@@ -20,11 +20,15 @@
 #ifndef SHAREMIND_PACKEDSTRUCT_H
 #define SHAREMIND_PACKEDSTRUCT_H
 
+#include <cstddef>
 #include <cstdint>
+#include "compiler-support/ClangPR26692.h"
 #include "ConstPackedStructAccessor.h"
 #include "PackedStructAccessor.h"
 #include "PackedRawData.h"
 #include "PackingInfo.h"
+#include "TemplateCopyTypeParams.h"
+#include "TemplatePrefixTypes.h"
 
 
 namespace sharemind {
@@ -41,6 +45,12 @@ public: /* Types: */
     using type = PackedStruct<Ts...>;
 
     SHAREMIND_PACKINGINFO_DECLARE_MEMBER_TYPES(Ts...)
+
+    template <std::size_t I>
+    using PrefixType =
+            TemplateCopyTypeParams_t<
+                TemplatePrefixTypes_t<I, Ts...>,
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackedStruct>;
 
 public: /* Methods: */
 
