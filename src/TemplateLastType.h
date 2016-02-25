@@ -33,7 +33,7 @@ template <typename ... Ts>
 using TemplateLastType =
         TemplateInstantiateWithTypeParams_t<
             TemplateFirstType,
-            typename TemplateSuffixTypes_t<1u, Ts...>::type
+            TemplateSuffixTypes_t<1u, Ts...>
         >;
 
 } /* namespace sharemind { */
