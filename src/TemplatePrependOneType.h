@@ -22,13 +22,11 @@
 
 namespace sharemind {
 
-template <template <typename ...> class Tmpl, typename, typename>
+template <typename, typename>
 struct TemplatePrependOneType;
 
-template <template <typename ...> class Tmpl, typename T, typename ... Ts>
-struct TemplatePrependOneType<Tmpl, Tmpl<Ts...>, T> {
-    using type = Tmpl<T, Ts...>;
-};
+template <template <typename ...> class Tmpl, typename ... Ts, typename T>
+struct TemplatePrependOneType<Tmpl<Ts...>, T> { using type = Tmpl<T, Ts...>; };
 
 } /* namespace Sharemind { */
 
