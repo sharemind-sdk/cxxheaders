@@ -40,6 +40,14 @@ public: /* Types: */
 
     SHAREMIND_PACKINGINFO_DECLARE_MEMBER_TYPES(Ts...)
 
+    template <std::size_t I>
+    using PrefixType =
+            TemplateInstantiateWithTypeParams_t<
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)
+                    ConstPackedStructAccessor,
+                TemplatePrefixTypes_t<I, Ts...>
+            >;
+
 public: /* Methods: */
 
     ConstPackedStructAccessor(void const * const data) noexcept
