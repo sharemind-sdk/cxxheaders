@@ -27,47 +27,40 @@
 namespace sharemind {
 
 template <template <typename T> class Pred,
-          template <typename ...> class Tmpl,
           typename TmplInstance,
           typename ...>
 struct TemplateInverseCondAppendType;
 
 template <template <typename T> class Pred,
-          template <typename ...> class Tmpl,
           typename TmplInstance,
           typename ... Ts>
 using TemplateInverseCondAppendType_t =
         typename TemplateInverseCondAppendType<
             Pred,
-            Tmpl,
             TmplInstance,
             Ts...
         >::type;
 
-template <template <typename T> class Pred,
-          template <typename ...> class Tmpl,
-          typename TmplInstance>
-struct TemplateInverseCondAppendType<Pred, Tmpl, TmplInstance>
+template <template <typename T> class Pred, typename TmplInstance>
+struct TemplateInverseCondAppendType<Pred, TmplInstance>
 { using type = TmplInstance; };
 
 template <template <typename T> class Pred,
           template <typename ...> class Tmpl,
-          typename TmplInstance,
+          typename ... TTs,
           typename T,
           typename ... Ts>
-struct TemplateInverseCondAppendType<Pred, Tmpl, TmplInstance, T, Ts...> {
+struct TemplateInverseCondAppendType<Pred, Tmpl<TTs...>, T, Ts...> {
     using type =
             typename ::std::conditional<
                 Pred<T>::value,
                 TemplateInverseCondAppendType_t<
                     Pred,
-                    Tmpl,
-                    TmplInstance,
+                    Tmpl<TTs...>,
                     Ts...>,
                 TemplateInverseCondAppendType_t<
                     Pred,
-                    Tmpl,
-                    TemplateAppendTypes_t<TmplInstance, T>,
+                    Tmpl<TTs..., T>,
                     Ts...>
             >::type;
 };

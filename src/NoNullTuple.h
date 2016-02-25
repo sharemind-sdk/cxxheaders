@@ -36,7 +36,6 @@ struct NoNullTuple {
     using type =
             TemplateInverseCondAppendType_t<
                 IsNullPointer,
-                std::tuple,
                 std::tuple<>,
                 Ts...
             >;
