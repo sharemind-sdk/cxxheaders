@@ -271,7 +271,7 @@ struct DynamicPackingInfo {
     struct AccumArrayType;
 
     template <std::size_t I>
-    using ElemType = typename TemplateGetTypeParam<I, Ts...>::type;
+    using ElemType = TemplateGetTypeParam_t<I, Ts...>;
 
     template <std::size_t I>
     using TypeTraits =

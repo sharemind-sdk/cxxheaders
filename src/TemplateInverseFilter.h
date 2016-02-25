@@ -45,10 +45,10 @@ struct TemplateInverseFilter<T, Filter, v, vs...> {
                 !Filter<v>::value,
                 TemplatePrependOne_t<
                     T,
-                    typename TemplateInverseFilter<T, Filter, vs...>::type,
+                    TemplateInverseFilter_t<T, Filter, vs...>,
                     v
                 >,
-                typename TemplateInverseFilter<T, Filter, vs...>::type
+                TemplateInverseFilter_t<T, Filter, vs...>
             >::type;
 };
 

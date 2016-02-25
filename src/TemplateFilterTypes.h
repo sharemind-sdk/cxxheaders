@@ -43,10 +43,10 @@ struct TemplateFilterTypes<Filter, T, Ts...> {
             typename std::conditional<
                 Filter<T>::value,
                 TemplatePrependOneType_t<
-                    typename TemplateFilterTypes<Filter, Ts...>::type,
+                    TemplateFilterTypes_t<Filter, Ts...>,
                     T
                 >,
-                typename TemplateFilterTypes<Filter, Ts...>::type
+                TemplateFilterTypes_t<Filter, Ts...>
             >::type;
 };
 

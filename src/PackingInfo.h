@@ -57,13 +57,13 @@ struct PackingInfo {
     using type = PackingInfo<Ts...>;
 
     template <std::size_t I>
-    using ElemType = typename TemplateGetTypeParam<I, Ts...>::type;
+    using ElemType = TemplateGetTypeParam_t<I, Ts...>;
 
     template <std::size_t I>
     using ElemOffset =
             TemplateInstantiateWithTypeParams_t<
                 SizeOfTypes,
-                typename TemplatePrefixTypes<I, Ts...>::type
+                TemplatePrefixTypes_t<I, Ts...>
             >;
 
     template <std::size_t I>

@@ -44,10 +44,10 @@ struct TemplateFilter<T, Filter, v, vs...> {
                 Filter<v>::value,
                 TemplatePrependOne_t<
                     T,
-                    typename TemplateFilter<T, Filter, vs...>::type,
+                    TemplateFilter_t<T, Filter, vs...>::type_t,
                     v
                 >,
-                typename TemplateFilter<T, Filter, vs...>::type
+                TemplateFilter_t<T, Filter, vs...>
             >::type;
 };
 
