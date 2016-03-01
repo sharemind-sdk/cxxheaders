@@ -31,6 +31,7 @@
 #include "GlobalDeleter.h"
 #include "TemplateInstantiateWithTypeParams.h"
 #include "TemplatePrefixTypes.h"
+#include "TemplateSuffixTypes.h"
 
 
 namespace sharemind {
@@ -92,6 +93,14 @@ public: /* Types: */
                 SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)
                     DynamicPackedStruct,
                 TemplatePrefixTypes_t<I, Ts...>
+            >;
+
+    template <std::size_t I>
+    using SuffixType =
+            TemplateInstantiateWithTypeParams_t<
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)
+                    DynamicPackedStruct,
+                TemplateSuffixTypes_t<I, Ts...>
             >;
 
     using StaticPrefixType =

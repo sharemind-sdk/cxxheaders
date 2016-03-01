@@ -48,6 +48,14 @@ public: /* Types: */
                 TemplatePrefixTypes_t<I, Ts...>
             >;
 
+    template <std::size_t I>
+    using SuffixType =
+            TemplateInstantiateWithTypeParams_t<
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)
+                    ConstPackedStructAccessor,
+                TemplateSuffixTypes_t<I, Ts...>
+            >;
+
     using StaticPrefixType = type;
 
 public: /* Methods: */

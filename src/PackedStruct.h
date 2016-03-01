@@ -29,6 +29,7 @@
 #include "PackingInfo.h"
 #include "TemplateInstantiateWithTypeParams.h"
 #include "TemplatePrefixTypes.h"
+#include "TemplateSuffixTypes.h"
 
 
 namespace sharemind {
@@ -51,6 +52,13 @@ public: /* Types: */
             TemplateInstantiateWithTypeParams_t<
                 SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackedStruct,
                 TemplatePrefixTypes_t<I, Ts...>
+            >;
+
+    template <std::size_t I>
+    using SuffixType =
+            TemplateInstantiateWithTypeParams_t<
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackedStruct,
+                TemplateSuffixTypes_t<I, Ts...>
             >;
 
     using StaticPrefixType = type;
