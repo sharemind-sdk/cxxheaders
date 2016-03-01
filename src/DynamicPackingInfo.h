@@ -154,16 +154,16 @@ template <>
 struct AccumSize<>
 { constexpr static std::size_t value() noexcept { return 0u; } };
 
-template <std::size_t limit_, typename ... Ts>
-struct AccumSize<DynamicFieldPlaceholder<limit_>, Ts...> {
+template <std::size_t min_, std::size_t max_, typename ... Ts>
+struct AccumSize<DynamicFieldPlaceholder<min_, max_>, Ts...> {
     template <typename ... Args>
     constexpr static std::size_t value(std::size_t const size,
                                        Args && ... args) noexcept
     { return size + AccumSize<Ts...>::value(std::forward<Args>(args)...); }
 };
 
-template <typename T, std::size_t limit_, typename ... Ts>
-struct AccumSize<DynamicVectorFieldPlaceholder<T, limit_>, Ts...> {
+template <typename T, std::size_t min_, std::size_t max_, typename ... Ts>
+struct AccumSize<DynamicVectorFieldPlaceholder<T, min_, max_>, Ts...> {
     template <typename ... Args>
     constexpr static std::size_t value(std::size_t const size,
                                        Args && ... args) noexcept
@@ -204,8 +204,8 @@ struct AccumVecPopulator<> {
     {}
 };
 
-template <std::size_t limit_, typename ... Ts>
-struct AccumVecPopulator<DynamicFieldPlaceholder<limit_>, Ts...> {
+template <std::size_t min_, std::size_t max_, typename ... Ts>
+struct AccumVecPopulator<DynamicFieldPlaceholder<min_, max_>, Ts...> {
     template <typename ... Args>
     static void populate(std::size_t * const ptr,
                          std::size_t accum,
@@ -220,8 +220,8 @@ struct AccumVecPopulator<DynamicFieldPlaceholder<limit_>, Ts...> {
     }
 };
 
-template <typename T, std::size_t limit_, typename ... Ts>
-struct AccumVecPopulator<DynamicVectorFieldPlaceholder<T, limit_>, Ts...> {
+template <typename T, std::size_t min_, std::size_t max_, typename ... Ts>
+struct AccumVecPopulator<DynamicVectorFieldPlaceholder<T, min_, max_>, Ts...> {
     template <typename ... Args>
     static void populate(std::size_t * const ptr,
                          std::size_t accum,
