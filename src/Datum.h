@@ -22,13 +22,13 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <boost/functional/hash.hpp>
 #include <boost/static_assert.hpp>
 #include <fstream>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include "Hash.h"
 
 
 namespace sharemind {
@@ -125,24 +125,14 @@ public: /* Methods: */
         inFile.read(static_cast<char *>(&outData[0]), fileSize);
     }
 
-    template <typename SizeType>
-    static std::size_t hashData(void const * data,
-                                SizeType const size) noexcept
-    {
-        char const * const dataStart = static_cast<char const *>(data);
-        std::size_t hash = size;
-        boost::hash_range(hash, dataStart, dataStart + size);
-        return hash;
-    }
-
 private: /* Fields: */
 
     Container m_data;
 
 };
 
-inline std::size_t hash_value(Datum const & datum) noexcept
-{ return Datum::hashData(datum.constData(), datum.size()); }
+inline Hash hash_value(Datum const & datum) noexcept
+{ return hashRawData(datum.constData(), datum.size()); }
 
 } /* namespace sharemind { */
 
