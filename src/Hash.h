@@ -34,7 +34,7 @@ using Hash = std::size_t;
 
 inline Hash hashCombineRawData(Hash seed,
                                void const * const data,
-                               std::size_t const size)
+                               std::size_t const size) noexcept
 {
     void const * const sizePtr = &size;
 
@@ -51,7 +51,7 @@ template <typename ... Args>
 inline Hash hashCombineRawData(Hash seed,
                                void const * const data,
                                std::size_t const size,
-                               Args && ... args)
+                               Args && ... args) noexcept
 {
     return hashCombineRawData(hashCombineRawData(seed, data, size),
                               std::forward<Args>(args)...);
