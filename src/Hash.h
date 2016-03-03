@@ -36,11 +36,6 @@ inline Hash hashCombineRawData(Hash seed,
                                void const * const data,
                                std::size_t const size) noexcept
 {
-    void const * const sizePtr = &size;
-
-    boost::hash_range(seed,
-                      static_cast<char const *>(sizePtr),
-                      static_cast<char const *>(ptrAdd(sizePtr, sizeof(size))));
     boost::hash_range(seed,
                       static_cast<char const *>(data),
                       static_cast<char const *>(ptrAdd(data, size)));
