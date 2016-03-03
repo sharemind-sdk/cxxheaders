@@ -171,6 +171,7 @@ public: /* Methods: */
 
     void * data() noexcept { return m_data.get(); }
     void const * data() const noexcept { return m_data.get(); }
+    void const * constData() const noexcept { return m_data.get(); }
 
     DataPtr release() noexcept { return DataPtr(std::move(m_data)); }
 

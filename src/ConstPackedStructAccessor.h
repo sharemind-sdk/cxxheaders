@@ -77,6 +77,7 @@ public: /* Methods: */
     SHAREMIND_PACKINGINFO_DEFINE_READ_METHODS(Ts...)
 
     void const * data() const noexcept { return m_data; }
+    void const * constData() const noexcept { return m_data; }
 
 private: /* Fields: */
 

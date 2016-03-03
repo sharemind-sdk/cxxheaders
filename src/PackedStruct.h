@@ -74,15 +74,21 @@ public: /* Methods: */
 
     void * data() noexcept { return &m_data; }
     void const * data() const noexcept { return &m_data; }
+    void const * constData() const noexcept { return &m_data; }
 
     uint8_t * dataUint8() noexcept { return m_data.asUint8; }
     uint8_t const * dataUint8() const noexcept { return m_data.asUint8; }
+    uint8_t const * constDataUint8() const noexcept { return m_data.asUint8; }
 
     char * dataChar() noexcept { return m_data.asChar; }
     char const * dataChar() const noexcept { return m_data.asChar; }
+    char const * constDataChar() const noexcept { return m_data.asChar; }
 
     unsigned char * dataUnsignedChar() noexcept { return m_data.asUChar; }
-    unsigned char const * dataUnsignedChar() const noexcept { return m_data.asUChar; }
+    unsigned char const * dataUnsignedChar() const noexcept
+    { return m_data.asUChar; }
+    unsigned char const * constDataUnsignedChar() const noexcept
+    { return m_data.asUChar; }
 
 private: /* Fields: */
 
