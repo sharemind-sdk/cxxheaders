@@ -61,6 +61,13 @@ template <typename ... Args>
 inline Hash hashRawData(Args && ... args) noexcept
 { return hashCombineRawData(0u, std::forward<Args>(args)...); }
 
+struct HashMemberCaller {
+    template <typename T>
+    auto operator()(T && t) const noexcept(noexcept(t.hash()))
+            -> decltype(t.hash())
+    { return t.hash(); }
+};
+
 } /* namespace Sharemind { */
 
 #endif /* SHAREMIND_HASH_H */
