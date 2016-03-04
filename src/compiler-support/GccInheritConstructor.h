@@ -34,13 +34,29 @@
     template <typename ... Args> \
     inline thisClass(Args && ... args) \
         : __VA_ARGS__(std::forward<Args>(args)...) {}
+#define SHAREMIND_GCC_INHERITED_CONSTRUCTOR_NOEXCEPT_WORKAROUND(thisClass,base,...)\
+    template <typename ... Args> \
+    inline thisClass(Args && ... args) noexcept \
+        : __VA_ARGS__(std::forward<Args>(args)...) {}
+#define SHAREMIND_GCC_INHERITED_CONSTRUCTOR_COND_NOEXCEPT_WORKAROUND(thisClass,eSpec,base,...)\
+    template <typename ... Args> \
+    inline thisClass(Args && ... args) noexcept(eSpec) \
+        : __VA_ARGS__(std::forward<Args>(args)...) {}
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
 #define SHAREMIND_GCC_INHERITED_CONSTRUCTOR(...) \
         SHAREMIND_GCC_INHERITED_CONSTRUCTOR_WORKAROUND(__VA_ARGS__)
+#define SHAREMIND_GCC_INHERITED_CONSTRUCTOR_NOEXCEPT(...) \
+        SHAREMIND_GCC_INHERITED_CONSTRUCTOR_NOEXCEPT_WORKAROUND(__VA_ARGS__)
+#define SHAREMIND_GCC_INHERITED_CONSTRUCTOR_COND_NOEXCEPT(...) \
+        SHAREMIND_GCC_INHERITED_CONSTRUCTOR_COND_NOEXCEPT_WORKAROUND(__VA_ARGS__)
 #else
 #define SHAREMIND_GCC_INHERITED_CONSTRUCTOR(thisClass,base,...) \
     using __VA_ARGS__::base;
+#define SHAREMIND_GCC_INHERITED_CONSTRUCTOR_NOEXCEPT(...) \
+    SHAREMIND_GCC_INHERITED_CONSTRUCTOR_NOEXCEPT_WORKAROUND(__VA_ARGS__)
+#define SHAREMIND_GCC_INHERITED_CONSTRUCTOR_COND_NOEXCEPT(...) \
+    SHAREMIND_GCC_INHERITED_CONSTRUCTOR_COND_NOEXCEPT_WORKAROUND(__VA_ARGS__)
 #endif
 
 #endif /* SHAREMIND_GCCINHERITCONSTRUCTOR_H */
