@@ -104,6 +104,7 @@ ADD_CUSTOM_TARGET("include_SHAREMIND_CXXHEADERS_TESTS_in_IDE"
 FOREACH(test IN LISTS SHAREMIND_CXXHEADERS_TESTS)
     GET_FILENAME_COMPONENT(testName "${test}" NAME_WE)
     ADD_EXECUTABLE("testImpl_${testName}" EXCLUDE_FROM_ALL "${test}")
+    TARGET_LINK_LIBRARIES("testImpl_${testName}" "pthread")
     ADD_DEPENDENCIES(check "testImpl_${testName}")
     ADD_TEST(NAME "test_${testName}" COMMAND "testImpl_${testName}")
 ENDFOREACH()
