@@ -62,12 +62,16 @@
 namespace sharemind {
 namespace workaround {
 
-template <typename T>
+template <typename T, bool isNoexcept = false>
 class GCC_PR61067_Wrapper: public T {
 
 public: /* Methods: */
 
-    SHAREMIND_GCC_INHERITED_CONSTRUCTOR_WORKAROUND(GCC_PR61067_Wrapper,T,T)
+    SHAREMIND_GCC_INHERITED_CONSTRUCTOR_COND_NOEXCEPT_WORKAROUND(
+            GCC_PR61067_Wrapper,
+            isNoexcept,
+            T,
+            T)
 
     SHAREMIND_GCCPR61067_WORKAROUND(GCC_PR61067_Wrapper)
 
