@@ -21,6 +21,7 @@
 #define SHAREMIND_GCCINHERITCONSTRUCTOR_H
 
 #include <sharemind/compiler-support/GccVersion.h>
+#include <utility>
 
 
 /**
@@ -35,7 +36,6 @@
         : __VA_ARGS__(std::forward<Args>(args)...) {}
 
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
-#include <utility>
 #define SHAREMIND_GCC_INHERITED_CONSTRUCTOR(...) \
         SHAREMIND_GCC_INHERITED_CONSTRUCTOR_WORKAROUND(__VA_ARGS__)
 #else
