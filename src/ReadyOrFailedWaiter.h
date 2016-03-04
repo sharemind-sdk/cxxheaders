@@ -37,6 +37,13 @@ private: /* Types: */
 
 public: /* Methods: */
 
+    inline ReadyOrFailedWaiter() noexcept {}
+
+    ReadyOrFailedWaiter(ReadyOrFailedWaiter &&) = delete;
+    ReadyOrFailedWaiter(ReadyOrFailedWaiter const &) = delete;
+    ReadyOrFailedWaiter & operator=(ReadyOrFailedWaiter &&) = delete;
+    ReadyOrFailedWaiter & operator=(ReadyOrFailedWaiter const &) = delete;
+
     inline void reset() noexcept { m_state = WAITING; }
 
     inline void notifyReady() noexcept { notify_<READY>(); }
