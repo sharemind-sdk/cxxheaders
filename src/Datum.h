@@ -114,14 +114,19 @@ public: /* Methods: */
     inline static void loadFileToVector(std::vector<T> & outData,
                                         std::string const & filename)
     {
-        std::ifstream inFile(filename.c_str(),
-                             std::ios_base::in | std::ios_base::binary);
+        std::ifstream inFile;
+        inFile.exceptions(std::ios_base::badbit | std::ios_base::failbit);
+        inFile.open(filename.c_str(),
+                    std::ios_base::in | std::ios_base::binary);
         inFile.seekg(0, std::ios::end);
+
         std::streamoff const fileSize = inFile.tellg();
-        assert(fileSize >= 0u);
-        inFile.seekg(0, std::ios::beg);
-        outData.resize(static_cast<size_type>(fileSize));
-        inFile.read(static_cast<char *>(&outData[0]), fileSize);
+        assert(fileSize >= 0);
+        if (fileSize > 0) {
+            inFile.seekg(0, std::ios::beg);
+            outData.resize(static_cast<size_type>(fileSize));
+            inFile.read(static_cast<char *>(&outData[0]), fileSize);
+        }
     }
 
 private: /* Fields: */
