@@ -22,7 +22,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <boost/static_assert.hpp>
 #include <fstream>
 #include <string>
 #include <type_traits>
