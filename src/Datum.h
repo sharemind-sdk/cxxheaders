@@ -89,9 +89,9 @@ public: /* Methods: */
     { m_data.resize(size, initial); }
 
     inline void loadFromFile(std::string const & filename) {
-        std::vector<char> newData;
+        Container newData;
         loadFileToVector(newData, filename);
-        m_data = newData;
+        m_data = std::move(newData);
     }
 
     inline void assign(void const * const data, size_type const size) {
