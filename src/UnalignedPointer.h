@@ -176,6 +176,8 @@ public: /* Methods: */
     reference operator[](difference_type const n) const noexcept
     { return ptrAdd(m_ptr, sizeof(T) * n); }
 
+    explicit operator bool() const noexcept { return m_ptr; }
+
 private: /* Fields: */
 
     CopyCv_t<void, T> * m_ptr;
