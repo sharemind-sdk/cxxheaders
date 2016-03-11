@@ -178,6 +178,8 @@ public: /* Methods: */
 
     explicit operator bool() const noexcept { return m_ptr; }
 
+    operator CopyCv_t<void, T> *() const noexcept { return m_ptr; }
+
 private: /* Fields: */
 
     CopyCv_t<void, T> * m_ptr;
