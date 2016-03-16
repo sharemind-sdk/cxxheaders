@@ -44,18 +44,18 @@ struct Alloc<T, typename std::enable_if<std::is_void<T>::value>::type>
 template <typename T, typename Enable = void>
 struct Arith {
 
-    constexpr static inline std::ptrdiff_t ptrDiff(T const * const a,
-                                                   T const * const b) noexcept
+    constexpr static inline std::ptrdiff_t diff(T const * const a,
+                                                T const * const b) noexcept
     { return a - b; }
 
     template <typename Diff>
-    constexpr static inline T * ptrAdd(T * const p, Diff const size) noexcept {
+    constexpr static inline T * add(T * const p, Diff const size) noexcept {
         static_assert(std::is_arithmetic<Diff>::value, "");
         return p + size;
     }
 
     template <typename Diff>
-    constexpr static inline T * ptrSub(T * const p, Diff const size) noexcept {
+    constexpr static inline T * sub(T * const p, Diff const size) noexcept {
         static_assert(std::is_arithmetic<Diff>::value, "");
         return p - size;
     }
@@ -65,18 +65,18 @@ struct Arith {
 template <typename T>
 struct Arith<T, typename std::enable_if<std::is_void<T>::value>::type> {
 
-    constexpr static inline std::ptrdiff_t ptrDiff(T const * const a,
-                                                   T const * const b) noexcept
+    constexpr static inline std::ptrdiff_t diff(T const * const a,
+                                                T const * const b) noexcept
     { return static_cast<UChar const *>(a) - static_cast<UChar const *>(b); }
 
     template <typename Diff>
-    constexpr static inline T * ptrAdd(T * const p, Diff const size) noexcept {
+    constexpr static inline T * add(T * const p, Diff const size) noexcept {
         static_assert(std::is_arithmetic<Diff>::value, "");
         return static_cast<CopyCv_t<UChar, T> *>(p) + size;
     }
 
     template <typename Diff>
-    constexpr static inline T * ptrSub(T * const p, Diff const size) noexcept {
+    constexpr static inline T * sub(T * const p, Diff const size) noexcept {
         static_assert(std::is_arithmetic<Diff>::value, "");
         return static_cast<CopyCv_t<UChar, T> *>(p) - size;
     }
@@ -126,19 +126,19 @@ template <typename T, typename Diff = std::size_t>
 constexpr T * ptrAdd(T * const ptr, Diff const size) noexcept {
     static_assert(std::is_arithmetic<Diff>::value,
                   "The second argument to ptrAdd must be of arithmetic type!");
-    return Detail::PotentiallyVoidTypeInfo::Arith<T>::ptrAdd(ptr, size);
+    return Detail::PotentiallyVoidTypeInfo::Arith<T>::add(ptr, size);
 }
 
 template <typename T, typename Diff = std::size_t>
 constexpr T * ptrSub(T * const ptr, Diff const size) noexcept {
     static_assert(std::is_arithmetic<Diff>::value,
                   "The second argument to ptrSub must be of arithmetic type!");
-    return Detail::PotentiallyVoidTypeInfo::Arith<T>::ptrSub(ptr, size);
+    return Detail::PotentiallyVoidTypeInfo::Arith<T>::sub(ptr, size);
 }
 
 template <typename T>
 constexpr std::ptrdiff_t ptrDiff(T * const ptr, T * const ptr2) noexcept
-{ return Detail::PotentiallyVoidTypeInfo::Arith<T>::ptrDiff(ptr, ptr2); }
+{ return Detail::PotentiallyVoidTypeInfo::Arith<T>::diff(ptr, ptr2); }
 
 template <typename T>
 constexpr std::size_t sizeOf() noexcept
