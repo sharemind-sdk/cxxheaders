@@ -35,14 +35,12 @@ namespace PotentiallyVoidTypeInfo {
 using UChar = unsigned char;
 static_assert(sizeof(UChar) == 1u, "");
 
-template <typename T, typename Enable = void>
+template <typename T, bool = std::is_void<T>::value>
 struct Alloc { using type = typename std::remove_const<T>::type; };
 
-template <typename T>
-struct Alloc<T, typename std::enable_if<std::is_void<T>::value>::type>
-{ using type = UChar; };
+template <typename T> struct Alloc<T, true> { using type = UChar; };
 
-template <typename T, typename Enable = void>
+template <typename T, bool = std::is_void<T>::value>
 struct Arith {
 
     constexpr static inline auto dist(T * const a, T * const b)
@@ -65,7 +63,7 @@ struct Arith {
 };
 
 template <typename T>
-struct Arith<T, typename std::enable_if<std::is_void<T>::value>::type> {
+struct Arith<T, true> {
 
     using CT = CopyCv_t<UChar, T>;
     using ACT = Arith<CT>;
@@ -90,7 +88,7 @@ struct Arith<T, typename std::enable_if<std::is_void<T>::value>::type> {
 
 };
 
-template <typename T, typename Enable = void>
+template <typename T, bool = std::is_void<T>::value>
 struct Copy {
     static_assert(!std::is_const<T>::value, "");
     static inline void copy(T const * const from,
@@ -101,7 +99,7 @@ struct Copy {
 };
 
 template <typename T>
-struct Copy<T, typename std::enable_if<std::is_void<T>::value>::type> {
+struct Copy<T, true> {
     static_assert(!std::is_const<T>::value, "");
     static inline void copy(T const * const from,
                             T * const to,
@@ -109,11 +107,10 @@ struct Copy<T, typename std::enable_if<std::is_void<T>::value>::type> {
     { std::memcpy(to, from, size); }
 };
 
-template <typename T, typename Enable = void>
+template <typename T, bool = std::is_void<T>::value>
 struct Sizeof { constexpr static auto const value = sizeof(T); };
 
-template <typename T>
-struct Sizeof<T, typename std::enable_if<std::is_void<T>::value>::type>
+template <typename T> struct Sizeof<T, true>
 { constexpr static auto const value = sizeof(UChar); };
 
 } // namespace PotentiallyVoidTypeInfo {
