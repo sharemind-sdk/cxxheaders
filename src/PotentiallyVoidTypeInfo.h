@@ -120,6 +120,9 @@ template <typename T>
 using PotentiallyVoidTypeInfo = Detail::PotentiallyVoidTypeInfo::Base<T>;
 
 template <typename T>
+using AllocType = typename PotentiallyVoidTypeInfo<T>::AllocType;
+
+template <typename T>
 void copy(T const * const from, T * const to, std::size_t const size)
         noexcept(noexcept(PotentiallyVoidTypeInfo<T>::copy(from, to, size)))
 { PotentiallyVoidTypeInfo<T>::copy(from, to, size); }
