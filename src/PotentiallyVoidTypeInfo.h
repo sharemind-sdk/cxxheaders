@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <iterator>
 #include <type_traits>
 #include "CopyCv.h"
 
@@ -44,9 +45,10 @@ struct Alloc<T, typename std::enable_if<std::is_void<T>::value>::type>
 template <typename T, typename Enable = void>
 struct Arith {
 
-    constexpr static inline std::ptrdiff_t diff(T const * const a,
-                                                T const * const b) noexcept
-    { return a - b; }
+    constexpr static inline auto dist(T * const a, T * const b)
+            noexcept(noexcept(std::distance(a, b)))
+            -> decltype(std::distance(a, b))
+    { return std::distance(a, b); }
 
     template <typename Diff>
     constexpr static inline T * add(T * const p, Diff const size) noexcept {
@@ -65,21 +67,26 @@ struct Arith {
 template <typename T>
 struct Arith<T, typename std::enable_if<std::is_void<T>::value>::type> {
 
-    constexpr static inline std::ptrdiff_t diff(T const * const a,
-                                                T const * const b) noexcept
-    { return static_cast<UChar const *>(a) - static_cast<UChar const *>(b); }
+    using CT = CopyCv_t<UChar, T>;
+    using ACT = Arith<CT>;
+
+    constexpr static inline CT * toCT(T * const ptr) noexcept
+    { return static_cast<CT *>(ptr); }
+
+    constexpr static inline auto dist(T * const a, T * const b)
+            noexcept(noexcept(ACT::dist(toCT(a), toCT(b))))
+            -> decltype(ACT::dist(toCT(a), toCT(b)))
+    { return ACT::dist(toCT(a), toCT(b)); }
 
     template <typename Diff>
-    constexpr static inline T * add(T * const p, Diff const size) noexcept {
-        static_assert(std::is_arithmetic<Diff>::value, "");
-        return static_cast<CopyCv_t<UChar, T> *>(p) + size;
-    }
+    constexpr static inline T * add(T * const p, Diff const size)
+            noexcept(noexcept(ACT::add(toCT(p), size)))
+    { return ACT::add(toCT(p), size); }
 
     template <typename Diff>
-    constexpr static inline T * sub(T * const p, Diff const size) noexcept {
-        static_assert(std::is_arithmetic<Diff>::value, "");
-        return static_cast<CopyCv_t<UChar, T> *>(p) - size;
-    }
+    constexpr static inline T * sub(T * const p, Diff const size)
+            noexcept(noexcept(ACT::sub(toCT(p), size)))
+    { return ACT::sub(toCT(p), size); }
 
 };
 
@@ -103,11 +110,11 @@ struct Copy<T, typename std::enable_if<std::is_void<T>::value>::type> {
 };
 
 template <typename T, typename Enable = void>
-struct Sizeof { constexpr static std::size_t const value = sizeof(T); };
+struct Sizeof { constexpr static auto const value = sizeof(T); };
 
 template <typename T>
 struct Sizeof<T, typename std::enable_if<std::is_void<T>::value>::type>
-{ constexpr static std::size_t const value = sizeof(UChar); };
+{ constexpr static auto const value = sizeof(UChar); };
 
 } // namespace PotentiallyVoidTypeInfo {
 } // namespace Detail {
@@ -123,22 +130,30 @@ void copy(T const * const from, T * const to, std::size_t const size)
 { Detail::PotentiallyVoidTypeInfo::Copy<T>::copy(from, to, size); }
 
 template <typename T, typename Diff = std::size_t>
-constexpr T * ptrAdd(T * const ptr, Diff const size) noexcept {
+constexpr T * ptrAdd(T * const ptr, Diff const size)
+        noexcept(noexcept(Detail::PotentiallyVoidTypeInfo::Arith<T>::add(ptr,
+                                                                         size)))
+{
     static_assert(std::is_arithmetic<Diff>::value,
                   "The second argument to ptrAdd must be of arithmetic type!");
     return Detail::PotentiallyVoidTypeInfo::Arith<T>::add(ptr, size);
 }
 
 template <typename T, typename Diff = std::size_t>
-constexpr T * ptrSub(T * const ptr, Diff const size) noexcept {
+constexpr T * ptrSub(T * const ptr, Diff const size)
+        noexcept(noexcept(Detail::PotentiallyVoidTypeInfo::Arith<T>::sub(ptr,
+                                                                         size)))
+{
     static_assert(std::is_arithmetic<Diff>::value,
                   "The second argument to ptrSub must be of arithmetic type!");
     return Detail::PotentiallyVoidTypeInfo::Arith<T>::sub(ptr, size);
 }
 
 template <typename T>
-constexpr std::ptrdiff_t ptrDiff(T * const ptr, T * const ptr2) noexcept
-{ return Detail::PotentiallyVoidTypeInfo::Arith<T>::diff(ptr, ptr2); }
+constexpr auto ptrDist(T * const a, T * const b)
+        noexcept(noexcept(Detail::PotentiallyVoidTypeInfo::Arith<T>::dist(a,b)))
+        -> decltype(Detail::PotentiallyVoidTypeInfo::Arith<T>::dist(a, b))
+{ return Detail::PotentiallyVoidTypeInfo::Arith<T>::dist(a, b); }
 
 template <typename T>
 constexpr std::size_t sizeOf() noexcept

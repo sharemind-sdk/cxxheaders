@@ -226,7 +226,7 @@ typename std::enable_if<
 >::type
 operator-(UnalignedPointer<T> const & lhs, UnalignedPointer<U> const & rhs)
         noexcept
-{ return ptrDiff(lhs.m_ptr, rhs.m_ptr) / sizeof(T); }
+{ return ptrDist(rhs.m_ptr, lhs.m_ptr) / sizeof(T); }
 
 template <typename T>
 UnalignedPointer<T> operator+(
