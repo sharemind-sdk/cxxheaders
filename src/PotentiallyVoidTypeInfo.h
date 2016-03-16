@@ -103,8 +103,8 @@ struct Copy {
 template <typename T>
 struct Copy<T, typename std::enable_if<std::is_void<T>::value>::type> {
     static_assert(!std::is_const<T>::value, "");
-    static inline void copy(void const * const from,
-                            void * const to,
+    static inline void copy(T const * const from,
+                            T * const to,
                             std::size_t const size) noexcept
     { std::memcpy(to, from, size); }
 };
