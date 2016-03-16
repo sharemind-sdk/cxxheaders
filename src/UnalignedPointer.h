@@ -62,7 +62,7 @@ typename std::enable_if<
         typename std::remove_cv<T>::type,
         typename std::remove_cv<U>::type
     >::value,
-    ptrdiff_t
+    std::ptrdiff_t
 >::type
 operator-(UnalignedPointer<T> const & lhs, UnalignedPointer<U> const & rhs)
         noexcept;
@@ -222,7 +222,7 @@ typename std::enable_if<
         typename std::remove_cv<T>::type,
         typename std::remove_cv<U>::type
     >::value,
-    ptrdiff_t
+    std::ptrdiff_t
 >::type
 operator-(UnalignedPointer<T> const & lhs, UnalignedPointer<U> const & rhs)
         noexcept
