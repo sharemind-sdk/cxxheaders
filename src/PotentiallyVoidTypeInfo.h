@@ -35,56 +35,67 @@ using UChar = unsigned char;
 static_assert(sizeof(UChar) == 1u, "");
 
 template <typename T, typename Enable = void>
-struct AllocBase { using allocType = typename std::remove_const<T>::type; };
+struct Alloc { using type = typename std::remove_const<T>::type; };
 
 template <typename T>
-struct AllocBase<T, typename std::enable_if<std::is_void<T>::value>::type>
-{ using allocType = UChar; };
+struct Alloc<T, typename std::enable_if<std::is_void<T>::value>::type>
+{ using type = UChar; };
 
 template <typename T, typename Enable = void>
-struct ArithBase {
+struct Arith {
 
-    constexpr static inline ptrdiff_t ptrDiff(T const * const a,
-                                              T const * const b) noexcept
+    constexpr static inline std::ptrdiff_t ptrDiff(T const * const a,
+                                                   T const * const b) noexcept
     { return a - b; }
 
-    constexpr static inline T * ptrAdd(T * const p, std::size_t const size)
-            noexcept
-    { return p + size; }
+    template <typename Diff>
+    constexpr static inline T * ptrAdd(T * const p, Diff const size) noexcept {
+        static_assert(std::is_arithmetic<Diff>::value, "");
+        return p + size;
+    }
 
-    constexpr static inline T * ptrSub(T * const p, std::size_t const size)
-            noexcept
-    { return p - size; }
+    template <typename Diff>
+    constexpr static inline T * ptrSub(T * const p, Diff const size) noexcept {
+        static_assert(std::is_arithmetic<Diff>::value, "");
+        return p - size;
+    }
 
 };
 
 template <typename T>
-struct ArithBase<T, typename std::enable_if<std::is_void<T>::value>::type> {
+struct Arith<T, typename std::enable_if<std::is_void<T>::value>::type> {
 
-    constexpr static inline ptrdiff_t ptrDiff(T const * const a,
-                                              T const * const b) noexcept
+    constexpr static inline std::ptrdiff_t ptrDiff(T const * const a,
+                                                   T const * const b) noexcept
     { return static_cast<UChar const *>(a) - static_cast<UChar const *>(b); }
 
-    constexpr static inline T * ptrAdd(T * const p, std::size_t const size)
-            noexcept
-    { return static_cast<CopyCv_t<UChar, T> *>(p) + size; }
+    template <typename Diff>
+    constexpr static inline T * ptrAdd(T * const p, Diff const size) noexcept {
+        static_assert(std::is_arithmetic<Diff>::value, "");
+        return static_cast<CopyCv_t<UChar, T> *>(p) + size;
+    }
 
-    constexpr static inline T * ptrSub(T * const p, std::size_t const size)
-            noexcept
-    { return static_cast<CopyCv_t<UChar, T> *>(p) - size; }
+    template <typename Diff>
+    constexpr static inline T * ptrSub(T * const p, Diff const size) noexcept {
+        static_assert(std::is_arithmetic<Diff>::value, "");
+        return static_cast<CopyCv_t<UChar, T> *>(p) - size;
+    }
 
 };
 
 template <typename T, typename Enable = void>
-struct CopyBase {
+struct Copy {
+    static_assert(!std::is_const<T>::value, "Can't copy to a const T!");
     static inline void copy(T const * const from,
                             T * const to,
                             std::size_t const size)
+            noexcept(noexcept(std::copy(from, from + size, to)))
     { std::copy(from, from + size, to); }
 };
 
 template <typename T>
-struct CopyBase<T, typename std::enable_if<std::is_void<T>::value>::type> {
+struct Copy<T, typename std::enable_if<std::is_void<T>::value>::type> {
+    static_assert(!std::is_const<T>::value, "Can't copy to a const T!");
     static inline void copy(void const * const from,
                             void * const to,
                             std::size_t const size) noexcept
@@ -92,57 +103,46 @@ struct CopyBase<T, typename std::enable_if<std::is_void<T>::value>::type> {
 };
 
 template <typename T, typename Enable = void>
-struct SizeofBase { constexpr static std::size_t const SIZEOF = sizeof(T); };
+struct Sizeof { constexpr static std::size_t const value = sizeof(T); };
 
 template <typename T>
-struct SizeofBase<T, typename std::enable_if<std::is_void<T>::value>::type>
-{ constexpr static std::size_t const SIZEOF = sizeof(UChar); };
-
-template <typename T, typename Enable = void>
-struct Base
-        : public AllocBase<T>
-        , public ArithBase<T>
-        , public CopyBase<T>
-        , public SizeofBase<T>
-{};
-
-template <typename T>
-struct Base<T, typename std::enable_if<std::is_const<T>::value>::type>
-        : public AllocBase<T>
-        , public ArithBase<T>
-        , public SizeofBase<T>
-{};
+struct Sizeof<T, typename std::enable_if<std::is_void<T>::value>::type>
+{ constexpr static std::size_t const value = sizeof(UChar); };
 
 } // namespace PotentiallyVoidTypeInfo {
 } // namespace Detail {
 
 template <typename T>
-using PotentiallyVoidTypeInfo = Detail::PotentiallyVoidTypeInfo::Base<T>;
-
-template <typename T>
-using AllocType = typename PotentiallyVoidTypeInfo<T>::AllocType;
+using AllocType = typename Detail::PotentiallyVoidTypeInfo::Alloc<T>::type;
 
 template <typename T>
 void copy(T const * const from, T * const to, std::size_t const size)
-        noexcept(noexcept(PotentiallyVoidTypeInfo<T>::copy(from, to, size)))
-{ PotentiallyVoidTypeInfo<T>::copy(from, to, size); }
+        noexcept(noexcept(Detail::PotentiallyVoidTypeInfo::Copy<T>::copy(from,
+                                                                         to,
+                                                                         size)))
+{ Detail::PotentiallyVoidTypeInfo::Copy<T>::copy(from, to, size); }
+
+template <typename T, typename Diff = std::size_t>
+constexpr T * ptrAdd(T * const ptr, Diff const size) noexcept {
+    static_assert(std::is_arithmetic<Diff>::value,
+                  "The second argument to ptrAdd must be of arithmetic type!");
+    return Detail::PotentiallyVoidTypeInfo::Arith<T>::ptrAdd(ptr, size);
+}
+
+template <typename T, typename Diff = std::size_t>
+constexpr T * ptrSub(T * const ptr, Diff const size) noexcept {
+    static_assert(std::is_arithmetic<Diff>::value,
+                  "The second argument to ptrSub must be of arithmetic type!");
+    return Detail::PotentiallyVoidTypeInfo::Arith<T>::ptrSub(ptr, size);
+}
 
 template <typename T>
-constexpr T * ptrAdd(T * const ptr, std::size_t const size) noexcept
-{ return PotentiallyVoidTypeInfo<T>::ptrAdd(ptr, size); }
-
-template <typename T>
-constexpr T * ptrSub(T * const ptr, std::size_t const size) noexcept
-{ return PotentiallyVoidTypeInfo<T>::ptrSub(ptr, size); }
-
-
-template <typename T>
-constexpr ptrdiff_t ptrDiff(T * const ptr, T * const ptr2) noexcept
-{ return PotentiallyVoidTypeInfo<T>::ptrDiff(ptr, ptr2); }
+constexpr std::ptrdiff_t ptrDiff(T * const ptr, T * const ptr2) noexcept
+{ return Detail::PotentiallyVoidTypeInfo::Arith<T>::ptrDiff(ptr, ptr2); }
 
 template <typename T>
 constexpr std::size_t sizeOf() noexcept
-{ return PotentiallyVoidTypeInfo<T>::SIZEOF; }
+{ return Detail::PotentiallyVoidTypeInfo::Sizeof<T>::value; }
 
 } /* namespace sharemind { */
 
