@@ -92,7 +92,7 @@ struct Arith<T, typename std::enable_if<std::is_void<T>::value>::type> {
 
 template <typename T, typename Enable = void>
 struct Copy {
-    static_assert(!std::is_const<T>::value, "Can't copy to a const T!");
+    static_assert(!std::is_const<T>::value, "");
     static inline void copy(T const * const from,
                             T * const to,
                             std::size_t const size)
@@ -102,7 +102,7 @@ struct Copy {
 
 template <typename T>
 struct Copy<T, typename std::enable_if<std::is_void<T>::value>::type> {
-    static_assert(!std::is_const<T>::value, "Can't copy to a const T!");
+    static_assert(!std::is_const<T>::value, "");
     static inline void copy(void const * const from,
                             void * const to,
                             std::size_t const size) noexcept
@@ -127,7 +127,10 @@ void copy(T const * const from, T * const to, std::size_t const size)
         noexcept(noexcept(Detail::PotentiallyVoidTypeInfo::Copy<T>::copy(from,
                                                                          to,
                                                                          size)))
-{ Detail::PotentiallyVoidTypeInfo::Copy<T>::copy(from, to, size); }
+{
+    static_assert(!std::is_const<T>::value, "Can't copy to a const T!");
+    Detail::PotentiallyVoidTypeInfo::Copy<T>::copy(from, to, size);
+}
 
 template <typename T, typename Diff = std::size_t>
 constexpr T * ptrAdd(T * const ptr, Diff const size)
