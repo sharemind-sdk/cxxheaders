@@ -31,12 +31,15 @@ namespace sharemind {
 namespace Detail {
 namespace PotentiallyVoidTypeInfo {
 
+using UChar = unsigned char;
+static_assert(sizeof(UChar) == 1u, "");
+
 template <typename T, typename Enable = void>
 struct AllocBase { using allocType = typename std::remove_const<T>::type; };
 
 template <typename T>
 struct AllocBase<T, typename std::enable_if<std::is_void<T>::value>::type>
-{ using allocType = char; };
+{ using allocType = UChar; };
 
 template <typename T, typename Enable = void>
 struct ArithBase {
@@ -60,15 +63,15 @@ struct ArithBase<T, typename std::enable_if<std::is_void<T>::value>::type> {
 
     constexpr static inline ptrdiff_t ptrDiff(T const * const a,
                                               T const * const b) noexcept
-    { return static_cast<char const *>(a) - static_cast<char const *>(b); }
+    { return static_cast<UChar const *>(a) - static_cast<UChar const *>(b); }
 
     constexpr static inline T * ptrAdd(T * const p, std::size_t const size)
             noexcept
-    { return static_cast<CopyCv_t<char, T> *>(p) + size; }
+    { return static_cast<CopyCv_t<UChar, T> *>(p) + size; }
 
     constexpr static inline T * ptrSub(T * const p, std::size_t const size)
             noexcept
-    { return static_cast<CopyCv_t<char, T> *>(p) - size; }
+    { return static_cast<CopyCv_t<UChar, T> *>(p) - size; }
 
 };
 
@@ -93,26 +96,28 @@ struct SizeofBase { constexpr static std::size_t const SIZEOF = sizeof(T); };
 
 template <typename T>
 struct SizeofBase<T, typename std::enable_if<std::is_void<T>::value>::type>
-{ constexpr static std::size_t const SIZEOF = sizeof(char); };
+{ constexpr static std::size_t const SIZEOF = sizeof(UChar); };
+
+template <typename T, typename Enable = void>
+struct Base
+        : public AllocBase<T>
+        , public ArithBase<T>
+        , public CopyBase<T>
+        , public SizeofBase<T>
+{};
+
+template <typename T>
+struct Base<T, typename std::enable_if<std::is_const<T>::value>::type>
+        : public AllocBase<T>
+        , public ArithBase<T>
+        , public SizeofBase<T>
+{};
 
 } // namespace PotentiallyVoidTypeInfo {
 } // namespace Detail {
 
-template <typename T, typename Enable = void>
-struct PotentiallyVoidTypeInfo
-        : public Detail::PotentiallyVoidTypeInfo::AllocBase<T>
-        , public Detail::PotentiallyVoidTypeInfo::ArithBase<T>
-        , public Detail::PotentiallyVoidTypeInfo::CopyBase<T>
-        , public Detail::PotentiallyVoidTypeInfo::SizeofBase<T> {};
-
-
 template <typename T>
-struct PotentiallyVoidTypeInfo<T, typename std::enable_if<
-                                               std::is_const<T>::value
-                                             >::type>
-        : public Detail::PotentiallyVoidTypeInfo::AllocBase<T>
-        , public Detail::PotentiallyVoidTypeInfo::ArithBase<T>
-        , public Detail::PotentiallyVoidTypeInfo::SizeofBase<T> {};
+using PotentiallyVoidTypeInfo = Detail::PotentiallyVoidTypeInfo::Base<T>;
 
 template <typename T>
 void copy(T const * const from, T * const to, std::size_t const size)
