@@ -164,8 +164,7 @@ private: /* Types: */
 public: /* Types: */
 
     using ValueType = T;
-    using ValueTypeInfo = sharemind::PotentiallyVoidTypeInfo<T>;
-    using ValueAllocType = typename ValueTypeInfo::allocType;
+    using ValueAllocType = AllocType<T>;
 
     class ReadActor {
 
@@ -639,12 +638,12 @@ private: /* Types: */
     static inline void copyFirstToSecondData(T const * const first,
                                              T * const second,
                                              std::size_t const size) noexcept
-    { ValueTypeInfo::copy(first, second, size); }
+    { copy(first, second, size); }
 
     static inline void copySecondToFirstData(T * const first,
                                              T const * const second,
                                              std::size_t const size) noexcept
-    { ValueTypeInfo::copy(second, first, size); }
+    { copy(second, first, size); }
 
     template < typename BufferSideType_
              , typename OtherSideType_
@@ -676,8 +675,7 @@ private: /* Types: */
                 noexcept
         {
             return const_cast<BufferSideType_ *>(
-                        ValueTypeInfo::ptrAdd(thisPtr->arrayStart(),
-                                              offset(thisPtr)));
+                        ptrAdd(thisPtr->arrayStart(), offset(thisPtr)));
         }
         static inline std::size_t available(
                 Self * thisPtr,
