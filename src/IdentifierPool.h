@@ -95,8 +95,8 @@ private: /* Types: */
 public: /* Methods: */
 
     inline ~IdentifierPool() noexcept {
-        constexpr static auto const disposer =
-                [](Item * const item) { delete item; };
+        static auto const disposer =
+                [](Item * const item) noexcept { delete item; };
         m_reserved.clear_and_dispose(disposer);
         m_recycled.clear_and_dispose(disposer);
     }
