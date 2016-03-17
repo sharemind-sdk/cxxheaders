@@ -22,11 +22,13 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 namespace sharemind {
 
 template <std::size_t size>
 union __attribute__((packed)) PackedRawData {
+    static_assert(std::is_same<unsigned char, uint8_t>::value, "");
     uint8_t asUint8[size];
     char asChar[size];
     unsigned char asUChar[size];
