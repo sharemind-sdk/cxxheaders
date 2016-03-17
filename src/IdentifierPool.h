@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <set>
 #include <type_traits>
+#include <sharemind/compiler-support/GccVersion.h>
 #include "Exception.h"
 
 
@@ -83,7 +84,9 @@ private: /* Types: */
         T value;
     };
     static_assert(std::is_nothrow_move_assignable<Item>::value, "");
+    #if !(defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800))
     static_assert(std::is_nothrow_move_constructible<Item>::value, "");
+    #endif
     static_assert(!std::is_copy_assignable<Item>::value, "");
     static_assert(!std::is_copy_constructible<Item>::value, "");
 
