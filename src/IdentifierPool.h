@@ -65,6 +65,7 @@ public: /* Methods: */
                 throw ReserveException();
         m_reserved.insert(tryNext);
         m_tryNextId = tryNext + 1u;
+        return tryNext;
     }
 
     /**
