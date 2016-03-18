@@ -20,12 +20,9 @@
 #ifndef SHAREMIND_IDENTIFIERPOOL_H
 #define SHAREMIND_IDENTIFIERPOOL_H
 
-#include <boost/intrusive/avl_set.hpp>
-#include <limits>
 #include <stdexcept>
 #include <set>
 #include <type_traits>
-#include <sharemind/compiler-support/GccVersion.h>
 #include "Exception.h"
 
 
@@ -50,59 +47,7 @@ public: /* Types: */
             ReserveException,
             "No more identifiers can be reserved.");
 
-private: /* Types: */
-
-    struct Item: public boost::intrusive::avl_set_base_hook<> {
-        Item(Item const &) = delete;
-        Item & operator=(Item const &) = delete;
-
-        inline Item() noexcept {}
-        inline Item(T const v) noexcept : value(v) {}
-        inline Item(Item && move) noexcept
-            : value(std::move(move.value))
-        { swap_nodes(move); }
-
-        Item & operator=(Item && move) noexcept {
-            value = std::move(move.value);
-            swap_nodes(move);
-        }
-
-        inline bool operator==(Item const & v) const noexcept
-        { return value == v.value; }
-        inline bool operator!=(Item const & v) const noexcept
-        { return value != v.value; }
-        inline bool operator>(Item const & v) const noexcept
-        { return value > v.value; }
-        inline bool operator<(Item const & v) const noexcept
-        { return value < v.value; }
-
-        inline bool operator==(T const v) const noexcept { return value == v; }
-        inline bool operator!=(T const v) const noexcept { return value != v; }
-        inline bool operator>(T const v) const noexcept { return value > v; }
-        inline bool operator<(T const v) const noexcept { return value < v; }
-
-        T value;
-    };
-    static_assert(std::is_nothrow_move_assignable<Item>::value, "");
-    #if !(defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800))
-    static_assert(std::is_nothrow_move_constructible<Item>::value, "");
-    #endif
-    static_assert(!std::is_copy_assignable<Item>::value, "");
-    static_assert(!std::is_copy_constructible<Item>::value, "");
-
-    using IdContainer =
-              boost::intrusive::avl_set<
-                  Item,
-                  boost::intrusive::link_mode<boost::intrusive::normal_link> >;
-
 public: /* Methods: */
-
-    inline ~IdentifierPool() noexcept {
-        static auto const disposer =
-                [](Item * const item) noexcept { delete item; };
-        m_reserved.clear_and_dispose(disposer);
-        m_recycled.clear_and_dispose(disposer);
-    }
 
     /**
       \brief Generates, reserves and returns an unique ID from this pool.
@@ -111,26 +56,13 @@ public: /* Methods: */
       \throws std::bad_alloc when out of memory.
     */
     T reserve() {
-        // Use recycled identifiers if possible:
-        if (!m_recycled.empty()) { // do we have recycled IDs available; constant
-            Item & item = *(m_recycled.begin()); // lowest recycled ID; constant
-            m_recycled.erase(m_recycled.begin()); // Erase from old container; amortized constant
-            m_reserved.insert(item); // Put into new container; logarithmic
-            return item.value;
-        }
-
-        if (m_reserved.empty()) {
-            Item * const item = new Item(0u);
-            m_reserved.insert(*item); // constant
-            return 0u;
-        } else {
-            T const value = (*(m_reserved.rbegin())).value; // constant
-            if (value >= std::numeric_limits<T>::max())
+        T tryNext = m_tryNextId;
+        T const oldTryNext = tryNext;
+        while (m_reserved.find(tryNext) != m_reserved.end())
+            if (++tryNext == oldTryNext)
                 throw ReserveException();
-            Item * const item = new Item(value + 1u);
-            m_reserved.insert(m_reserved.end(), *item); // insert after last; amortized constant
-            return value;
-        }
+        m_reserved.insert(tryNext);
+        m_tryNextId = tryNext + 1u;
     }
 
     /**
@@ -146,32 +78,14 @@ public: /* Methods: */
        \param[in] id The ID to release.
     */
     inline void recycle(T const id) noexcept {
-        auto const it = m_reserved.find(id);
-        if (it == m_reserved.end())
-            return;
-        Item & item = *it;
-        m_reserved.erase(it); // worst O(log n), average O(1)
-        m_recycled.insert(item); // O(log n)
-
-        // Garbage collect all recycled items larger than max reserved ID:
-        // O(n log n) on m_recycled.
-        T const maxReserved = (m_reserved.empty()
-                               ? 0u
-                               : (*(m_reserved.rbegin())).value); // constant
-        while (!m_recycled.empty()) { // constant
-            auto const it = m_recycled.rbegin(); // constant
-            Item * const item = &*it;
-            if (item->value <= maxReserved) // constant
-                break;
-            m_recycled.erase(--(it.base())); // worst O(log n), average O(1)
-            delete item;
-        }
+        assert(m_reserved.find(id) != m_reserved.end());
+        m_reserved.erase(id);
     }
 
 private: /* Fields: */
 
-    IdContainer m_reserved; ///< The ordered set of reserved IDs.
-    IdContainer m_recycled; ///< The ordered set of released IDs.
+    std::set<T> m_reserved; /**< The ordered set of reserved IDs. */
+    T m_tryNextId = 1u;     /**< The next ID to try to reserve. */
 
 };
 
