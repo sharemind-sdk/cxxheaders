@@ -79,8 +79,11 @@ public: /* Methods: */
        \param[in] id The ID to release.
     */
     inline void recycle(T const id) noexcept {
-        assert(m_reserved.find(id) != m_reserved.end());
-        m_reserved.erase(id);
+        #ifndef NDEBUG
+        auto const numErased =
+        #endif
+                m_reserved.erase(id);
+        assert(numErased > 0u);
     }
 
 private: /* Fields: */
