@@ -41,22 +41,24 @@ int main() {
         do { std::shuffle(reserved.begin(), reserved.end(), g); } while (false)
     #define ADD(num) \
         do { \
-            for (unsigned i = 0u; i < (num); ++i) \
+            auto const n = (num); \
+            for (unsigned i = 0u; i < n; ++i) \
                 reserved.push_back(pool.reserve()); \
         } while(false);
     #define REMOVE(num) \
         do { \
+            auto const n = (num); \
             auto size = reserved.size(); \
-            assert(size >= num); \
-            for (unsigned i = 0u; i < (num); ++i) { \
+            assert(size >= n); \
+            for (unsigned i = 0u; i < n; ++i) { \
                 auto const id = reserved[--size]; \
                 reserved.pop_back(); \
                 pool.recycle(id); \
             } \
         } while (false)
+
     ADD(ADD1); SHUFFLE; REMOVE(REMOVE1);
     ADD(ADD2); SHUFFLE; REMOVE(REMOVE2);
     ADD(ADD3); SHUFFLE; REMOVE(REMOVE3);
-    auto const itemsLeft = reserved.size();
-    REMOVE(itemsLeft);
+    REMOVE(reserved.size());
 }
