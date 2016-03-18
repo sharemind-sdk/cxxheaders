@@ -93,7 +93,7 @@ public: /* Methods: */
 private: /* Fields: */
 
     std::set<T> m_reserved; /**< The ordered set of reserved IDs. */
-    T m_tryNextId = 1u;     /**< The next ID to try to reserve. */
+    T m_tryNextId = 0u;     /**< The next ID to try to reserve. */
 
 };
 
