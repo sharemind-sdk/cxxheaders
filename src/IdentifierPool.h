@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_IDENTIFIERPOOL_H
 #define SHAREMIND_IDENTIFIERPOOL_H
 
+#include <cassert>
 #include <stdexcept>
 #include <set>
 #include <type_traits>
