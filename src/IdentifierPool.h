@@ -52,6 +52,7 @@ public: /* Methods: */
 
     /**
       \brief Generates, reserves and returns an unique ID from this pool.
+      \post the returned ID is reserved by the pool.
       \returns the unique ID generated and reserved.
       \throws ReserveException on pool exhaustion.
       \throws std::bad_alloc when out of memory.
@@ -77,6 +78,8 @@ public: /* Methods: */
     /**
        \brief Releases the given ID back to the pool.
        \param[in] id The ID to release.
+       \pre The given id is reserved by the pool.
+       \post The given id is not reserved by the pool.
     */
     inline void recycle(T const id) noexcept {
         #ifndef NDEBUG
