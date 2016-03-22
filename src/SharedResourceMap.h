@@ -39,6 +39,17 @@ private: /* Types: */
     struct DefaultConstructor_ { T * operator()() const { return new T; } };
 
     struct ValueObj_ {
+
+    /* Methods: */
+
+        void reset(T * const p) noexcept { return realPtr.reset(p); }
+
+        template <typename U, typename E>
+        void reset(std::unique_ptr<U, E> && p) noexcept
+        { realPtr = std::move(p); }
+
+    /* Fields: */
+
         std::weak_ptr<T> weakPtr;
         #if SHAREMIND_GCCPR44436
         std::shared_ptr<T>
@@ -46,6 +57,7 @@ private: /* Types: */
         std::unique_ptr<T>
         #endif
                 realPtr;
+
     };
 
     using Map_ = std::map<K, ValueObj_>;
@@ -122,7 +134,7 @@ public: /* Methods: */
             try {
                 assert(rp.second);
                 ValueObj_ & obj = rp.first->second;
-                obj.realPtr.reset(constructor());
+                obj.reset(constructor());
                 m_cond.notify_all();
                 return createShared(*this, key, obj);
             } catch (...) {

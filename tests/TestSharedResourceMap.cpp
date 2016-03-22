@@ -107,7 +107,9 @@ void threadFun() noexcept {
 int main() {
     // std::this_thread::sleep_for(std::chrono::seconds(2));
     {
-        auto a = map.getResource(42u, c42);
+        auto a = map.getResource(42u,
+                                 []{ return std::unique_ptr<SomeClass>(
+                                        new SomeClass(42u)); });
         static_assert(std::is_same<decltype(a),
                                    std::shared_ptr<SomeClass> >::value, "");
         assert(a);
