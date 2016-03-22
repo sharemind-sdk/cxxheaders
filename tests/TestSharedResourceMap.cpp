@@ -51,6 +51,7 @@ inline A inc(std::atomic<A> & v) noexcept
 { return v.fetch_add(1u, relax); }
 
 struct SomeClass {
+    SomeClass(unsigned const v = 42u) : value(v) {}
     unsigned value;
     void f(unsigned const expected, std::atomic<unsigned> & cnt) const noexcept {
         assert(value == expected);
@@ -61,8 +62,8 @@ struct SomeClass {
 constexpr auto const maxConstructions = (numThreads * numIters);
 std::atomic<NC<decltype(maxConstructions)> > constructions(0u);
 
-auto const c40 = []{ inc(constructions); return new SomeClass{40u}; };
-auto const c42 = []{ inc(constructions); return new SomeClass{42u}; };
+auto const c40 = []{ inc(constructions); return new SomeClass(40u); };
+auto const c42 = []{ inc(constructions); return new SomeClass(42u); };
 
 std::mutex threadsAtStartMutex;
 std::condition_variable threadsAtStartCond;
@@ -111,7 +112,7 @@ int main() {
                                    std::shared_ptr<SomeClass> >::value, "");
         assert(a);
         assert(a->value == 42u);
-        auto b = map.getResource(42u, c42);
+        auto b = map.getResource(42u);
         assert(b);
         assert(b->value == 42u);
         auto c = map.getResource(40u, c40);
