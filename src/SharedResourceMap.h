@@ -113,7 +113,7 @@ public: /* Methods: */
             return createShared(*this, key, obj);
         } else {
             std::unique_ptr<T> realPtr(c());
-            using VT = typename decltype(m_data)::value_type;
+            using VT = typename Map_::value_type;
             auto rp = m_data.SHAREMIND_GCCPR44436_METHOD(
                         VT(key, ValueObj_{{}, std::move(realPtr)}));
             assert(rp.second);
