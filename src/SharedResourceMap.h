@@ -112,13 +112,19 @@ public: /* Methods: */
                 return s;
             return createShared(*this, key, obj);
         } else {
-            std::unique_ptr<T> realPtr(c());
             using VT = typename Map_::value_type;
-            auto rp = m_data.SHAREMIND_GCCPR44436_METHOD(
-                        VT(key, ValueObj_{{}, std::move(realPtr)}));
-            assert(rp.second);
-            m_cond.notify_all();
-            return createShared(*this, key, rp.first->second);
+            auto const rp =
+                    m_data.SHAREMIND_GCCPR44436_METHOD(VT(key, ValueObj_()));
+            try {
+                assert(rp.second);
+                ValueObj_ & obj = rp.first->second;
+                obj.realPtr.reset(c());
+                m_cond.notify_all();
+                return createShared(*this, key, obj);
+            } catch (...) {
+                m_data.erase(rp.first);
+                throw;
+            }
         }
     }
 
