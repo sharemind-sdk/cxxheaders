@@ -40,7 +40,12 @@ private: /* Types: */
 
     struct ValueObj_ {
         std::weak_ptr<T> weakPtr;
-        std::unique_ptr<T> realPtr;
+        #if SHAREMIND_GCCPR44436
+        std::shared_ptr<T>
+        #else
+        std::unique_ptr<T>
+        #endif
+                realPtr;
     };
 
     using Map_ = std::map<K, ValueObj_>;
