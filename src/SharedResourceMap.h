@@ -97,12 +97,11 @@ public: /* Methods: */
                     std::lock_guard<std::mutex> const guard(
                                 sharedResourceMap.m_mutex);
                     auto const it = sharedResourceMap.m_data.find(key);
-                    if (it != sharedResourceMap.m_data.end()) {
-                        ValueObj_ & obj = it->second;
-                        if (obj.weakPtr.expired()) {
-                            sharedResourceMap.m_data.erase(it);
-                            sharedResourceMap.m_cond.notify_all();
-                        }
+                    if ((it != sharedResourceMap.m_data.end())
+                        && it->second.weakPtr.expired())
+                    {
+                        sharedResourceMap.m_data.erase(it);
+                        sharedResourceMap.m_cond.notify_all();
                     }
                 });
             valueObj.weakPtr = r;
