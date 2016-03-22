@@ -85,7 +85,7 @@ public: /* Methods: */
 
     template <typename Constructor = DefaultConstructor_>
     std::shared_ptr<T> getResource(K const & key,
-                                   Constructor c = Constructor())
+                                   Constructor constructor = Constructor())
     {
         static auto const createShared = [](type & sharedResourceMap,
                                             K const & key,
@@ -122,7 +122,7 @@ public: /* Methods: */
             try {
                 assert(rp.second);
                 ValueObj_ & obj = rp.first->second;
-                obj.realPtr.reset(c());
+                obj.realPtr.reset(constructor());
                 m_cond.notify_all();
                 return createShared(*this, key, obj);
             } catch (...) {
