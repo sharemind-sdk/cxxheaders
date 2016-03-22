@@ -113,9 +113,11 @@ int main() {
         assert(a);
         assert(a->value == 42u);
         auto b = map.getResource(42u);
+        static_assert(std::is_same<decltype(a), decltype(b)>::value, "");
         assert(b);
         assert(b->value == 42u);
         auto c = map.getResource(40u, c40);
+        static_assert(std::is_same<decltype(a), decltype(c)>::value, "");
         assert(c);
         assert(c->value == 40u);
         assert(map.size() == 2u);
