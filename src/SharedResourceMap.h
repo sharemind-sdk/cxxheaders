@@ -78,7 +78,7 @@ private: /* Types: */
         void forEach(F f) const {
             std::unique_lock<std::mutex> lock(m_mutex);
             for (auto const & v : m_data)
-                if (auto ptr = v.second.weakPtr.lock())
+                if (auto ptr = v.second->weakPtr.lock())
                     f(v.first, std::move(ptr));
         }
 
