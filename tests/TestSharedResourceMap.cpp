@@ -175,7 +175,7 @@ int main() {
     std::cout << constructions.load(relax) << " <= " << maxConstructions << std::endl;
     assert(constructions.load(relax) <= maxConstructions);
     /// \warning The following assertion will fail with very low probability:
-    constexpr static auto const might_fail_with_very_low_probability_or_valgrind
+    static auto const might_fail_with_very_low_probability_or_valgrind
             = [](bool const r) noexcept { return r; };
     assert(might_fail_with_very_low_probability_or_valgrind(
                constructions.load(relax) < maxConstructions));
