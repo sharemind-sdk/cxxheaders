@@ -23,7 +23,6 @@
 #include <cassert>
 // #include <chrono>
 #include <condition_variable>
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -172,7 +171,6 @@ int main() {
     assert(count40.load(relax) == expectedCount);
     assert(count42.load(relax) == expectedCount);
 
-    std::cout << constructions.load(relax) << " <= " << maxConstructions << std::endl;
     assert(constructions.load(relax) <= maxConstructions);
     /// \warning The following assertion will fail with very low probability:
     static auto const might_fail_with_very_low_probability_or_valgrind
