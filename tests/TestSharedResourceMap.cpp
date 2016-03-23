@@ -172,7 +172,8 @@ int main() {
     assert(count42.load(relax) == expectedCount);
 
     assert(constructions.load(relax) <= maxConstructions);
-    /// \warning The following assertion will fail with very low probability:
+    /// \warning The following assertion will fail with very low probability,
+    ///          but more so if (numThreads * numIters) is too low.
     static auto const might_fail_with_very_low_probability_or_valgrind
             = [](bool const r) noexcept { return r; };
     assert(might_fail_with_very_low_probability_or_valgrind(
