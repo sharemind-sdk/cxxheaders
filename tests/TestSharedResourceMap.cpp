@@ -23,6 +23,7 @@
 #include <cassert>
 // #include <chrono>
 #include <condition_variable>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -50,8 +51,11 @@ template <typename A>
 inline A inc(std::atomic<A> & v) noexcept
 { return v.fetch_add(1u, relax); }
 
+constexpr auto const maxConstructions = (numThreads * numIters);
+std::atomic<NC<decltype(maxConstructions)> > constructions(0u);
+
 struct SomeClass {
-    SomeClass(unsigned const v = 42u) : value(v) {}
+    SomeClass(unsigned const v = 42u) : value(v) { inc(constructions); }
     unsigned value;
     void f(unsigned const expected, std::atomic<unsigned> & cnt) const noexcept {
         assert(value == expected);
@@ -59,11 +63,8 @@ struct SomeClass {
     }
 };
 
-constexpr auto const maxConstructions = (numThreads * numIters);
-std::atomic<NC<decltype(maxConstructions)> > constructions(0u);
-
-auto const c40 = []{ inc(constructions); return new SomeClass(40u); };
-auto const c42 = []{ inc(constructions); return new SomeClass(42u); };
+auto const c40 = []{ return new SomeClass(40u); };
+auto const c42 = []{ return new SomeClass(42u); };
 
 std::mutex threadsAtStartMutex;
 std::condition_variable threadsAtStartCond;
@@ -132,6 +133,8 @@ int main() {
         assert(map.size() == 1u);
     }
     assert(map.empty());
+
+    constructions.store(0u, relax);
     std::vector<std::thread> threads;
     threads.reserve(numThreads);
     try {
@@ -169,8 +172,13 @@ int main() {
     assert(count40.load(relax) == expectedCount);
     assert(count42.load(relax) == expectedCount);
 
-    /// \warning This assertion will fail with very low probability:
-    assert(constructions.load(relax) < maxConstructions);
+    std::cout << constructions.load(relax) << " <= " << maxConstructions << std::endl;
+    assert(constructions.load(relax) <= maxConstructions);
+    /// \warning The following assertion will fail with very low probability:
+    constexpr static auto const might_fail_with_very_low_probability_or_valgrind
+            = [](bool const r) noexcept { return r; };
+    assert(might_fail_with_very_low_probability_or_valgrind(
+               constructions.load(relax) < maxConstructions));
 
     /// \todo Test forEach()
     /// \todo Test waitForEmpty()

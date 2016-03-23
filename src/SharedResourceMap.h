@@ -31,114 +31,167 @@
 
 namespace sharemind {
 
-template <typename K, typename T>
+template <typename Key, typename Value>
 class SharedResourceMap {
 
 private: /* Types: */
 
-    struct DefaultConstructor_ { T * operator()() const { return new T; } };
+    struct DefaultConstructor_
+    { Value * operator()() const { return new Value; } };
+
+    struct InnerBase {
+        virtual ~InnerBase() noexcept {}
+    };
 
     struct ValueObj_ {
 
     /* Methods: */
 
-        void reset(T * const p) noexcept { return realPtr.reset(p); }
-
-        template <typename U, typename E>
-        void reset(std::unique_ptr<U, E> && p) noexcept
-        { realPtr = std::move(p); }
+        template <typename C, typename K, typename Constructor>
+        ValueObj_(C && c, K && k, Constructor constructor) noexcept
+            : container(std::forward<C>(c))
+            , key(std::forward<K>(k))
+            , realPtr(constructor())
+        {}
 
     /* Fields: */
 
-        std::weak_ptr<T> weakPtr;
+        std::weak_ptr<InnerBase> container;
+        std::weak_ptr<Value> weakPtr;
+        Key key;
         #if SHAREMIND_GCCPR44436
-        std::shared_ptr<T>
+        std::shared_ptr<Value>
         #else
-        std::unique_ptr<T>
+        std::unique_ptr<Value>
         #endif
                 realPtr;
 
     };
 
-    using Map_ = std::map<K, ValueObj_>;
+    using Map_ = std::map<Key, std::shared_ptr<ValueObj_> >;
+
+    struct Inner: InnerBase {
+
+    /* Methods: */
+
+        template <typename F>
+        void forEach(F f) const {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            for (auto const & v : m_data)
+                if (auto ptr = v.second.weakPtr.lock())
+                    f(v.first, std::move(ptr));
+        }
+
+        void waitForEmpty() const noexcept {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            m_cond.wait(lock, [this]() noexcept { return m_data.empty(); });
+        }
+
+        auto empty() const noexcept(noexcept(std::declval<Map_ const &>().empty()))
+                -> decltype(std::declval<Map_ const &>().empty())
+        {
+            std::lock_guard<std::mutex> const guard(m_mutex);
+            return m_data.empty();
+        }
+
+        auto size() const noexcept(noexcept(std::declval<Map_ const &>().size()))
+                -> decltype(std::declval<Map_ const &>().size())
+        {
+            std::lock_guard<std::mutex> const guard(m_mutex);
+            return m_data.size();
+        }
+
+    /* Fields: */
+
+        mutable std::mutex m_mutex;
+        mutable std::condition_variable m_cond;
+        Map_ m_data;
+    };
 
 public: /* Types: */
 
-    using type = SharedResourceMap<K, T>;
+    using type = SharedResourceMap<Key, Value>;
 
 public: /* Methods: */
 
+    SharedResourceMap() : m_inner(new Inner) {}
+
+    virtual ~SharedResourceMap() noexcept {}
+
     template <typename F>
-    void forEach(F f) const {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        for (auto const & v : m_data)
-            if (auto ptr = v.second.weakPtr.lock())
-                f(v.first, std::move(ptr));
-    }
+    auto forEach(F && f) const
+            noexcept(noexcept(
+                         std::declval<Inner const *>()->forEach(
+                             std::forward<F>(f))))
+            -> decltype(std::declval<Inner const *>()->forEach(
+                            std::forward<F>(f)))
+    { return m_inner->forEach(std::forward<F>(f)); }
 
-    void waitForEmpty() const noexcept {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        m_cond.wait(lock, [this]() noexcept { return m_data.empty(); });
-    }
+    auto waitForEmpty() const
+            noexcept(noexcept(std::declval<Inner const *>()->waitForEmpty()))
+            -> decltype(std::declval<Inner const *>()->waitForEmpty())
+    { return m_inner->waitForEmpty(); }
 
-    auto empty() const noexcept(noexcept(std::declval<Map_ const &>().empty()))
-            -> decltype(std::declval<Map_ const &>().empty())
+    auto empty() const
+            noexcept(noexcept(std::declval<Inner const *>()->empty()))
+            -> decltype(std::declval<Inner const *>()->empty())
+    { return m_inner->empty(); }
+
+    auto size() const
+            noexcept(noexcept(std::declval<Inner const *>()->size()))
+            -> decltype(std::declval<Inner const *>()->size())
+    { return m_inner->size(); }
+
+    template <typename K, typename Constructor = DefaultConstructor_>
+    std::shared_ptr<Value> getResource(
+            K && key,
+            Constructor && constructor = Constructor())
     {
-        std::lock_guard<std::mutex> const guard(m_mutex);
-        return m_data.empty();
-    }
-
-    auto size() const noexcept(noexcept(std::declval<Map_ const &>().size()))
-            -> decltype(std::declval<Map_ const &>().size())
-    {
-        std::lock_guard<std::mutex> const guard(m_mutex);
-        return m_data.size();
-    }
-
-    template <typename Constructor = DefaultConstructor_>
-    std::shared_ptr<T> getResource(K const & key,
-                                   Constructor constructor = Constructor())
-    {
-        static auto const createShared = [](type & sharedResourceMap,
-                                            K const & key,
-                                            ValueObj_ & valueObj)
+        static auto const createShared = [](std::shared_ptr<ValueObj_> valueObj)
         {
-            std::shared_ptr<T> r(
-                valueObj.realPtr.get(),
-                [&sharedResourceMap, key](T * const) noexcept {
-                    std::lock_guard<std::mutex> const guard(
-                                sharedResourceMap.m_mutex);
-                    auto const it = sharedResourceMap.m_data.find(key);
-                    if ((it != sharedResourceMap.m_data.end())
-                        && it->second.weakPtr.expired())
-                    {
-                        sharedResourceMap.m_data.erase(it);
-                        sharedResourceMap.m_cond.notify_all();
+            std::shared_ptr<Value> r(
+                valueObj->realPtr.get(),
+                [valueObj](Value * const) mutable noexcept {
+                    if (auto cPtr = valueObj->container.lock()) {
+                        Inner & c = *static_cast<Inner *>(cPtr.get());
+                        std::lock_guard<std::mutex> const guard(c.m_mutex);
+                        auto const it = c.m_data.find(valueObj->key);
+                        if ((it != c.m_data.end())
+                            && it->second->weakPtr.expired())
+                        {
+                            valueObj.reset();
+                            c.m_data.erase(it);
+                            c.m_cond.notify_all();
+                        }
                     }
                 });
-            valueObj.weakPtr = r;
+            valueObj->weakPtr = r;
             return r;
         };
 
-        std::lock_guard<std::mutex> const guard(m_mutex);
-        auto it = m_data.find(key);
-        if (it != m_data.end()) {
-            ValueObj_ & obj = it->second;
-            if (auto s = obj.weakPtr.lock())
+        std::lock_guard<std::mutex> const guard(m_inner->m_mutex);
+        auto it = m_inner->m_data.find(key);
+        if (it != m_inner->m_data.end()) {
+            auto & obj = it->second;
+            if (auto s = obj->weakPtr.lock())
                 return s;
-            return createShared(*this, key, obj);
+            return createShared(obj);
         } else {
             using VT = typename Map_::value_type;
             auto const rp =
-                    m_data.SHAREMIND_GCCPR44436_METHOD(VT(key, ValueObj_()));
+                    m_inner->m_data.SHAREMIND_GCCPR44436_METHOD(
+                        VT(key, std::shared_ptr<ValueObj_>()));
+            assert(rp.second);
             try {
-                assert(rp.second);
-                ValueObj_ & obj = rp.first->second;
-                obj.reset(constructor());
-                m_cond.notify_all();
-                return createShared(*this, key, obj);
+                auto & obj = rp.first->second;
+                obj = std::make_shared<ValueObj_>(
+                            m_inner,
+                            std::forward<K>(key),
+                            std::forward<Constructor>(constructor));
+                m_inner->m_cond.notify_all();
+                return createShared(obj);
             } catch (...) {
-                m_data.erase(rp.first);
+                m_inner->m_data.erase(rp.first);
                 throw;
             }
         }
@@ -146,9 +199,7 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    mutable std::mutex m_mutex;
-    mutable std::condition_variable m_cond;
-    Map_ m_data;
+    std::shared_ptr<Inner> m_inner;
 
 };
 
