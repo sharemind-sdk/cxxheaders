@@ -29,6 +29,13 @@
 #include <type_traits>
 #include <vector>
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#pragma clang diagnostic ignored "-Wpadded"
+#pragma clang diagnostic ignored "-Wglobal-constructors"
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
 
 namespace {
 
