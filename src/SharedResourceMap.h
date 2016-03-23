@@ -177,10 +177,9 @@ public: /* Methods: */
                 return s;
             return createShared(obj);
         } else {
-            using VT = typename Map_::value_type;
             auto const rp =
                     m_inner->m_data.SHAREMIND_GCCPR44436_METHOD(
-                        VT(key, std::shared_ptr<ValueObj_>()));
+                        typename Map_::value_type{key, {}});
             assert(rp.second);
             try {
                 auto & obj = rp.first->second;
