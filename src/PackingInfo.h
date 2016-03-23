@@ -176,7 +176,7 @@ struct PackingInfo {
     ConstPointerType<I> ptr() const noexcept \
     { return PackingInfo<__VA_ARGS__>::template constPtr<I>(data()); } \
     template <std::size_t I> \
-    ConstPointerType<I> constVoidPtr() const noexcept \
+    ConstPointerType<I> constPtr() const noexcept \
     { return PackingInfo<__VA_ARGS__>::template constPtr<I>(data()); } \
     template <std::size_t I> \
     ConstReferenceType<I> cref() const noexcept \
