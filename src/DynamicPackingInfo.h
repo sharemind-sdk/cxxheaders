@@ -405,6 +405,23 @@ struct DynamicPackingInfo {
             noexcept
     { return ptrAdd(data, elemOffset<I>(accumSizes)); }
 
+    template <typename AccumSizes>
+    constexpr static void * endVoidPtr(void * const data,
+                                       AccumSizes const & accumSizes) noexcept
+    { return ptrAdd(data, accumSizes.structSizeInBytes()); }
+
+    template <typename AccumSizes>
+    constexpr static void const * endVoidPtr(void const * const data,
+                                             AccumSizes const & accumSizes)
+            noexcept
+    { return ptrAdd(data, accumSizes.structSizeInBytes()); }
+
+    template <typename AccumSizes>
+    constexpr static void const * endConstVoidPtr(void const * const data,
+                                                  AccumSizes const & accumSizes)
+            noexcept
+    { return ptrAdd(data, accumSizes.structSizeInBytes()); }
+
     template <std::size_t I, typename AccumSizes>
     constexpr static PointerType<I> ptr(void * const data,
                                         AccumSizes const & accumSizes) noexcept
@@ -516,6 +533,15 @@ struct DynamicPackingInfo<Ts...>::AccumArrayType
     template <std::size_t I>
     void const * constVoidPtr(void const * const data) const noexcept
     { return DynamicPackingInfo<Ts...>::constVoidPtr<I>(data, *this); }
+
+    void * endVoidPtr(void * const data) const noexcept
+    { return DynamicPackingInfo<Ts...>::endVoidPtr(data, *this); }
+
+    void const * endVoidPtr(void const * const data) const noexcept
+    { return DynamicPackingInfo<Ts...>::endVoidPtr(data, *this); }
+
+    void const * endConstVoidPtr(void const * const data) const noexcept
+    { return DynamicPackingInfo<Ts...>::endConstVoidPtr(data, *this); }
 
     template <std::size_t I>
     PointerType<I> ptr(void * const data) const noexcept

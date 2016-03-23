@@ -188,6 +188,15 @@ public: /* Methods: */
     void const * constVoidPtr() const noexcept
     { return m_sizes.template constVoidPtr<I>(m_data.get()); }
 
+    void * endVoidPtr() noexcept
+    { return m_sizes.endVoidPtr(m_data.get()); }
+
+    void const * endVoidPtr() const noexcept
+    { return m_sizes.endVoidPtr(m_data.get()); }
+
+    void const * endConstVoidPtr() const noexcept
+    { return m_sizes.endConstVoidPtr(m_data.get()); }
+
     template <std::size_t I>
     PointerType<I> ptr() const noexcept
     { return m_sizes.template ptr<I>(m_data.get()); }

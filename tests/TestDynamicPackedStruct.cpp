@@ -55,6 +55,7 @@ static_assert(
 
 int main() {
     DynamicPackedStruct<int64_t, char, R, char, A<int32_t>, uint16_t> m(3u, 10u);
+    decltype(m) const & cm = m;
 #if 0
     std::cout << "Data is at " << m.data() << std::endl;
     std::cout << "Size is " << m.size() << std::endl;
@@ -68,6 +69,18 @@ int main() {
     std::cout << "Accum[1u] is " << m.m_sizes.at(1u) << std::endl;
 #endif
     assert(m.size() == 55u);
+    static_assert(std::is_same<decltype(m.endVoidPtr()), void *>::value, "");
+    static_assert(
+        std::is_same<decltype(cm.endVoidPtr()), void const *>::value, "");
+    static_assert(
+        std::is_same<decltype(m.endConstVoidPtr()), void const *>::value, "");
+    static_assert(
+        std::is_same<decltype(cm.endConstVoidPtr()), void const *>::value, "");
+    assert(m.endVoidPtr() == cm.endVoidPtr());
+    assert(m.endVoidPtr() == m.endConstVoidPtr());
+    assert(m.endVoidPtr() == cm.endConstVoidPtr());
+    assert(ptrAdd(m.data(), m.size()) == m.endVoidPtr());
+
     assert(m.elemOffset<0u>() == 0u);
     assert(m.elemOffset<1u>() == m.elemOffset<0u>() + sizeof(int64_t));
     assert(m.elemOffset<2u>() == m.elemOffset<1u>() + sizeof(char));

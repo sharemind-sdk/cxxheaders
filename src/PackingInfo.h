@@ -107,6 +107,15 @@ struct PackingInfo {
     static void const * constVoidPtr(void const * const data) noexcept
     { return ptrAdd(data, ElemOffset<I>::value); }
 
+    static void * endVoidPtr(void * const data) noexcept
+    { return ptrAdd(data, size); }
+
+    static void const * endVoidPtr(void const * const data) noexcept
+    { return ptrAdd(data, size); }
+
+    static void const * endConstVoidPtr(void const * const data) noexcept
+    { return ptrAdd(data, size); }
+
     template <std::size_t I>
     static PointerType<I> ptr(void * const data) noexcept
     { return voidPtr<I>(data); }
@@ -172,6 +181,10 @@ struct PackingInfo {
     template <std::size_t I> \
     void const * constVoidPtr() const noexcept \
     { return PackingInfo<__VA_ARGS__>::template constVoidPtr<I>(data()); } \
+    void const * endVoidPtr() const noexcept \
+    { return PackingInfo<__VA_ARGS__>::endConstVoidPtr(data()); } \
+    void const * endConstVoidPtr() const noexcept \
+    { return PackingInfo<__VA_ARGS__>::endConstVoidPtr(data()); } \
     template <std::size_t I> \
     ConstPointerType<I> ptr() const noexcept \
     { return PackingInfo<__VA_ARGS__>::template constPtr<I>(data()); } \
@@ -196,6 +209,8 @@ struct PackingInfo {
     template <std::size_t I> \
     void * voidPtr() maybeConst noexcept \
     { return PackingInfo<__VA_ARGS__>::template voidPtr<I>(data()); } \
+    void * endVoidPtr() noexcept \
+    { return PackingInfo<__VA_ARGS__>::endVoidPtr(data()); } \
     template <std::size_t I> \
     PointerType<I> ptr() maybeConst noexcept \
     { return PackingInfo<__VA_ARGS__>::template ptr<I>(data()); } \

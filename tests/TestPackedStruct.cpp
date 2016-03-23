@@ -69,13 +69,28 @@ struct PackedStructEqualityChecker {
 };
 
 template <typename Msg>
-void checkPackedStruct(Msg const & m) noexcept {
+void checkPackedStruct(Msg & m) noexcept {
+    Msg const & cm = m;
+    assert(m.size() == cm.size());
     static_assert(std::is_pod<Msg>::value, "");
     static_assert(sizeof(Msg) == Msg::staticSize, "");
-    assert(m.size() == Msg::staticSize);
+
+    static_assert(std::is_same<decltype(m.endVoidPtr()), void *>::value, "");
+    static_assert(
+        std::is_same<decltype(cm.endVoidPtr()), void const *>::value, "");
+    static_assert(
+        std::is_same<decltype(m.endConstVoidPtr()), void const *>::value, "");
+    static_assert(
+        std::is_same<decltype(cm.endConstVoidPtr()), void const *>::value, "");
+    assert(m.endVoidPtr() == cm.endVoidPtr());
+    assert(m.endVoidPtr() == m.endConstVoidPtr());
+    assert(m.endVoidPtr() == cm.endConstVoidPtr());
+    assert(m.endVoidPtr() == ptrAdd(m.data(), m.size()));
+
+    assert(cm.size() == Msg::staticSize);
     Msg m2;
-    std::memcpy(&m2, &m, sizeof(Msg));
-    PackedStructEqualityChecker<Msg>::check(m, m2);
+    std::memcpy(&m2, &cm, sizeof(Msg));
+    PackedStructEqualityChecker<Msg>::check(cm, m2);
 }
 
 template <typename Lhs, typename Rhs>
