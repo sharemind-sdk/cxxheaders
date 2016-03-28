@@ -47,11 +47,15 @@ private: /* Types: */
 
     /* Methods: */
 
-        template <typename C, typename K, typename Constructor>
-        ValueObj_(C && c, K && k, Constructor constructor) noexcept
+        template <typename C,
+                  typename K,
+                  typename Constructor,
+                  typename ... Args>
+        ValueObj_(C && c, K && k, Constructor constructor, Args && ... args)
+                noexcept
             : container(std::forward<C>(c))
             , key(std::forward<K>(k))
-            , realPtr(constructor(key))
+            , realPtr(constructor(key, std::forward<Args>(args)...))
         {}
 
     /* Fields: */
@@ -142,10 +146,17 @@ public: /* Methods: */
             -> decltype(std::declval<Inner const *>()->size())
     { return m_inner->size(); }
 
-    template <typename K, typename Constructor = DefaultConstructor_>
+    template <typename K>
+    std::shared_ptr<Value> getResource(K && key)
+    { return getResource(std::forward<K>(key), DefaultConstructor_()); }
+
+    template <typename K,
+              typename Constructor,
+              typename ... Args>
     std::shared_ptr<Value> getResource(
             K && key,
-            Constructor && constructor = Constructor())
+            Constructor && constructor,
+            Args && ... args)
     {
         static auto const createShared = [](std::shared_ptr<ValueObj_> valueObj)
         {
@@ -186,7 +197,8 @@ public: /* Methods: */
                 obj = std::make_shared<ValueObj_>(
                             m_inner,
                             std::forward<K>(key),
-                            std::forward<Constructor>(constructor));
+                            std::forward<Constructor>(constructor),
+                            std::forward<Args>(args)...);
                 m_inner->m_cond.notify_all();
                 return createShared(obj);
             } catch (...) {
