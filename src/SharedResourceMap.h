@@ -37,7 +37,7 @@ class SharedResourceMap {
 private: /* Types: */
 
     struct DefaultConstructor_
-    { Value * operator()() const { return new Value; } };
+    { Value * operator()(Key const &) const { return new Value; } };
 
     struct InnerBase {
         virtual ~InnerBase() noexcept {}
@@ -51,7 +51,7 @@ private: /* Types: */
         ValueObj_(C && c, K && k, Constructor constructor) noexcept
             : container(std::forward<C>(c))
             , key(std::forward<K>(k))
-            , realPtr(constructor())
+            , realPtr(constructor(key))
         {}
 
     /* Fields: */

@@ -69,8 +69,7 @@ struct SomeClass {
     }
 };
 
-auto const c40 = []{ return new SomeClass(40u); };
-auto const c42 = []{ return new SomeClass(42u); };
+auto const constr = [](unsigned const v){ return new SomeClass(v); };
 
 std::mutex threadsAtStartMutex;
 std::condition_variable threadsAtStartCond;
@@ -103,7 +102,6 @@ void threadFun() noexcept {
             bool const is40 = inc(whichNumber) % 2;
             unsigned const number = is40 ? 40u : 42u;
             auto & cnt = is40 ? count40 : count42;
-            auto const & constr = is40 ? c40 : c42;
             auto v = map.getResource(number, constr);
             assert(v);
             v->f(number, cnt);
@@ -114,9 +112,10 @@ void threadFun() noexcept {
 int main() {
     // std::this_thread::sleep_for(std::chrono::seconds(2));
     {
-        auto a = map.getResource(42u,
-                                 []{ return std::unique_ptr<SomeClass>(
-                                        new SomeClass(42u)); });
+        auto a = map.getResource(
+                    42u,
+                    [](unsigned const)
+                    { return std::unique_ptr<SomeClass>(new SomeClass(42u)); });
         static_assert(std::is_same<decltype(a),
                                    std::shared_ptr<SomeClass> >::value, "");
         assert(a);
@@ -125,7 +124,7 @@ int main() {
         static_assert(std::is_same<decltype(a), decltype(b)>::value, "");
         assert(b);
         assert(b->value == 42u);
-        auto c = map.getResource(40u, c40);
+        auto c = map.getResource(40u, constr);
         static_assert(std::is_same<decltype(a), decltype(c)>::value, "");
         assert(c);
         assert(c->value == 40u);
