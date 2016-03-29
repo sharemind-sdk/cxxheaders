@@ -55,7 +55,7 @@ public: /* Methods: */
 
     inline Datum(Datum const & copy) : m_data(copy.m_data) {}
 
-    inline Datum(size_type size, value_type initial = value_type())
+    inline explicit Datum(size_type size, value_type initial = value_type())
         : m_data(size, initial)
     {}
 
@@ -64,7 +64,7 @@ public: /* Methods: */
                  static_cast<value_type const *>(data) + size)
     {}
 
-    inline Datum(std::string const & filename)
+    inline explicit Datum(std::string const & filename)
     { loadFileToVector(m_data, filename); }
 
     inline Datum & operator=(Datum const & copy) {
