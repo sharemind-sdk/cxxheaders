@@ -44,6 +44,20 @@ inline UsTime getUsTime(UsTime const onFail = 0u) noexcept {
     return static_cast<Sec>(t.tv_sec) * 1000000u + static_cast<Usec>(t.tv_usec);
 }
 
+/** \returns the current "time" in microseconds. */
+template <typename E>
+inline UsTime getUsTimeOrThrow(E e) noexcept {
+    timeval t;
+    if (gettimeofday(&t, nullptr) != 0)
+        throw e;
+    assert(t.tv_sec >= 0);
+    assert(t.tv_usec >= 0);
+    assert(t.tv_usec < 1000000);
+    using Sec = typename std::make_unsigned<decltype(t.tv_sec)>::type;
+    using Usec = typename std::make_unsigned<decltype(t.tv_usec)>::type;
+    return static_cast<Sec>(t.tv_sec) * 1000000u + static_cast<Usec>(t.tv_usec);
+}
+
 } /* namespace sharemind { */
 
 #endif /* SHAREMIND_MICROSECONDTIMER_H */
