@@ -22,6 +22,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <sharemind/preprocessor.h>
 #include <type_traits>
 
 
@@ -219,59 +220,42 @@ struct Literal: Literal_<Max, Cs...>
 } /* namespace Detail { */
 } /* namespace IntegerLiterals { */
 
-#define SHAREMIND_INTEGERLITERAL_DEFINE_SIGNED_STD(T) \
-    namespace IntegerLiterals { \
-        template <char ... Cs> \
-        using T ## Literal = \
-                Detail::Literal<std::numeric_limits<std::T ## _t>::max(), \
-                                Cs...>; \
-    }; \
+#define SHAREMIND_INTEGERLITERAL_NS ::sharemind::IntegerLiterals
+#define SHAREMIND_INTEGERLITERAL_NS_WRAP(...) \
+    namespace sharemind { namespace IntegerLiterals { __VA_ARGS__ }}
+
+#define SHAREMIND_INTEGERLITERAL_SIMPLE_TEMPLATE(name,intType) \
     template <char ... Cs> \
-    constexpr std::T ## _t operator "" _ ## T() { \
-        using L = IntegerLiterals::T ## Literal<Cs...>; \
-        static_assert(!L::overflow, "Overflow in _" #T " literal!"); \
-        static_assert(L::value >= std::numeric_limits<std::T ## _t>::min(), \
-                      ""); \
-        static_assert(L::value <= std::numeric_limits<std::T ## _t>::max(), \
-                      ""); \
-        return static_cast<std::T ## _t>(L::value); \
+    using name = \
+            ::sharemind::IntegerLiterals::Detail::Literal< \
+                    std::numeric_limits<intType>::max(), \
+                    Cs...>;
+
+#define SHAREMIND_INTEGERLITERAL_SIGNED_OPS(T,P,C) \
+    template <char ... Cs> \
+    constexpr T operator "" SHAREMIND_C(_,P)() { \
+        using L = C<Cs...>; \
+        static_assert(!L::overflow, "Overflow in _" #P " literal!"); \
+        return static_cast<T>(L::value); \
     } \
     template <char ... Cs> \
-    constexpr std::T ## _t operator "" _ ## T ## _overflow() { \
-        using L = IntegerLiterals::T ## Literal<Cs...>; \
-        static_assert(L::value >= std::numeric_limits<std::T ## _t>::min(), \
-                      ""); \
-        static_assert(L::value <= std::numeric_limits<std::T ## _t>::max(), \
-                      ""); \
-        return static_cast<std::T ## _t>(L::value); \
+    constexpr T operator "" SHAREMIND_C3(_,P,_overflow)() { \
+        using L = C<Cs...>; \
+        return static_cast<T>(L::value); \
     }
 
-#define SHAREMIND_INTEGERLITERAL_DEFINE_UNSIGNED_STD(T) \
-    namespace IntegerLiterals { \
-        template <char ... Cs> \
-        using T ## Literal = \
-                Detail::Literal<std::numeric_limits<std::T ## _t>::max(), \
-                                Cs...>; \
-    }; \
+#define SHAREMIND_INTEGERLITERAL_UNSIGNED_OPS(T,P,C) \
     template <char ... Cs> \
-    constexpr std::T ## _t operator "" _ ## T() { \
-        using L = IntegerLiterals::T ## Literal<Cs...>; \
-        static_assert(L::value >= std::numeric_limits<std::T ## _t>::min(), \
-                      ""); \
-        static_assert(L::value <= std::numeric_limits<std::T ## _t>::max(), \
-                      ""); \
-        return static_cast<std::T ## _t>(L::value); \
+    constexpr T operator "" SHAREMIND_C(_,P)() { \
+        using L = C<Cs...>; \
+        return static_cast<T>(L::value); \
     } \
     template <char ... Cs> \
-    constexpr std::T ## _t operator "" _ ## T ## _no_overflow() { \
-        using L = IntegerLiterals::T ## Literal<Cs...>; \
+    constexpr T operator "" SHAREMIND_C3(_,P,_no_overflow)() { \
+        using L = C<Cs...>; \
         static_assert(!L::overflow, \
-                      "Overflow in _" #T "_no_overflow literal!"); \
-        static_assert(L::value >= std::numeric_limits<std::T ## _t>::min(), \
-                      ""); \
-        static_assert(L::value <= std::numeric_limits<std::T ## _t>::max(), \
-                      ""); \
-        return static_cast<std::T ## _t>(L::value); \
+                      "Overflow in _" #P "_no_overflow literal!"); \
+        return static_cast<T>(L::value); \
     }
 
 } /* namespace sharemind { */
