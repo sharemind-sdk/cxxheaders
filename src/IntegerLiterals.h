@@ -413,7 +413,7 @@ static_assert(!decltype(0009.0_dec13)::valid, "");
 } /* namespace Detail { */
 } /* namespace IntegerLiterals { */
 
-#define SHAREMIND_INTEGERLITERAL_DEFINE_SIGNED(T) \
+#define SHAREMIND_INTEGERLITERAL_DEFINE_SIGNED_STD(T) \
     namespace IntegerLiterals { \
         template <char ... Cs> \
         using T ## Literal = \
@@ -440,7 +440,7 @@ static_assert(!decltype(0009.0_dec13)::valid, "");
         return static_cast<std::T ## _t>(L::value); \
     }
 
-#define SHAREMIND_INTEGERLITERAL_DEFINE_UNSIGNED(T) \
+#define SHAREMIND_INTEGERLITERAL_DEFINE_UNSIGNED_STD(T) \
     namespace IntegerLiterals { \
         template <char ... Cs> \
         using T ## Literal = \
