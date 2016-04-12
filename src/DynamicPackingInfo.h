@@ -28,6 +28,7 @@
 #include "Add.h"
 #include "compiler-support/ClangPR26692.h"
 #include "ConstUnalignedReference.h"
+#include "PackingInfo.h"
 #include "SizeOfTypes.h"
 #include "TemplateCommonPrefixTypes.h"
 #include "TemplateFilterTypes.h"
@@ -314,7 +315,7 @@ struct DynamicPackingInfo {
 
     using StaticPrefixType =
             TemplateInstantiateWithTypeParams_t<
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) DynamicPackingInfo,
+                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackingInfo,
                 TemplateCommonPrefixTypes_t<
                     TemplateTypeList<Ts...>,
                     Detail::DynamicPacking::StaticFieldFilter<Ts...>
