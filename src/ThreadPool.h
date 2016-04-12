@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_THREADPOOL_H
 #define SHAREMIND_THREADPOOL_H
 
+#include <algorithm>
 #include <atomic>
 #include <cassert>
 #include <condition_variable>
