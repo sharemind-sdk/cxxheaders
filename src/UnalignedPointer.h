@@ -154,7 +154,7 @@ public: /* Methods: */
         return tmp;
     }
 
-    type & operator--(int) noexcept {
+    type operator--(int) noexcept {
         type tmp = *this;
         operator--();
         return tmp;
