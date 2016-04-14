@@ -49,10 +49,10 @@ private: /* Types: */
 public: /* Methods: */
 
     CountMaxActor(CountMaxActor<Actor, COUNT_PARTIAL> const &) = delete;
-    CountMaxActor<Actor> & operator=(
+    CountMaxActor<Actor, COUNT_PARTIAL> & operator=(
             CountMaxActor<Actor, COUNT_PARTIAL> const &) = delete;
     CountMaxActor(CountMaxActor<Actor, COUNT_PARTIAL> &&) = default;
-    CountMaxActor<Actor> & operator=(
+    CountMaxActor<Actor, COUNT_PARTIAL> & operator=(
             CountMaxActor<Actor, COUNT_PARTIAL> &&) = default;
 
     template <typename ... Args>
