@@ -65,7 +65,8 @@ public: /* Methods: */
     {}
 
     inline explicit Datum(std::string const & filename)
-    { loadFileToVector(m_data, filename); }
+        : m_data(loadFileToContainer(filename))
+    {}
 
     inline Datum & operator=(Datum const & copy) {
         m_data = copy.m_data;
@@ -88,11 +89,8 @@ public: /* Methods: */
     inline void resize(size_type const size, value_type initial = value_type())
     { m_data.resize(size, initial); }
 
-    inline void loadFromFile(std::string const & filename) {
-        Container newData;
-        loadFileToVector(newData, filename);
-        m_data = std::move(newData);
-    }
+    inline void loadFromFile(std::string const & filename)
+    { m_data = loadFileToContainer(filename); }
 
     inline void assign(void const * const data, size_type const size) {
         m_data.resize(size);
@@ -110,10 +108,9 @@ public: /* Methods: */
     inline void const * constDataEnd() const noexcept
     { return &*m_data.end(); }
 
-    template <class T>
-    inline static void loadFileToVector(std::vector<T> & outData,
-                                        std::string const & filename)
-    {
+private: /* Methods: */
+
+    inline static Container loadFileToContainer(std::string const & filename) {
         std::ifstream inFile;
         inFile.exceptions(std::ios_base::badbit | std::ios_base::failbit);
         inFile.open(filename.c_str(),
@@ -122,11 +119,13 @@ public: /* Methods: */
 
         std::streamoff const fileSize = inFile.tellg();
         assert(fileSize >= 0);
+        Container contents;
         if (fileSize > 0) {
             inFile.seekg(0, std::ios::beg);
-            outData.resize(static_cast<size_type>(fileSize));
-            inFile.read(static_cast<char *>(&outData[0]), fileSize);
+            contents.resize(static_cast<size_type>(fileSize));
+            inFile.read(static_cast<char *>(&contents[0]), fileSize);
         }
+        return contents;
     }
 
 private: /* Fields: */
