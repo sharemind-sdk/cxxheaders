@@ -282,7 +282,9 @@ inline std::ostream& operator << (std::ostream& os, uint128_t x) {
         if (os.flags () & std::ios::showpos)
             buff[-- i] = '+';
 
-        static_assert(buff_size <= std::numeric_limits<std::streamsize>::max(),
+        static_assert(buff_size
+                      <= static_cast<std::make_unsigned<std::streamsize>::type>(
+                                std::numeric_limits<std::streamsize>::max()),
                       "");
         os.write (&buff[i], static_cast<std::streamsize>(buff_size - i));
     }
