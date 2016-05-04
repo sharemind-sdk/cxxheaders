@@ -26,7 +26,7 @@
 #include <cstdlib>
 #include <signal.h>
 
-void handleAbort(int) { exit(0); }
+[[noreturn]] void handleAbort(int) { exit(0); }
 #define MYASSERT(...) assert(__VA_ARGS__);
 #else
 #define MYASSERT(...) if (!(__VA_ARGS__)) return EXIT_FAILURE;
