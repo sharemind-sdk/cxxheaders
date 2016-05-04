@@ -79,4 +79,4 @@ constexpr auto add(Arg && arg, Args && ... args) noexcept ->
 
 } /* namespace Sharemind { */
 
-#endif /* SHAREMIND_MAX_H */
+#endif /* SHAREMIND_ADD_H */
