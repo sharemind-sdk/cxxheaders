@@ -19,11 +19,11 @@
 
 #include "../src/AssertReturn.h"
 
+#include <cstdlib>
 #include <memory>
 
 #ifndef NDEBUG
 #include <cassert>
-#include <cstdlib>
 #include <signal.h>
 
 [[noreturn]] void handleAbort(int) { exit(0); }
