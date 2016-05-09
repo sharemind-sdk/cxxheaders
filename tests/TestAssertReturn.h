@@ -18,6 +18,7 @@
  */
 
 #include "../src/AssertReturn.h"
+#include "../src/compiler-support/GccNoreturn.h"
 
 #include <cstdlib>
 #include <memory>
@@ -26,7 +27,7 @@
 #include <cassert>
 #include <signal.h>
 
-void handleAbort(int) __attribute__ ((noreturn));
+SHAREMIND_GCC_NORETURN_PART1 void handleAbort(int) SHAREMIND_GCC_NORETURN_PART2;
 void handleAbort(int) { exit(0); }
 #define MYASSERT(...) assert(__VA_ARGS__);
 #else
