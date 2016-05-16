@@ -49,16 +49,12 @@ struct Arith {
     { return std::distance(a, b); }
 
     template <typename Diff>
-    constexpr static inline T * add(T * const p, Diff const size) noexcept {
-        static_assert(std::is_arithmetic<Diff>::value, "");
-        return p + size;
-    }
+    constexpr static inline T * add(T * const p, Diff const size) noexcept
+    { return p + size; }
 
     template <typename Diff>
-    constexpr static inline T * sub(T * const p, Diff const size) noexcept {
-        static_assert(std::is_arithmetic<Diff>::value, "");
-        return p - size;
-    }
+    constexpr static inline T * sub(T * const p, Diff const size) noexcept
+    { return p - size; }
 
 };
 
@@ -133,21 +129,13 @@ template <typename T, typename Diff = std::size_t>
 constexpr T * ptrAdd(T * const ptr, Diff const size)
         noexcept(noexcept(Detail::PotentiallyVoidTypeInfo::Arith<T>::add(ptr,
                                                                          size)))
-{
-    static_assert(std::is_arithmetic<Diff>::value,
-                  "The second argument to ptrAdd must be of arithmetic type!");
-    return Detail::PotentiallyVoidTypeInfo::Arith<T>::add(ptr, size);
-}
+{ return Detail::PotentiallyVoidTypeInfo::Arith<T>::add(ptr, size); }
 
 template <typename T, typename Diff = std::size_t>
 constexpr T * ptrSub(T * const ptr, Diff const size)
         noexcept(noexcept(Detail::PotentiallyVoidTypeInfo::Arith<T>::sub(ptr,
                                                                          size)))
-{
-    static_assert(std::is_arithmetic<Diff>::value,
-                  "The second argument to ptrSub must be of arithmetic type!");
-    return Detail::PotentiallyVoidTypeInfo::Arith<T>::sub(ptr, size);
-}
+{ return Detail::PotentiallyVoidTypeInfo::Arith<T>::sub(ptr, size); }
 
 template <typename T>
 constexpr auto ptrDist(T * const a, T * const b)
