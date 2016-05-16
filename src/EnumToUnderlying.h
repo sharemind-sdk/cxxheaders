@@ -25,10 +25,13 @@
 
 namespace sharemind {
 
-template <typename Enum>
-constexpr typename std::underlying_type<Enum>::type enumToUnderlying(
-        Enum const v) noexcept
-{ return static_cast<typename std::underlying_type<Enum>::type>(v); }
+template <typename T>
+constexpr typename std::underlying_type<
+    typename std::decay<T>::type
+>::type enumToUnderlying(T const & v) noexcept {
+    return static_cast<typename std::underlying_type<
+                typename std::decay<T>::type>::type>(v);
+}
 
 } /* namespace sharemind { */
 
