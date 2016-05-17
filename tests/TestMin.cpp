@@ -31,4 +31,28 @@ int main() {
     static_assert(min(2, 3, 1) == 1, "");
     static_assert(min(3, 1, 2) == 1, "");
     static_assert(min(3, 2, 1) == 1, "");
+    static_assert(min(1, 2, 3, 4) == 1, "");
+    static_assert(min(1, 2, 4, 3) == 1, "");
+    static_assert(min(1, 3, 2, 4) == 1, "");
+    static_assert(min(1, 3, 4, 2) == 1, "");
+    static_assert(min(1, 4, 2, 3) == 1, "");
+    static_assert(min(1, 4, 3, 2) == 1, "");
+    static_assert(min(2, 1, 3, 4) == 1, "");
+    static_assert(min(2, 1, 4, 3) == 1, "");
+    static_assert(min(2, 3, 1, 4) == 1, "");
+    static_assert(min(2, 3, 4, 1) == 1, "");
+    static_assert(min(2, 4, 1, 3) == 1, "");
+    static_assert(min(2, 4, 3, 1) == 1, "");
+    static_assert(min(3, 1, 2, 4) == 1, "");
+    static_assert(min(3, 1, 4, 2) == 1, "");
+    static_assert(min(3, 2, 1, 4) == 1, "");
+    static_assert(min(3, 2, 4, 1) == 1, "");
+    static_assert(min(3, 4, 1, 2) == 1, "");
+    static_assert(min(3, 4, 2, 1) == 1, "");
+    static_assert(min(4, 1, 2, 3) == 1, "");
+    static_assert(min(4, 1, 3, 2) == 1, "");
+    static_assert(min(4, 2, 1, 3) == 1, "");
+    static_assert(min(4, 2, 3, 1) == 1, "");
+    static_assert(min(4, 3, 1, 2) == 1, "");
+    static_assert(min(4, 3, 2, 1) == 1, "");
 }

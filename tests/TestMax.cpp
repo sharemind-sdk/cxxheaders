@@ -31,4 +31,28 @@ int main() {
     static_assert(max(2, 3, 1) == 3, "");
     static_assert(max(3, 1, 2) == 3, "");
     static_assert(max(3, 2, 1) == 3, "");
+    static_assert(max(1, 2, 3, 4) == 4, "");
+    static_assert(max(1, 2, 4, 3) == 4, "");
+    static_assert(max(1, 3, 2, 4) == 4, "");
+    static_assert(max(1, 3, 4, 2) == 4, "");
+    static_assert(max(1, 4, 2, 3) == 4, "");
+    static_assert(max(1, 4, 3, 2) == 4, "");
+    static_assert(max(2, 1, 3, 4) == 4, "");
+    static_assert(max(2, 1, 4, 3) == 4, "");
+    static_assert(max(2, 3, 1, 4) == 4, "");
+    static_assert(max(2, 3, 4, 1) == 4, "");
+    static_assert(max(2, 4, 1, 3) == 4, "");
+    static_assert(max(2, 4, 3, 1) == 4, "");
+    static_assert(max(3, 1, 2, 4) == 4, "");
+    static_assert(max(3, 1, 4, 2) == 4, "");
+    static_assert(max(3, 2, 1, 4) == 4, "");
+    static_assert(max(3, 2, 4, 1) == 4, "");
+    static_assert(max(3, 4, 1, 2) == 4, "");
+    static_assert(max(3, 4, 2, 1) == 4, "");
+    static_assert(max(4, 1, 2, 3) == 4, "");
+    static_assert(max(4, 1, 3, 2) == 4, "");
+    static_assert(max(4, 2, 1, 3) == 4, "");
+    static_assert(max(4, 2, 3, 1) == 4, "");
+    static_assert(max(4, 3, 1, 2) == 4, "");
+    static_assert(max(4, 3, 2, 1) == 4, "");
 }
