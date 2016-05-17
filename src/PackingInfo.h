@@ -24,7 +24,6 @@
 #include <cstring>
 #include "compiler-support/ClangPR26692.h"
 #include "ConstUnalignedReference.h"
-#include "EnumConstant.h"
 #include "PotentiallyVoidTypeInfo.h"
 #include "SizeOfTypes.h"
 #include "TemplateGetTypeParam.h"
@@ -42,17 +41,17 @@ struct PackingInfo {
 
 /* Constants: */
 
-    SHAREMIND_ENUMCONSTANT(std::size_t, size, sizeOfTypes<Ts...>());
+    constexpr static std::size_t const size = sizeOfTypes<Ts...>();
 
-    SHAREMIND_ENUMCONSTANT(std::size_t, minSizeInBytes, size);
+    constexpr static std::size_t const minSizeInBytes = size;
 
-    SHAREMIND_ENUMCONSTANT(std::size_t, maxSizeInBytes, size);
+    constexpr static std::size_t const maxSizeInBytes = size;
 
-    SHAREMIND_ENUMCONSTANT(std::size_t, numFields, sizeof...(Ts));
+    constexpr static std::size_t const numFields = sizeof...(Ts);
 
-    SHAREMIND_ENUMCONSTANT(std::size_t, numDynamicFields, 0u);
+    constexpr static std::size_t const numDynamicFields = 0u;
 
-    SHAREMIND_ENUMCONSTANT(bool, hasDynamicFields, false);
+    constexpr static bool const hasDynamicFields = false;
 
 /* Types: */
 
@@ -146,24 +145,18 @@ struct PackingInfo {
 }; /* struct PackingInfo */
 
 #define SHAREMIND_PACKINGINFO_DECLARE_MEMBER_CONSTANTS(...) \
-    SHAREMIND_ENUMCONSTANT(std::size_t, \
-                           staticSize, \
-                           PackingInfo<__VA_ARGS__>::size); \
-    SHAREMIND_ENUMCONSTANT(std::size_t, \
-                           minSizeInBytes, \
-                           PackingInfo<__VA_ARGS__>::minSizeInBytes); \
-    SHAREMIND_ENUMCONSTANT(std::size_t, \
-                           maxSizeInBytes, \
-                           PackingInfo<__VA_ARGS__>::maxSizeInBytes); \
-    SHAREMIND_ENUMCONSTANT(std::size_t, \
-                           numFields, \
-                           PackingInfo<__VA_ARGS__>::numFields); \
-    SHAREMIND_ENUMCONSTANT(std::size_t, \
-                           numDynamicFields, \
-                           PackingInfo<__VA_ARGS__>::numDynamicFields); \
-    SHAREMIND_ENUMCONSTANT(bool, \
-                           hasDynamicFields, \
-                           PackingInfo<__VA_ARGS__>::hasDynamicFields);
+    constexpr static std::size_t const staticSize = \
+            PackingInfo<__VA_ARGS__>::size; \
+    constexpr static std::size_t const minSizeInBytes = \
+            PackingInfo<__VA_ARGS__>::minSizeInBytes; \
+    constexpr static std::size_t const maxSizeInBytes = \
+            PackingInfo<__VA_ARGS__>::maxSizeInBytes; \
+    constexpr static std::size_t const numFields = \
+            PackingInfo<__VA_ARGS__>::numFields; \
+    constexpr static std::size_t const numDynamicFields = \
+            PackingInfo<__VA_ARGS__>::numDynamicFields; \
+    constexpr static bool const hasDynamicFields = \
+            PackingInfo<__VA_ARGS__>::hasDynamicFields;
 
 #define SHAREMIND_PACKINGINFO_DECLARE_MEMBER_TYPES(...) \
     template <std::size_t I> using ElemType = \

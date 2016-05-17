@@ -24,8 +24,6 @@
 #include <limits>
 #include <sharemind/preprocessor.h>
 #include <type_traits>
-#include "EnumConstant.h"
-#include "EnumToUnderlying.h"
 
 
 namespace sharemind {
@@ -40,19 +38,19 @@ enum LiteralType { Oct, Dec, Hex, Float };
 
 template <std::uintmax_t Base>
 struct LiteralBase {
-    SHAREMIND_ENUMCONSTANT(bool, valid, true);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, base, Base);
+    constexpr static bool const valid = true;
+    constexpr static std::uintmax_t const base = Base;
 };
 
-struct InvalidDigit { SHAREMIND_ENUMCONSTANT(bool, valid, false); };
+struct InvalidDigit { constexpr static bool const valid = false; };
 
 template <std::uintmax_t Base, std::uintmax_t Max, std::uintmax_t Value>
 struct LastDigit: LiteralBase<Base> {
-    SHAREMIND_ENUMCONSTANT(bool, overflow, Value > Max);
-    SHAREMIND_ENUMCONSTANT(bool, valid, true);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, value, Value);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, rank, 1u);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, digits, 1u);
+    constexpr static bool const overflow = Value > Max;
+    constexpr static bool const valid = true;
+    constexpr static std::uintmax_t const value = Value;
+    constexpr static std::uintmax_t const rank = 1u;
+    constexpr static std::uintmax_t const digits = 1u;
 };
 
 template <std::uintmax_t Max, std::uintmax_t Value>
@@ -63,10 +61,10 @@ template <std::uintmax_t Max, std::uintmax_t Value>
 using HexDigit = LastDigit<16u, Max, Value>;
 
 template <std::uintmax_t Max> struct OctLiteral<Max>: LiteralBase<8u> {
-    SHAREMIND_ENUMCONSTANT(bool, overflow, false);
-    SHAREMIND_ENUMCONSTANT(bool, valid, true);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, value, 0u);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, digits, 0u);
+    constexpr static bool const overflow = false;
+    constexpr static bool const valid = true;
+    constexpr static std::uintmax_t const value = 0u;
+    constexpr static std::uintmax_t const digits = 0u;
 };
 template <std::uintmax_t Max> struct OctLiteral<Max, '0'>: OctDigit<Max, 0u> {};
 template <std::uintmax_t Max> struct OctLiteral<Max, '1'>: OctDigit<Max, 1u> {};
@@ -116,38 +114,29 @@ template <std::uintmax_t Max, char C> struct HexLiteral<Max, C>: InvalidDigit {}
 
 template <char ...> struct AreOctDigits: std::true_type {};
 template <char C, char ... Cs> struct AreOctDigits<C, Cs...> {
-    SHAREMIND_ENUMCONSTANT(
-            bool,
-            value,
-            OctLiteral<0u, C>::valid && AreOctDigits<Cs...>::value);
+    constexpr static bool const value =
+        OctLiteral<0u, C>::valid && AreOctDigits<Cs...>::value;
 };
 
 template <char ...> struct AreDecDigits: std::true_type {};
 template <char C, char ... Cs> struct AreDecDigits<C, Cs...> {
-    SHAREMIND_ENUMCONSTANT(
-            bool,
-            value,
-            DecLiteral<0u, C>::valid && AreDecDigits<Cs...>::value);
+    constexpr static bool const value =
+        DecLiteral<0u, C>::valid && AreDecDigits<Cs...>::value;
 };
 
 template <char ...> struct AreHexDigits: std::true_type {};
 template <char C, char ... Cs> struct AreHexDigits<C, Cs...> {
-    SHAREMIND_ENUMCONSTANT(
-            bool,
-            value,
-            HexLiteral<0u, C>::valid && AreHexDigits<Cs...>::value);
+    constexpr static bool const value =
+        HexLiteral<0u, C>::valid && AreHexDigits<Cs...>::value;
 };
 
 template <std::uintmax_t Max, template <std::uintmax_t, char ...> class T, char D, char C, char ... Cs>
 struct LiteralStep {
     using Head = T<Max, D>;
     using Tail = T<Max, C, Cs...>;
-    static_assert(enumToUnderlying(Head::base) == enumToUnderlying(Tail::base),
-                  "");
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, base, Head::base);
-    SHAREMIND_ENUMCONSTANT(
-            bool,
-            overflow,
+    static_assert(Head::base == Tail::base, "");
+    constexpr static std::uintmax_t const base = Head::base;
+    constexpr static bool const overflow =
             Head::overflow
             || Tail::overflow
             || ((Head::value != 0)
@@ -156,12 +145,10 @@ struct LiteralStep {
                     || (Head::value > (Max / (Tail::rank * base)))
                     || (Tail::value
                         > (Max - (Head::value * (Tail::rank * base))))
-                )));
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, rank, Tail::rank * base);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t,
-                           value,
-                           Head::value * rank + Tail::value);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, digits, Tail::digits + Head::digits);
+                ));
+    constexpr static std::uintmax_t const rank = Tail::rank * base;
+    constexpr static std::uintmax_t const value = Head::value * rank + Tail::value;
+    constexpr static std::uintmax_t const digits = Tail::digits + Head::digits;
 };
 
 template <std::uintmax_t Max, char D, char C, char ... Cs>
@@ -180,16 +167,16 @@ struct OctLiteral<Max, D, C, Cs...>
 {};
 
 struct InvalidLiteral {
-    SHAREMIND_ENUMCONSTANT(bool, valid, false);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, base, 0u);
-    SHAREMIND_ENUMCONSTANT(bool, overflow, false);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, value, 0u);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, rank, 0u);
-    SHAREMIND_ENUMCONSTANT(std::uintmax_t, digits, 0u);
+    constexpr static bool const valid = false;
+    constexpr static std::uintmax_t const base = 0u;
+    constexpr static bool const overflow = false;
+    constexpr static std::uintmax_t const value = 0u;
+    constexpr static std::uintmax_t const rank = 0u;
+    constexpr static std::uintmax_t const digits = 0u;
 };
 
 template <typename T>
-struct ValidLiteral: T { SHAREMIND_ENUMCONSTANT(bool, valid, true); };
+struct ValidLiteral: T { constexpr static bool const valid = true; };
 
 template <std::uintmax_t Max, char ... Cs>
 struct Literal_: std::conditional<
@@ -228,7 +215,7 @@ struct Literal_<Max, '0', Cs...>
 
 template <std::uintmax_t Max, char ... Cs>
 struct Literal: Literal_<Max, Cs...>
-{ SHAREMIND_ENUMCONSTANT(std::size_t, chars, sizeof...(Cs)); };
+{ constexpr static auto const chars = sizeof...(Cs); };
 
 } /* namespace Detail { */
 } /* namespace IntegerLiterals { */

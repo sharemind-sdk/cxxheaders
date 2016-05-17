@@ -26,7 +26,6 @@
 #include <iterator>
 #include <type_traits>
 #include "CopyCv.h"
-#include "EnumConstant.h"
 
 
 namespace sharemind {
@@ -105,10 +104,10 @@ struct Copy<T, true> {
 };
 
 template <typename T, bool = std::is_void<T>::value>
-struct Sizeof { SHAREMIND_ENUMCONSTANT(std::size_t, value, sizeof(T)); };
+struct Sizeof { constexpr static auto const value = sizeof(T); };
 
 template <typename T> struct Sizeof<T, true>
-{ SHAREMIND_ENUMCONSTANT(std::size_t, value, sizeof(UChar)); };
+{ constexpr static auto const value = sizeof(UChar); };
 
 } // namespace PotentiallyVoidTypeInfo {
 } // namespace Detail {

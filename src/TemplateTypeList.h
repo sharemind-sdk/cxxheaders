@@ -20,15 +20,11 @@
 #ifndef SHAREMIND_TEMPLATETYPELIST_H
 #define SHAREMIND_TEMPLATETYPELIST_H
 
-#include <cstddef>
-#include "EnumConstant.h"
-
-
 namespace sharemind {
 
 template <typename ... Ts> struct TemplateTypeList {
     using type = TemplateTypeList<Ts...>;
-    SHAREMIND_ENUMCONSTANT(std::size_t, size, sizeof...(Ts));
+    static constexpr auto const size = sizeof...(Ts);
 };
 
 } /* namespace sharemind { */

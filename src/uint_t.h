@@ -31,7 +31,6 @@
 #include <iostream>
 #include <stdexcept>
 #include <type_traits>
-#include "EnumConstant.h"
 #include "Min.h"
 
 
@@ -119,14 +118,12 @@ class uint_detail {
 public: /* Types: */
     using block_t = B;
 
-    SHAREMIND_ENUMCONSTANT(std::size_t, bytes_in_block, sizeof(block_t));
-    SHAREMIND_ENUMCONSTANT(std::size_t, num_of_bits, N);
-    SHAREMIND_ENUMCONSTANT(std::size_t, bits_in_block, bytes_in_block * 8u);
-    SHAREMIND_ENUMCONSTANT(std::size_t, num_of_bytes, (num_of_bits + 7u) / 8u);
-    SHAREMIND_ENUMCONSTANT(
-            std::size_t,
-            num_of_blocks,
-            (num_of_bytes + bytes_in_block - 1u) / bytes_in_block);
+    static constexpr std::size_t bytes_in_block = sizeof(block_t);
+    static constexpr std::size_t num_of_bits = N;
+    static constexpr std::size_t bits_in_block = bytes_in_block*8u;
+    static constexpr std::size_t num_of_bytes = (num_of_bits + 7u) / 8u;
+    static constexpr std::size_t num_of_blocks =
+            (num_of_bytes + bytes_in_block - 1u) / bytes_in_block;
 
 public: /* Methods: */
 
@@ -169,10 +166,7 @@ public:
     using uint_detail<N, B>::end;
 
     // This is a mask for the last block. In the mask only "useful" bits are set.
-    SHAREMIND_ENUMCONSTANT(
-            block_t,
-            last_block_mask,
-            block_t(~block_t(0)) >> (bits_in_block*num_of_blocks - num_of_bits));
+    static constexpr block_t last_block_mask = block_t(~block_t(0)) >> (bits_in_block*num_of_blocks - num_of_bits);
 
 public: /* Types: */
 
@@ -582,13 +576,10 @@ public: /* Methods: */
 
     friend std::ostream& operator << (std::ostream& os, uint_t x) {
         // each octal digit represents 3 bits + room for sign:
-        SHAREMIND_ENUMCONSTANT(std::size_t,
-                               buff_size,
-                               1 + (num_of_bits + 2u) / 3u);
-        SHAREMIND_ENUMCONSTANT(std::size_t, max_static_buffer_size, 256u);
-        SHAREMIND_ENUMCONSTANT(bool,
-                               dynamicBuffer,
-                               buff_size > max_static_buffer_size);
+        static constexpr std::size_t buff_size =
+                1 + (num_of_bits + 2u)/3u;
+        static constexpr std::size_t max_static_buffer_size = 256u;
+        static constexpr bool dynamicBuffer = buff_size > max_static_buffer_size;
 
         const char lower[] = "0123456789abcdef";
         const char upper[] = "0123456789ABCDEF";

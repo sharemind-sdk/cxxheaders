@@ -28,7 +28,6 @@
 #include <utility>
 #include "compiler-support/ClangPR26692.h"
 #include "DynamicPackingInfo.h"
-#include "EnumConstant.h"
 #include "GlobalDeleter.h"
 #include "TemplateInstantiateWithTypeParams.h"
 #include "TemplatePrefixTypes.h"
@@ -42,25 +41,20 @@ class DynamicPackedStruct {
 
 public: /* Constants: */
 
-    SHAREMIND_ENUMCONSTANT(std::size_t,
-                           minSizeInBytes,
-                           DynamicPackingInfo<Ts...>::minSizeInBytes);
+    constexpr static std::size_t const minSizeInBytes =
+            DynamicPackingInfo<Ts...>::minSizeInBytes;
 
-    SHAREMIND_ENUMCONSTANT(std::size_t,
-                           maxSizeInBytes,
-                           DynamicPackingInfo<Ts...>::maxSizeInBytes);
+    constexpr static std::size_t const maxSizeInBytes =
+            DynamicPackingInfo<Ts...>::maxSizeInBytes;
 
-    SHAREMIND_ENUMCONSTANT(std::size_t,
-                           numFields,
-                           DynamicPackingInfo<Ts...>::numFields);
+    constexpr static std::size_t const numFields =
+            DynamicPackingInfo<Ts...>::numFields;
 
-    SHAREMIND_ENUMCONSTANT(std::size_t,
-                           numDynamicFields,
-                           DynamicPackingInfo<Ts...>::numDynamicFields);
+    constexpr static std::size_t const numDynamicFields =
+            DynamicPackingInfo<Ts...>::numDynamicFields;
 
-    SHAREMIND_ENUMCONSTANT(bool,
-                           hasDynamicFields,
-                           DynamicPackingInfo<Ts...>::hasDynamicFields);
+    constexpr static std::size_t const hasDynamicFields =
+            DynamicPackingInfo<Ts...>::hasDynamicFields;
 
 public: /* Types: */
 

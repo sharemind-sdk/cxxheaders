@@ -28,7 +28,6 @@
 #include "Add.h"
 #include "compiler-support/ClangPR26692.h"
 #include "ConstUnalignedReference.h"
-#include "EnumConstant.h"
 #include "PackingInfo.h"
 #include "SizeOfTypes.h"
 #include "TemplateCommonPrefixTypes.h"
@@ -47,10 +46,10 @@ template <std::size_t min_ = std::numeric_limits<std::size_t>::min(),
           std::size_t max_ = std::numeric_limits<std::size_t>::max()>
 struct DynamicFieldPlaceholder {
     using type = DynamicFieldPlaceholder;
-    SHAREMIND_ENUMCONSTANT(std::size_t, min, min_);
-    SHAREMIND_ENUMCONSTANT(std::size_t, max, max_);
-    SHAREMIND_ENUMCONSTANT(std::size_t, minBytes, min);
-    SHAREMIND_ENUMCONSTANT(std::size_t, maxBytes, max);
+    constexpr static std::size_t const min = min_;
+    constexpr static std::size_t const max = max_;
+    constexpr static std::size_t const minBytes = min;
+    constexpr static std::size_t const maxBytes = max;
 };
 
 template <typename T,
@@ -59,10 +58,10 @@ template <typename T,
 struct DynamicVectorFieldPlaceholder {
     using type = DynamicVectorFieldPlaceholder<T>;
     using valueType = T;
-    SHAREMIND_ENUMCONSTANT(std::size_t, min, min_);
-    SHAREMIND_ENUMCONSTANT(std::size_t, max, max_);
-    SHAREMIND_ENUMCONSTANT(std::size_t, minBytes, min * sizeof(valueType));
-    SHAREMIND_ENUMCONSTANT(std::size_t, maxBytes, max * sizeof(valueType));
+    constexpr static std::size_t const min = min_;
+    constexpr static std::size_t const max = max_;
+    constexpr static std::size_t const minBytes = min * sizeof(valueType);
+    constexpr static std::size_t const maxBytes = max * sizeof(valueType);
 };
 
 namespace Detail {
@@ -74,30 +73,26 @@ struct FieldTraits {
     using ConstReferenceType = ConstUnalignedReference<T>;
     using PointerType = UnalignedPointer<T>;
     using ConstPointerType = UnalignedPointer<T const>;
-    SHAREMIND_ENUMCONSTANT(bool, isStatic, true);
-    SHAREMIND_ENUMCONSTANT(std::size_t, min, 1u);
-    SHAREMIND_ENUMCONSTANT(std::size_t, max, 1u);
-    SHAREMIND_ENUMCONSTANT(std::size_t, minBytes, sizeof(T));
-    SHAREMIND_ENUMCONSTANT(std::size_t, maxBytes, sizeof(T));
+    constexpr static bool const isStatic = true;
+    constexpr static std::size_t const min = 1u;
+    constexpr static std::size_t const max = 1u;
+    constexpr static std::size_t const minBytes = sizeof(T);
+    constexpr static std::size_t const maxBytes = sizeof(T);
 };
 
 template <std::size_t min_, std::size_t max_>
 struct FieldTraits<DynamicFieldPlaceholder<min_, max_> > {
     using PointerType = void *;
     using ConstPointerType = void const *;
-    SHAREMIND_ENUMCONSTANT(bool, isStatic, false);
-    SHAREMIND_ENUMCONSTANT(std::size_t,
-                           min,
-                           DynamicFieldPlaceholder<min_, max_>::min);
-    SHAREMIND_ENUMCONSTANT(std::size_t,
-                           max,
-                           DynamicFieldPlaceholder<min_, max_>::max);
-    SHAREMIND_ENUMCONSTANT(std::size_t,
-                           minBytes,
-                           DynamicFieldPlaceholder<min_, max_>::minBytes);
-    SHAREMIND_ENUMCONSTANT(std::size_t,
-                           maxBytes,
-                           DynamicFieldPlaceholder<min_, max_>::maxBytes);
+    constexpr static bool const isStatic = false;
+    constexpr static std::size_t const min =
+            DynamicFieldPlaceholder<min_, max_>::min;
+    constexpr static std::size_t const max =
+            DynamicFieldPlaceholder<min_, max_>::max;
+    constexpr static std::size_t const minBytes =
+            DynamicFieldPlaceholder<min_, max_>::minBytes;
+    constexpr static std::size_t const maxBytes =
+            DynamicFieldPlaceholder<min_, max_>::maxBytes;
 };
 
 template <typename T, std::size_t min_, std::size_t max_>
@@ -106,21 +101,15 @@ struct FieldTraits<DynamicVectorFieldPlaceholder<T, min_, max_> > {
     using ConstReferenceType = ConstUnalignedReference<T>;
     using PointerType = UnalignedPointer<T>;
     using ConstPointerType = UnalignedPointer<T const>;
-    SHAREMIND_ENUMCONSTANT(bool, isStatic, false);
-    SHAREMIND_ENUMCONSTANT(std::size_t,
-                           min,
-                           DynamicVectorFieldPlaceholder<T, min_, max_>::min);
-    SHAREMIND_ENUMCONSTANT(std::size_t,
-                           max,
-                           DynamicVectorFieldPlaceholder<T, min_, max_>::max);
-    SHAREMIND_ENUMCONSTANT(
-            std::size_t,
-            minBytes,
-            DynamicVectorFieldPlaceholder<T, min_, max_>::minBytes);
-    SHAREMIND_ENUMCONSTANT(
-            std::size_t,
-            maxBytes,
-            DynamicVectorFieldPlaceholder<T, min_, max_>::maxBytes);
+    constexpr static bool const isStatic = false;
+    constexpr static std::size_t const min =
+            DynamicVectorFieldPlaceholder<T, min_, max_>::min;
+    constexpr static std::size_t const max =
+            DynamicVectorFieldPlaceholder<T, min_, max_>::max;
+    constexpr static std::size_t const minBytes =
+            DynamicVectorFieldPlaceholder<T, min_, max_>::minBytes;
+    constexpr static std::size_t const maxBytes =
+            DynamicVectorFieldPlaceholder<T, min_, max_>::maxBytes;
 };
 
 template <typename ... Ts> struct ValidSizes;
@@ -272,24 +261,18 @@ struct DynamicPackingInfo {
 
 /* Constants: */
 
-    SHAREMIND_ENUMCONSTANT(
-            std::size_t,
-            minSizeInBytes,
-            add(0u, Detail::DynamicPacking::FieldTraits<Ts>::minBytes...));
+    constexpr static std::size_t const minSizeInBytes =
+            add(0u, Detail::DynamicPacking::FieldTraits<Ts>::minBytes...);
 
-    SHAREMIND_ENUMCONSTANT(
-            std::size_t,
-            maxSizeInBytes,
-            add(0u, Detail::DynamicPacking::FieldTraits<Ts>::maxBytes...));
+    constexpr static std::size_t const maxSizeInBytes =
+            add(0u, Detail::DynamicPacking::FieldTraits<Ts>::maxBytes...);
 
-    SHAREMIND_ENUMCONSTANT(std::size_t, numFields, sizeof...(Ts));
+    constexpr static std::size_t const numFields = sizeof...(Ts);
 
-    SHAREMIND_ENUMCONSTANT(
-            std::size_t,
-            numDynamicFields,
-            Detail::DynamicPacking::DynamicFieldFilter<Ts...>::size);
+    constexpr static std::size_t const numDynamicFields =
+            Detail::DynamicPacking::DynamicFieldFilter<Ts...>::size;
 
-    SHAREMIND_ENUMCONSTANT(bool, hasDynamicFields, numDynamicFields > 0u);
+    constexpr static bool const hasDynamicFields = numDynamicFields > 0u;
 
 /* Types: */
 

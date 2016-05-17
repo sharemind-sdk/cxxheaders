@@ -33,7 +33,6 @@
 #include "compiler-support/GccVersion.h"
 #include "CountMaxActor.h"
 #include "Durations.h"
-#include "EnumConstant.h"
 #include "Exception.h"
 #include "FunctionTraits.h"
 #include "PartialStreamOperationException.h"
@@ -47,7 +46,7 @@ class CircBufferDefaultLocking {
 
 public: /* Constants: */
 
-    SHAREMIND_ENUMCONSTANT(bool, providesWait, true);
+    constexpr static bool const providesWait = true;
 
 private: /* Types: */
 
@@ -114,7 +113,7 @@ class CircBufferNoLocking {
 
 public: /* Constants: */
 
-    SHAREMIND_ENUMCONSTANT(bool, providesWait, false);
+    constexpr static bool const providesWait = false;
 
 public: /* Methods: */
 

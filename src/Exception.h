@@ -34,7 +34,6 @@
 #endif
 #include <utility>
 #include "compiler-support/GccNoreturn.h"
-#include "EnumConstant.h"
 
 
 namespace sharemind {
@@ -123,7 +122,7 @@ class ErrnoException: public Exception {
 
 public: /* Constants: */
 
-    SHAREMIND_ENUMCONSTANT(std::size_t, BUFFER_SIZE, 1024u);
+    constexpr static std::size_t const BUFFER_SIZE = 1024u;
 
 public: /* Methods: */
 
