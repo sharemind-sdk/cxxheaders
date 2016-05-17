@@ -19,12 +19,6 @@
 
 #include "../src/Max.h"
 
-#include "../src/EnumConstant.h"
-
-
-SHAREMIND_ENUMCONSTANT(int, v1, 1);
-SHAREMIND_ENUMCONSTANT(int, v2, 2);
-SHAREMIND_ENUMCONSTANT(int, v3, 3);
 
 int main() {
     using sharemind::max;
@@ -37,24 +31,4 @@ int main() {
     static_assert(max(2, 3, 1) == 3, "");
     static_assert(max(3, 1, 2) == 3, "");
     static_assert(max(3, 2, 1) == 3, "");
-
-    static_assert(max(v1) == 1, "");
-    static_assert(max(v1, 2) == 2, "");
-    static_assert(max(2, v1) == 2, "");
-    static_assert(max(v1, 2, 3) == 3, "");
-    static_assert(max(v1, 3, 2) == 3, "");
-    static_assert(max(2, v1, 3) == 3, "");
-    static_assert(max(2, 3, v1) == 3, "");
-    static_assert(max(3, v1, 2) == 3, "");
-    static_assert(max(3, 2, v1) == 3, "");
-
-    static_assert(max(v1) == 1, "");
-    static_assert(max(v1, v2) == 2, "");
-    static_assert(max(v2, v1) == 2, "");
-    static_assert(max(v1, v2, v3) == 3, "");
-    static_assert(max(v1, v3, v2) == 3, "");
-    static_assert(max(v2, v1, v3) == 3, "");
-    static_assert(max(v2, v3, v1) == 3, "");
-    static_assert(max(v3, v1, v2) == 3, "");
-    static_assert(max(v3, v2, v1) == 3, "");
 }

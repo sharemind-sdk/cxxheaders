@@ -20,38 +20,21 @@
 #ifndef SHAREMIND_MIN_H
 #define SHAREMIND_MIN_H
 
-#include <type_traits>
-#include <utility>
-#include "MaybeEnumToUnderlying.h"
-
 
 namespace sharemind {
 
-template <typename T> constexpr auto min(T && a) noexcept ->
-        decltype(maybeEnumToUnderlying(std::forward<T>(a)))
-{ return maybeEnumToUnderlying(std::forward<T>(a)); }
+template <typename T>
+constexpr T const & min(T const & a) noexcept { return a; }
 
-template <typename T1, typename T2>
-constexpr auto min(T1 && a, T2 && b) noexcept
-    -> decltype(maybeEnumToUnderlying(a)
-                < maybeEnumToUnderlying(b)
-                ? maybeEnumToUnderlying(std::forward<T1>(a))
-                : maybeEnumToUnderlying(std::forward<T2>(b)))
-{
-    return maybeEnumToUnderlying(a) < maybeEnumToUnderlying(b)
-           ? maybeEnumToUnderlying(std::forward<T1>(a))
-           : maybeEnumToUnderlying(std::forward<T2>(b));
-}
+template <typename T>
+constexpr T const & min(T const & a, T const & b) noexcept
+{ return a < b ? a : b; }
 
-template <typename T1, typename T2, typename ... Args>
-constexpr auto min(T1 && a, T2 && b, Args && ... args) noexcept
-    -> decltype(min(min(std::forward<T1>(a),
-                        std::forward<T2>(b)),
-                    std::forward<Args>(args)...))
-{
-    return min(min(std::forward<T1>(a), std::forward<T2>(b)),
-               std::forward<Args>(args)...);
-}
+template <typename T, typename ... Args>
+constexpr T const & min(T const & a,
+                        T const & b,
+                        Args const & ... args) noexcept
+{ return min(a, min(b, args...)); }
 
 } /* namespace Sharemind { */
 
