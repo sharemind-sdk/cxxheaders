@@ -100,6 +100,8 @@ public: /* Methods: */
 
     inline size_t getRemainingSize() const noexcept { return size - m_offset; }
 
+    inline bool seek(size_t pos) noexcept;
+
 private: /* Methods: */
 
     inline SeekableNetworkMessage() noexcept;
@@ -254,6 +256,14 @@ inline SeekableNetworkMessage::SeekableNetworkMessage(void const * const data,
     assert(data || size == 0u);
     this->data = data;
     this->size = size;
+}
+
+inline bool SeekableNetworkMessage::seek(size_t pos) noexcept {
+    if (pos >= size)
+        return false;
+
+    m_offset = pos;
+    return true;
 }
 
 template <typename T>
