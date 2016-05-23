@@ -61,13 +61,9 @@ public: /* Methods: */
 class SeekableNetworkMessage: public NetworkMessage {
 
     friend class IncomingNetworkMessage;
-    friend class IncomingNetworkMessageNoCopy;
     friend class OutgoingNetworkMessage;
 
 private: /* Types: */
-
-    struct CopyDataTag {};
-    struct NoCopyDataTag {};
 
     template <typename T>
     struct SizeTypeInfo {
@@ -123,6 +119,9 @@ class IncomingNetworkMessage: public SeekableNetworkMessage {
 
 public: /* Methods: */
 
+    inline IncomingNetworkMessage(void const * const data,
+                                  size_t const size) noexcept;
+
     inline bool readBlock(void * begin, void * end)
             noexcept __attribute__ ((warn_unused_result));
 
@@ -145,26 +144,7 @@ public: /* Methods: */
     inline bool readVector(std::vector<T> & vec)
             __attribute__ ((warn_unused_result));
 
-protected: /* Methods: */
-
-    inline IncomingNetworkMessage(void const * const data,
-                                  size_t const size,
-                                  CopyDataTag) noexcept(false);
-    inline IncomingNetworkMessage(void const * const data,
-                                  size_t const size,
-                                  NoCopyDataTag) noexcept;
-
 }; /* class IncomingNetworkMessage { */
-
-class IncomingNetworkMessageNoCopy: public IncomingNetworkMessage {
-
-public: /* Methods: */
-
-    inline IncomingNetworkMessageNoCopy(void const * const data,
-                                        size_t const size) noexcept
-        : IncomingNetworkMessage{data, size, NoCopyDataTag{}} {}
-
-}; /* class IncomingNetworkMessageNoCopy { */
 
 class OutgoingNetworkMessage: public SeekableNetworkMessage {
 
@@ -264,21 +244,7 @@ inline size_t SeekableNetworkMessage::maxItemsInSizeT() noexcept {
 
 inline IncomingNetworkMessage::IncomingNetworkMessage(
         void const * const data,
-        size_t const size,
-        CopyDataTag) noexcept(false)
-    : SeekableNetworkMessage{(assert(data || size == 0u), malloc(size)), size}
-{
-    if (size > 0u) {
-        if (!this->data)
-            throw std::bad_alloc{};
-        memcpy(const_cast<void *>(this->data), data, size);
-    }
-}
-
-inline IncomingNetworkMessage::IncomingNetworkMessage(
-        void const * const data,
-        size_t const size,
-        NoCopyDataTag) noexcept
+        size_t const size) noexcept
     : SeekableNetworkMessage{(assert(data || size == 0u), data), size}
 {}
 
