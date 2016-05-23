@@ -61,7 +61,6 @@ public: /* Methods: */
 class SeekableNetworkMessage: public NetworkMessage {
 
     friend class IncomingNetworkMessage;
-    friend class IncomingNetworkMessageDoCopy;
     friend class IncomingNetworkMessageNoCopy;
     friend class OutgoingNetworkMessage;
 
@@ -166,19 +165,6 @@ public: /* Methods: */
         : IncomingNetworkMessage{data, size, NoCopyDataTag{}} {}
 
 }; /* class IncomingNetworkMessageNoCopy { */
-
-class IncomingNetworkMessageDoCopy: public IncomingNetworkMessage {
-
-public: /* Methods: */
-
-    inline IncomingNetworkMessageDoCopy(void const * const data,
-                                        size_t const size) noexcept(false)
-        : IncomingNetworkMessage{data, size, CopyDataTag{}} {}
-
-    inline ~IncomingNetworkMessageDoCopy() noexcept override
-    { free(const_cast<void *>(this->data)); }
-
-}; /* class IncomingNetworkMessageDoCopy { */
 
 class OutgoingNetworkMessage: public SeekableNetworkMessage {
 
