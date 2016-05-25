@@ -38,6 +38,8 @@ struct FunctionTraits<R(Args...)> {
     static_assert(N < arity, "invalid parameter index");
     using type = typename std::tuple_element<N, std::tuple<Args...> >::type;
   };
+  template <std::size_t N>
+  using argument_type = typename argument<N>::type;
 };
 
 template <typename R, typename ... Args>
