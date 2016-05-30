@@ -20,18 +20,15 @@
 #ifndef SHAREMIND_SHAREDFROMTHIS_H
 #define SHAREMIND_SHAREDFROMTHIS_H
 
-#if __cplusplus > 201402
-#warning Consider deprecating this header.
-#endif
-
 #include <memory>
 
 
 namespace sharemind {
 
 /**
-  Similar to std::enable_shared_from_this<T>, but also provides weakFromThis(),
-  because it is not available in C++14 and earlier.
+  Similar to std::enable_shared_from_this<T>, but also provides aliasing forms
+  weakFromThis(U *) and sharedFromThis(U *), as well as weakFromThis(), which is
+  not available in C++14 and earlier.
 */
 template <typename T>
 class EnableSharedFromThis: public std::enable_shared_from_this<T> {
@@ -46,6 +43,18 @@ public: /* Methods: */
     std::shared_ptr<T const> sharedFromThis() const {
         static_assert(!noexcept(this->shared_from_this()), "");
         return this->shared_from_this();
+    }
+
+    template <typename U>
+    std::shared_ptr<U> sharedFromThis(U * const ptr) {
+        static_assert(!noexcept(sharedFromThis()), "");
+        return std::shared_ptr<U>(sharedFromThis(), ptr);
+    }
+
+    template <typename U>
+    std::shared_ptr<U> sharedFromThis(U * const ptr) const {
+        static_assert(!noexcept(sharedFromThis()), "");
+        return std::shared_ptr<U>(sharedFromThis(), ptr);
     }
 
     std::weak_ptr<T> weakFromThis() noexcept {
@@ -72,6 +81,24 @@ public: /* Methods: */
             return std::weak_ptr<T>();
         }
         #endif
+    }
+
+    template <typename U>
+    std::weak_ptr<U> weakFromThis(U * const ptr) noexcept {
+        try {
+            return std::shared_ptr<U>(sharedFromThis(), ptr);
+        } catch (std::bad_weak_ptr const &) {
+            return std::weak_ptr<U>();
+        }
+    }
+
+    template <typename U>
+    std::weak_ptr<U> weakFromThis(U * const ptr) const noexcept {
+        try {
+            return std::shared_ptr<U>(sharedFromThis(), ptr);
+        } catch (std::bad_weak_ptr const &) {
+            return std::weak_ptr<U>();
+        }
     }
 
 };
