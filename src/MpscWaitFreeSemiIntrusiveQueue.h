@@ -25,6 +25,7 @@
 #include <cstddef>
 #include <memory>
 #include <sharemind/AlignToCacheLine.h>
+#include <sharemind/compiler-support/GccVersion.h>
 #include <type_traits>
 #include <utility>
 #include "AlignedAllocator.h"
@@ -35,8 +36,21 @@ namespace sharemind {
 template <typename T>
 class MpscWaitFreeSemiIntrusiveQueue {
 
+    /* The following fails in std::is_nothrow_move_assignable with GCC older
+       than version 5 for unknown reasons if T is an incomplete type. A
+       contained testcase of the same error is here:
+
+        template <typename T> struct I {};
+        template <typename T> struct Q { using X = decltype(I<T>() = I<T>()); };
+        template <typename T> struct X;
+        template <typename T> using MQ = Q<X<T> >;
+        template <typename T> struct X { using N = typename MQ<T>::X; };
+        int main() { MQ<int>(); }
+    */
+    #if !defined(SHAREMIND_GCC_VERSION) || (SHAREMIND_GCC_VERSION > 50000)
     static_assert(std::is_nothrow_move_assignable<T>::value,
                   "T is required to be noexcept move assignable!");
+    #endif
 
 public: /* Types: */
 
