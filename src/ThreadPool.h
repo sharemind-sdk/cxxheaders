@@ -27,10 +27,10 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <sharemind/QueueingMutex.h>
 #include <thread>
 #include <vector>
 #include <type_traits>
+#include "TicketSpinLock.h"
 
 
 namespace sharemind {
@@ -83,14 +83,6 @@ private: /* Types: */
     ;
     using Pool = std::vector<std::thread>;
 
-    using TasksMutex = sharemind::QueueingMutex;
-    using TasksLock = sharemind::QueueingMutex::Lock;
-    using TasksGuard = sharemind::QueueingMutex::Guard;
-    using ThreadsMutex = std::mutex;
-    using ThreadsGuard = std::lock_guard<ThreadsMutex>;
-    using ThreadsLock = std::unique_lock<ThreadsMutex>;
-
-
 public: /* Methods: */
 
     ThreadPool(ThreadPool const &) = delete;
@@ -122,7 +114,7 @@ public: /* Methods: */
     bool notifyStop() noexcept {
         if (m_stopStarted.test_and_set())
             return true;
-        TasksGuard const tailGuard{m_tailMutex};
+        std::lock_guard<TicketSpinLock> const tailGuard(m_tailMutex);
         m_stop = true;
         m_dataCond.notify_all();
         return false;
@@ -132,7 +124,7 @@ public: /* Methods: */
         #ifndef NDEBUG
         std::thread::id const myId{std::this_thread::get_id()};
         #endif
-        ThreadsGuard const guard{m_threadsMutex};
+        std::lock_guard<std::mutex> const guard(m_threadsMutex);
         for (std::thread & thread : m_threads)
             if ((assert(thread.get_id() != myId), thread.joinable()))
                 thread.join();
@@ -145,7 +137,8 @@ public: /* Methods: */
 
     inline void joinFromThread() noexcept {
         std::thread::id const myId{std::this_thread::get_id()};
-        ThreadsLock const lock{m_threadsMutex, std::try_to_lock_t{}};
+        std::unique_lock<std::mutex> const lock(m_threadsMutex,
+                                                std::try_to_lock_t());
         if (lock.owns_lock()) {
             auto it = m_threads.begin();
             assert(it != m_threads.end());
@@ -194,7 +187,7 @@ public: /* Methods: */
         assert(task);
         assert(task->m_value);
         TaskWrapper * const newTail = task.get();
-        TasksGuard const tailGuard{m_tailMutex};
+        std::lock_guard<TicketSpinLock> const tailGuard(m_tailMutex);
         TaskWrapper * const oldTail = m_tail;
         oldTail->m_value = std::move(task->m_value);
         oldTail->m_next = std::move(task);
@@ -231,10 +224,10 @@ private: /* Methods: */
     }
 
     inline Task waitAndPop() noexcept {
-        TasksGuard const headGuard{m_headMutex};
+        std::lock_guard<std::mutex> const headGuard(m_headMutex);
         assert(m_head);
         {
-            TasksLock tailLock{m_tailMutex};
+            std::unique_lock<TicketSpinLock> tailLock(m_tailMutex);
             for (;;) {
                 if (m_stop)
                     return Task{};
@@ -268,14 +261,14 @@ private: /* Methods: */
 
 private: /* Fields: */
 
-    TasksMutex m_headMutex;
-    TasksMutex m_tailMutex;
+    std::mutex m_headMutex;
+    TicketSpinLock m_tailMutex;
     std::condition_variable_any m_dataCond;
     TaskWrapper * m_tail;
     Task m_head;
     bool m_stop = false;
 
-    ThreadsMutex m_threadsMutex;
+    std::mutex m_threadsMutex;
     Pool m_threads;
 
     std::atomic_flag m_stopStarted = ATOMIC_FLAG_INIT;
