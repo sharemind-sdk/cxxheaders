@@ -23,7 +23,7 @@
 #include <atomic>
 #include <cassert>
 #include <cstdint>
-#include <sharemind/CacheLineSize.h>
+#include <sharemind/AlignToCacheLine.h>
 #include "Spinwait.h"
 
 
@@ -53,8 +53,8 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    alignas(SHAREMIND_CACHE_LINE_SIZE) std::atomic_size_t m_active{0u};
-    alignas(SHAREMIND_CACHE_LINE_SIZE) std::atomic_size_t m_next{0u};
+    SHAREMIND_ALIGN_TO_CACHE_SIZE std::atomic_size_t m_active{0u};
+    SHAREMIND_ALIGN_TO_CACHE_SIZE std::atomic_size_t m_next{0u};
 
 };
 
