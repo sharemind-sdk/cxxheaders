@@ -25,8 +25,8 @@
 #include <condition_variable>
 #include <cstddef>
 #include <exception>
+#include <mutex>
 #include <sharemind/comma.h>
-#include <sharemind/QueueingRwMutex.h>
 #include <type_traits>
 #include <utility>
 #include "compiler-support/GccInheritConstructor.h"
@@ -38,6 +38,7 @@
 #include "FunctionTraits.h"
 #include "PartialStreamOperationException.h"
 #include "PotentiallyVoidTypeInfo.h"
+#include "TicketSpinLock.h"
 
 
 namespace sharemind {
@@ -48,20 +49,14 @@ public: /* Constants: */
 
     constexpr static bool const providesWait = true;
 
-private: /* Types: */
-
-    using WriteGuard = sharemind::QueueingRwMutex::UniqueGuard;
-    using ReadGuard = sharemind::QueueingRwMutex::SharedGuard;
-
 public: /* Types: */
 
-    class ScopedReadLock: public sharemind::QueueingRwMutex::SharedLock {
+    class ScopedReadLock: public std::unique_lock<TicketSpinLock> {
 
     public: /* Methods: */
 
         ScopedReadLock(CircBufferDefaultLocking & locking)
-            : sharemind::QueueingRwMutex::SharedLock(
-                  locking.m_dataAvailableMutex)
+            : std::unique_lock<TicketSpinLock>(locking.m_dataAvailableMutex)
         {}
 
     };
@@ -69,7 +64,7 @@ public: /* Types: */
 public: /* Methods: */
 
     inline std::size_t dataAvailable() const noexcept {
-        ReadGuard const guard(m_dataAvailableMutex);
+        std::lock_guard<TicketSpinLock> const guard(m_dataAvailableMutex);
         return m_dataAvailable;
     }
 
@@ -77,14 +72,14 @@ public: /* Methods: */
     { return m_dataAvailable; }
 
     inline std::size_t increaseDataAvailable(std::size_t const size) noexcept {
-        WriteGuard const guard(m_dataAvailableMutex);
+        std::lock_guard<TicketSpinLock> const guard(m_dataAvailableMutex);
         m_dataAvailable += size;
         m_dataAvailableCondition.notify_one();
         return m_dataAvailable;
     }
 
     inline std::size_t decreaseDataAvailable(std::size_t const size) noexcept {
-        WriteGuard const guard(m_dataAvailableMutex);
+        std::lock_guard<TicketSpinLock> const guard(m_dataAvailableMutex);
         assert(m_dataAvailable >= size);
         m_dataAvailable -= size;
         m_dataAvailableCondition.notify_one();
@@ -103,7 +98,7 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    mutable sharemind::QueueingRwMutex m_dataAvailableMutex;
+    mutable TicketSpinLock m_dataAvailableMutex;
     std::condition_variable_any m_dataAvailableCondition;
     std::size_t m_dataAvailable = 0u;
 
