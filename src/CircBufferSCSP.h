@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <exception>
 #include <sharemind/comma.h>
+#include <sharemind/QueueingRwMutex.h>
 #include <type_traits>
 #include <utility>
 #include "compiler-support/GccInheritConstructor.h"
@@ -37,7 +38,6 @@
 #include "FunctionTraits.h"
 #include "PartialStreamOperationException.h"
 #include "PotentiallyVoidTypeInfo.h"
-#include "QueueingRwMutex.h"
 
 
 namespace sharemind {
