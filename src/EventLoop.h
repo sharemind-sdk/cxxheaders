@@ -478,10 +478,11 @@ private: /* Methods: */
 
     inline bool epollRemove(int const fd) {
         while (::epoll_ctl(m_epoll.fd, EPOLL_CTL_DEL, fd, nullptr) != 0) {
+            if (errno == EAGAIN || errno == EINTR)
+                continue;
             if (errno == ENOENT)
                 return false;
-            if (errno != EAGAIN && errno != EINTR)
-                sharemind::ErrnoException::throwAsNestedOf<EpollCtlException>();
+            sharemind::ErrnoException::throwAsNestedOf<EpollCtlException>();
         }
         return true;
     }
