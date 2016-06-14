@@ -273,6 +273,16 @@ public: /* Methods: */
         #endif
     }
 
+    inline bool insert(int const fd,
+                       EventSet const events,
+                       EventHandler & handler)
+    {
+        assert(&handler);
+        #if defined(__linux__)
+        return epollInsert(fd, events | EPOLLONESHOT, &handler);
+        #endif
+    }
+
     inline bool insertOrModify(int const fd,
                                EventSet const events,
                                EventHandler & handler)
@@ -484,6 +494,22 @@ private: /* Methods: */
             if (errno == ENOENT)
                 return false;
             sharemind::ErrnoException::throwAsNestedOf<EpollCtlException>();
+        }
+        return true;
+    }
+
+    inline bool epollInsert(int const fd,
+                            EventSet const events,
+                            EventHandler * const handler)
+    {
+        ::epoll_event e;
+        e.events = events;
+        e.data.ptr = handler;
+        while (::epoll_ctl(m_epoll.fd, EPOLL_CTL_ADD, fd, &e) != 0) {
+            if (errno == EEXIST)
+                return false;
+            if (errno != EAGAIN && errno != EINTR)
+                sharemind::ErrnoException::throwAsNestedOf<EpollCtlException>();
         }
         return true;
     }
