@@ -478,6 +478,7 @@ private: /* Methods: */
 
     inline bool epollRemove(int const fd) {
         while (::epoll_ctl(m_epoll.fd, EPOLL_CTL_DEL, fd, nullptr) != 0) {
+            assert(r == -1);
             if (errno == EAGAIN || errno == EINTR)
                 continue;
             if (errno == ENOENT)
