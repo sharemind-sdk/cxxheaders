@@ -149,7 +149,7 @@ private: /* Types: */
                 #warning Cannot create pipe with CLOEXEC flags on this platform!
                         ::pipe
                     #endif
-                        , [](int const r) { return r == 0; }
+                        , [](int const r) noexcept { return r == 0; }
                         , fds
                     #if defined(__linux__) || defined(__NetBSD__) \
                         || defined(__OpenBSD__) || defined(__FreeBSD__)
@@ -468,12 +468,13 @@ private: /* Methods: */
         ::epoll_event e;
         e.events = events;
         e.data.ptr = handler;
-        syscallLoop<EpollCtlException>(::epoll_ctl,
-                                       [](int const r) { return r == 0; },
-                                       m_epoll.fd,
-                                       OP,
-                                       fd,
-                                       &e);
+        syscallLoop<EpollCtlException>(
+                    ::epoll_ctl,
+                    [](int const r) noexcept { return r == 0; },
+                    m_epoll.fd,
+                    OP,
+                    fd,
+                    &e);
     }
 
     inline bool epollRemove(int const fd) {
@@ -505,12 +506,13 @@ private: /* Methods: */
             if (errno != EAGAIN && errno != EINTR)
                 sharemind::ErrnoException::throwAsNestedOf<EpollCtlException>();
         }
-        syscallLoop<EpollCtlException>(::epoll_ctl,
-                                       [](int const r) { return r == 0; },
-                                       m_epoll.fd,
-                                       EPOLL_CTL_MOD,
-                                       fd,
-                                       &e);
+        syscallLoop<EpollCtlException>(
+                    ::epoll_ctl,
+                    [](int const r) noexcept { return r == 0; },
+                    m_epoll.fd,
+                    EPOLL_CTL_MOD,
+                    fd,
+                    &e);
         return false;
     }
     #endif
