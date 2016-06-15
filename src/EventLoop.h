@@ -37,28 +37,42 @@ public: /* Constants: */
 
     #if defined(__linux__)
     using EventSet = std::uint32_t;
-    static constexpr EventSet const ERROR_EVENTS = EPOLLERR;
+    static constexpr EventSet const COMMON_ERROR_EVENTS = EPOLLERR;
+    static constexpr EventSet const INPUT_ERROR_EVENTS = COMMON_ERROR_EVENTS;
+    static constexpr EventSet const OUTPUT_ERROR_EVENTS = COMMON_ERROR_EVENTS;
+    static constexpr EventSet const ALL_ERROR_EVENTS =
+            INPUT_ERROR_EVENTS | OUTPUT_ERROR_EVENTS;
 
-    static constexpr EventSet const INPUT_DATA_EVENTS = EPOLLPRI | EPOLLIN;
-    static constexpr EventSet const INPUT_HUP_EVENTS = EPOLLHUP | EPOLLRDHUP;
-    static constexpr EventSet const INPUT_EVENTS =
-            INPUT_DATA_EVENTS | INPUT_HUP_EVENTS;
-    static constexpr EventSet const ALL_INPUT_EVENTS =
-            INPUT_EVENTS | ERROR_EVENTS;
-
-    static constexpr EventSet const OUTPUT_DATA_EVENTS = EPOLLOUT;
-    static constexpr EventSet const OUTPUT_HUP_EVENTS = EPOLLHUP;
-    static constexpr EventSet const OUTPUT_EVENTS =
-            OUTPUT_DATA_EVENTS | OUTPUT_HUP_EVENTS;
-    static constexpr EventSet const ALL_OUTPUT_EVENTS =
-            OUTPUT_EVENTS | ERROR_EVENTS;
-
-    static constexpr EventSet const COMMON_HUP_EVENTS =
-            INPUT_HUP_EVENTS & OUTPUT_HUP_EVENTS;
+    static constexpr EventSet const COMMON_HUP_EVENTS = EPOLLHUP;
+    static constexpr EventSet const INPUT_HUP_EVENTS =
+            COMMON_HUP_EVENTS | EPOLLRDHUP;
+    static constexpr EventSet const OUTPUT_HUP_EVENTS = COMMON_HUP_EVENTS;
     static constexpr EventSet const ALL_HUP_EVENTS =
             INPUT_HUP_EVENTS | OUTPUT_HUP_EVENTS;
+
+    static constexpr EventSet const COMMON_FATAL_EVENTS =
+            COMMON_ERROR_EVENTS | COMMON_HUP_EVENTS;
+    static constexpr EventSet const INPUT_FATAL_EVENTS =
+            INPUT_ERROR_EVENTS | INPUT_HUP_EVENTS;
+    static constexpr EventSet const OUTPUT_FATAL_EVENTS =
+            OUTPUT_ERROR_EVENTS | OUTPUT_HUP_EVENTS;
+    static constexpr EventSet const ALL_FATAL_EVENTS =
+            ALL_ERROR_EVENTS | ALL_HUP_EVENTS;
+
+    static constexpr EventSet const COMMON_DATA_EVENTS = 0u;
+    static constexpr EventSet const INPUT_DATA_EVENTS =
+            COMMON_DATA_EVENTS | EPOLLPRI | EPOLLIN;
+    static constexpr EventSet const OUTPUT_DATA_EVENTS =
+            COMMON_DATA_EVENTS | EPOLLOUT;
+    static constexpr EventSet const ALL_DATA_EVENTS =
+            INPUT_DATA_EVENTS | OUTPUT_DATA_EVENTS;
+
+    static constexpr EventSet const ALL_INPUT_EVENTS =
+            INPUT_DATA_EVENTS | INPUT_FATAL_EVENTS;
+    static constexpr EventSet const ALL_OUTPUT_EVENTS =
+            OUTPUT_DATA_EVENTS | OUTPUT_FATAL_EVENTS;
     static constexpr EventSet const ALL_EVENTS =
-            ALL_INPUT_EVENTS | ALL_OUTPUT_EVENTS;
+            ALL_DATA_EVENTS | ALL_FATAL_EVENTS;
     #endif
 
 public: /* Types: */
@@ -224,7 +238,7 @@ public: /* Methods: */
 
     inline EventLoop() {
         #if defined(__linux__)
-        epollCtl<EPOLL_CTL_ADD>(m_closePipe.readEnd, INPUT_EVENTS, nullptr);
+        epollCtl<EPOLL_CTL_ADD>(m_closePipe.readEnd, ALL_INPUT_EVENTS, nullptr);
         #endif
     }
 
@@ -381,7 +395,7 @@ public: /* Methods: */
                         assert(it->data.ptr != nullptr);
                         handleEvent(*it);
                     }
-                    if (signalEvent.events & (ALL_HUP_EVENTS | ERROR_EVENTS))
+                    if (signalEvent.events & ALL_FATAL_EVENTS)
                         /* Error or stop signalled, handle remaining events and
                          * return: */
                         return;
