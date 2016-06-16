@@ -321,40 +321,6 @@ public: /* Methods: */
         #endif
     }
 
-    inline void spinOnLoopIterationEnd() noexcept {
-        auto const start = m_loopCounter.load(std::memory_order_acquire);
-        if (m_stopMutex.try_lock()) {
-            m_stopMutex.unlock();
-            return;
-        }
-        if (m_loopCounter.load(std::memory_order_acquire) != start)
-            return;
-        static char const data = '\0';
-        for (;;) {
-            auto const w = ::write(m_closePipe.writeEnd, &data, 1u);
-            assert(w <= 1u);
-            if (w > 0)
-                break;
-            assert(w == -1);
-            #if defined(EWOULDBLOCK) && (EWOULDBLOCK != EAGAIN)
-            assert(errno == EAGAIN
-                   || errno == EINTR
-                   || errno == EWOULDBLOCK
-                   || errno == ENOSPC
-                   || errno == EIO
-                   || errno == ENOBUFS);
-            #else
-            assert(errno == EAGAIN
-                   || errno == EINTR
-                   || errno == ENOSPC
-                   || errno == EIO
-                   || errno == ENOBUFS);
-            #endif
-        }
-        while (m_loopCounter.load(std::memory_order_acquire) == start)
-            sharemind::spinWait();
-    }
-
     inline void stopAsync() noexcept {
         m_closePipe.writeEndClose();
     }
