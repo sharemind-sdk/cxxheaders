@@ -110,43 +110,6 @@ public: /* Types: */
         virtual void handleEvents(EventSet events) noexcept = 0;
     };
 
-    class ScopedThread {
-
-    public: /* Methods: */
-
-        inline ScopedThread(std::shared_ptr<EventLoop> eventLoop)
-            : ScopedThread(std::move(eventLoop), []() noexcept {})
-        {}
-
-        template <typename ExceptionHandler>
-        inline ScopedThread(std::shared_ptr<EventLoop> eventLoop,
-                            ExceptionHandler && exceptionHandler)
-            : m_eventLoop(eventLoop)
-            , m_thread{[eventLoop,exceptionHandler]() noexcept {
-                          try {
-                              eventLoop->run();
-                          } catch (...) {
-                              static_assert(noexcept(exceptionHandler()), "");
-                              exceptionHandler();
-                          }
-                       }}
-        {}
-
-        inline ~ScopedThread() noexcept {
-            if (m_thread.joinable()) {
-                if (auto const eventLoop = m_eventLoop.lock())
-                    eventLoop->stop();
-                m_thread.join();
-            }
-        }
-
-    private: /* Fields: */
-
-        std::weak_ptr<EventLoop> m_eventLoop;
-        std::thread m_thread;
-
-    };
-
 private: /* Types: */
 
     struct Pipe {
