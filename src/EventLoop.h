@@ -536,6 +536,6 @@ private: /* Fields: */
 
 }; /* class EventLoop { */
 
-} /* namespace sharemind {*/
+} /* namespace sharemind { */
 
 #endif /* SHAREMIND_EVENTLOOP_H */
