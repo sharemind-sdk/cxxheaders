@@ -118,8 +118,6 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    SharedResourceMap() : m_inner(new Inner) {}
-
     virtual ~SharedResourceMap() noexcept {}
 
     template <typename F>
@@ -210,7 +208,7 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    std::shared_ptr<Inner> m_inner;
+    std::shared_ptr<Inner> m_inner{new Inner};
 
 };
 
