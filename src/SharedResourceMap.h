@@ -208,7 +208,7 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    std::shared_ptr<Inner> m_inner{new Inner};
+    std::shared_ptr<Inner> m_inner{std::make_shared<Inner>()};
 
 };
 
