@@ -74,7 +74,7 @@ private: /* Types: */
 
     using Map_ = std::map<Key, std::shared_ptr<ValueObj_> >;
 
-    struct Inner: InnerBase {
+    struct Inner final: InnerBase {
 
     /* Methods: */
 
