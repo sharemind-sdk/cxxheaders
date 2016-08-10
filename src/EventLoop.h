@@ -225,8 +225,10 @@ public: /* Methods: */
     }
 
     template <typename F>
-    static std::unique_ptr<EventHandler> createSimpleHandler(F && f)
-    { return createHandler([f](EventLoop::EventSet const) noexcept { f(); }); }
+    static std::unique_ptr<EventHandler> createSimpleHandler(F && f) {
+        return createHandler([f](EventLoop::EventSet const) mutable noexcept
+                             { f(); });
+    }
 
     inline void insertDisabled(int const fd) {
         #if defined(__linux__)
