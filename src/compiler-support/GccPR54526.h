@@ -30,7 +30,7 @@
 
   Use this workaround as follows:
 
-    template <> struct S<SHAREMIND_GCCPR54526::A> {};
+    template <> struct S<SHAREMIND_GCCPR54526_WORKAROUND::A> {};
 */
 
 #define SHAREMIND_GCCPR54526_WORKAROUND
