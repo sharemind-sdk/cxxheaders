@@ -26,7 +26,7 @@
 namespace sharemind {
 
 template <typename T>
-inline constexpr bool isPowerOfTwo(T x) noexcept {
+inline constexpr bool isPowerOfTwo(T const x) noexcept {
     static_assert(std::is_unsigned<T>::value, "");
     return (x != 0u) && ((x & (~x + 1u)) == x);
 }
