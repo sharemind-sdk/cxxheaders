@@ -63,6 +63,25 @@ struct HashMemberCaller {
     { return t.hash(); }
 };
 
+template <typename T>
+struct HashMemberCallerT {
+    auto operator()(T const & t) const noexcept(noexcept(t.hash()))
+            -> decltype(t.hash())
+    { return t.hash(); }
+};
+
+struct RawHasher {
+    template <typename T>
+    sharemind::Hash operator()(T const & t) const noexcept
+    { return hashRawData(&t, sizeof(t)); }
+};
+
+template <typename T>
+struct RawHasherT {
+    sharemind::Hash operator()(T const & t) const noexcept
+    { return hashRawData(&t, sizeof(t)); }
+};
+
 } /* namespace Sharemind { */
 
 #endif /* SHAREMIND_HASH_H */
