@@ -58,7 +58,7 @@ inline Hash hashRawData(Args && ... args) noexcept
 
 struct HashMemberCaller {
     template <typename T>
-    auto operator()(T && t) const noexcept(noexcept(t.hash()))
+    auto operator()(T const & t) const noexcept(noexcept(t.hash()))
             -> decltype(t.hash())
     { return t.hash(); }
 };
