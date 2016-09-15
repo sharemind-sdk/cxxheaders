@@ -58,14 +58,14 @@ public: /* Types: */
 public: /* Methods: */
 
     CountMaxActorImpl(
-            CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> const &)
+            CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept_> const &)
             = delete;
-    CountMaxActorImpl(CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> &&)
+    CountMaxActorImpl(CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept_> &&)
             = default;
-    CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> & operator=(
-            CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> &&) = default;
-    CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> & operator=(
-            CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> const &)
+    CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept_> & operator=(
+            CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept_> &&) = default;
+    CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept_> & operator=(
+            CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept_> const &)
             = delete;
 
     template <typename ... Args>
