@@ -31,39 +31,47 @@
 
 
 namespace sharemind {
+namespace Detail {
 
-template <typename Actor, bool COUNT_PARTIAL = false>
-class CountMaxActor {
+template <typename Actor>
+using ActorWantDataType =
+        typename std::remove_pointer<
+            typename sharemind::FunctionTraits<Actor>
+                    ::template argument<1u>::type>::type;
+
+template <typename Actor,
+          bool COUNT_PARTIAL = false,
+          bool isNoexcept =
+                noexcept(std::declval<Actor &>()(
+                            std::declval<ActorWantDataType<Actor> * const>(),
+                            std::declval<std::size_t const>()))>
+class CountMaxActorImpl {
 
 public: /* Types: */
 
     using Exception = typename std::remove_reference<Actor>::type::Exception;
 
-private: /* Types: */
-
-    using WantDataType =
-        typename std::remove_pointer<
-            typename sharemind::FunctionTraits<Actor>
-                    ::template argument<1u>::type>::type;
-
 public: /* Methods: */
 
-    CountMaxActor(CountMaxActor<Actor, COUNT_PARTIAL> const &) = delete;
-    CountMaxActor<Actor, COUNT_PARTIAL> & operator=(
-            CountMaxActor<Actor, COUNT_PARTIAL> const &) = delete;
-    CountMaxActor(CountMaxActor<Actor, COUNT_PARTIAL> &&) = default;
-    CountMaxActor<Actor, COUNT_PARTIAL> & operator=(
-            CountMaxActor<Actor, COUNT_PARTIAL> &&) = default;
+    CountMaxActorImpl(
+            CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> const &)
+            = delete;
+    CountMaxActorImpl(CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> &&)
+            = default;
+    CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> & operator=(
+            CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> &&) = default;
+    CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> & operator=(
+            CountMaxActorImpl<Actor, COUNT_PARTIAL, isNoexcept> const &)
+            = delete;
 
     template <typename ... Args>
-    inline CountMaxActor(Args && ... args)
+    inline CountMaxActorImpl(Args && ... args)
             noexcept(noexcept(Actor(std::forward<Args>(args)...)))
         : m_actor(std::forward<Args>(args)...)
         , m_count(0u) {}
 
-    inline std::size_t operator()(WantDataType * const data,
+    inline std::size_t operator()(ActorWantDataType<Actor> * const data,
                                   std::size_t const size)
-            noexcept(noexcept(std::declval<Actor &>()(data, size)))
     {
         assert(data);
         assert(size > 0u);
@@ -97,6 +105,60 @@ private: /* Fields: */
     std::size_t m_count;
 
 };
+
+template <typename Actor, bool COUNT_PARTIAL>
+class CountMaxActorImpl<Actor, COUNT_PARTIAL, true> {
+
+public: /* Types: */
+
+    using Exception = typename std::remove_reference<Actor>::type::Exception;
+
+public: /* Methods: */
+
+    CountMaxActorImpl(CountMaxActorImpl<Actor, COUNT_PARTIAL, true> &&)
+            = default;
+    CountMaxActorImpl(CountMaxActorImpl<Actor, COUNT_PARTIAL, true> const &)
+            = delete;
+    CountMaxActorImpl<Actor, COUNT_PARTIAL, true> & operator=(
+            CountMaxActorImpl<Actor, COUNT_PARTIAL, true> &&) = default;
+    CountMaxActorImpl<Actor, COUNT_PARTIAL, true> & operator=(
+            CountMaxActorImpl<Actor, COUNT_PARTIAL, true> const &) = delete;
+
+    template <typename ... Args>
+    inline CountMaxActorImpl(Args && ... args)
+            noexcept(noexcept(Actor(std::forward<Args>(args)...)))
+        : m_actor(std::forward<Args>(args)...)
+        , m_count(0u) {}
+
+    inline std::size_t operator()(ActorWantDataType<Actor> * const data,
+                                  std::size_t const size) noexcept
+    {
+        assert(data);
+        assert(size > 0u);
+        std::size_t const maxTransfer =
+                std::numeric_limits<std::size_t>::max() - m_count;
+        if (maxTransfer == 0u)
+            return 0u;
+        std::size_t const canTransfer = std::min(size, maxTransfer);
+        std::size_t const transferred = m_actor(data, canTransfer);
+        assert(transferred <= canTransfer);
+        m_count += transferred;
+        return transferred;
+    }
+
+    inline std::size_t count() const noexcept { return m_count; }
+
+private: /* Fields: */
+
+    Actor m_actor;
+    std::size_t m_count;
+
+};
+
+} /* namespace Detail { */
+
+template <typename Actor, bool COUNT_PARTIAL = false>
+using CountMaxActor = Detail::CountMaxActorImpl<Actor, COUNT_PARTIAL>;
 
 } /* namespace sharemind { */
 
