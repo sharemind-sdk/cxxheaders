@@ -42,6 +42,34 @@
 
 
 namespace sharemind {
+namespace Detail {
+
+template <typename CountActor, bool isNoexcept = CountActor::isNoexcept>
+struct CircBufferScspCountActorCaller {
+    template <typename ... Args>
+    inline std::size_t operator()(CountActor & countActor, Args && ... args) {
+        try {
+            return countActor(std::forward<Args>(args)...);
+        } catch (typename CountActor::Exception const &) {
+            PartialStreamOperationException::throwWithCurrent(
+                        countActor.count());
+        } catch (PartialStreamOperationException & e) {
+            e.addToSize(countActor.count());
+            throw;
+        } catch (...) {
+            std::unexpected();
+        }
+    }
+};
+
+template <typename CountActor>
+struct CircBufferScspCountActorCaller<CountActor, true> {
+    template <typename ... Args>
+    inline std::size_t operator()(CountActor & actor, Args && ... args) noexcept
+    { return actor(std::forward<Args>(args)...); }
+};
+
+}
 
 class CircBufferDefaultLocking {
 
@@ -605,25 +633,15 @@ private: /* Methods: */
                       == std::is_const<WDT>::value, "");
         std::size_t availableUntilBufferEnd =
                 Actions::availableUntilBufferEnd(this);
+        using C = Detail::CircBufferScspCountActorCaller<decltype(countActor)>;
         while (availableUntilBufferEnd > 0u) {
-            try {
-                std::size_t const toTransfer = availableUntilBufferEnd;
-                std::size_t const transferred =
-                        countActor(Actions::operatePtr(this), toTransfer);
-                assert(transferred <= toTransfer);
-                availableUntilBufferEnd = Actions::doneRetUbe(this,
-                                                              transferred);
-                if (transferred < toTransfer)
-                    return countActor.count();
-            } catch (typename CountMaxActor<Actor>::Exception const &) {
-                PartialStreamOperationException::throwWithCurrent(
-                            countActor.count());
-            } catch (PartialStreamOperationException & e) {
-                e.addToSize(countActor.count());
-                throw;
-            } catch (...) {
-                std::unexpected();
-            }
+            std::size_t const toTransfer = availableUntilBufferEnd;
+            std::size_t const transferred =
+                    C()(countActor, Actions::operatePtr(this), toTransfer);
+            assert(transferred <= toTransfer);
+            availableUntilBufferEnd = Actions::doneRetUbe(this, transferred);
+            if (transferred < toTransfer)
+                return countActor.count();
         }
         return countActor.count();
     }
