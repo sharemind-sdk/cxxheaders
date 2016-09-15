@@ -240,7 +240,6 @@ public: /* Methods: */
                        EventSet const events,
                        EventHandler & handler)
     {
-        assert(&handler);
         #if defined(__linux__)
         epollCtl<EPOLL_CTL_MOD>(fd, events | EPOLLONESHOT, &handler);
         #endif
@@ -256,7 +255,6 @@ public: /* Methods: */
                        EventSet const events,
                        EventHandler & handler)
     {
-        assert(&handler);
         #if defined(__linux__)
         return epollInsert(fd, events | EPOLLONESHOT, &handler);
         #endif
