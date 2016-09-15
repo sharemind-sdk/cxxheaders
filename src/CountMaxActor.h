@@ -41,11 +41,15 @@ using ActorWantDataType =
 
 template <typename Actor,
           bool COUNT_PARTIAL = false,
-          bool isNoexcept =
+          bool isNoexcept_ =
                 noexcept(std::declval<Actor &>()(
                             std::declval<ActorWantDataType<Actor> * const>(),
                             std::declval<std::size_t const>()))>
 class CountMaxActorImpl {
+
+public: /* Constants: */
+
+    static constexpr bool const isNoexcept = false;
 
 public: /* Types: */
 
@@ -108,6 +112,10 @@ private: /* Fields: */
 
 template <typename Actor, bool COUNT_PARTIAL>
 class CountMaxActorImpl<Actor, COUNT_PARTIAL, true> {
+
+public: /* Constants: */
+
+    static constexpr bool const isNoexcept = true;
 
 public: /* Types: */
 
