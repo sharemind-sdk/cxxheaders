@@ -72,7 +72,7 @@ public: /* Methods: */
     inline CountMaxActorImpl(Args && ... args)
             noexcept(noexcept(Actor(std::forward<Args>(args)...)))
         : m_actor(std::forward<Args>(args)...)
-        , m_count(0u) {}
+    {}
 
     inline std::size_t operator()(ActorWantDataType<Actor> * const data,
                                   std::size_t const size)
@@ -106,7 +106,7 @@ public: /* Methods: */
 private: /* Fields: */
 
     Actor m_actor;
-    std::size_t m_count;
+    std::size_t m_count{0u};
 
 };
 
@@ -136,7 +136,7 @@ public: /* Methods: */
     inline CountMaxActorImpl(Args && ... args)
             noexcept(noexcept(Actor(std::forward<Args>(args)...)))
         : m_actor(std::forward<Args>(args)...)
-        , m_count(0u) {}
+    {}
 
     inline std::size_t operator()(ActorWantDataType<Actor> * const data,
                                   std::size_t const size) noexcept
@@ -159,7 +159,7 @@ public: /* Methods: */
 private: /* Fields: */
 
     Actor m_actor;
-    std::size_t m_count;
+    std::size_t m_count{0u};
 
 };
 
