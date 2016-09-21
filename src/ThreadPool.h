@@ -27,6 +27,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <sharemind/compiler-support/ClangVersion.h>
 #include <thread>
 #include <vector>
 #include <type_traits>
@@ -233,8 +234,9 @@ private: /* Methods: */
                     return Task{};
                 if (m_head.get() != m_tail)
                     break;
-                #ifdef __clang__
-                #warning Clang 3.6 (and possibly other versions) are known to \
+                #if defined(SHAREMIND_CLANG_VERSION) \
+                    && (SHAREMIND_CLANG_VERSION < 30700)
+                #warning Clang 3.6 (and possibly older versions) are known to \
                          sometimes hang here for unknown reasons!
                 #endif
                 m_dataCond.wait(tailLock);
