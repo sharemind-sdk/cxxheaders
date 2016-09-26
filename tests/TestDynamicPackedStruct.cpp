@@ -114,8 +114,10 @@ int main() {
     assert(m.get<1u>() == m2.get<1u>());
     assert(std::memcmp(m2.ptr<2u>(), test3, 3u) == 0);
     assert(m.get<3u>() == m2.get<3u>());
+    #ifndef NDEBUG
     auto const p42 = m2.constPtr<4u>();
     for (unsigned i = 0; i < 10; i++)
         assert(p42[i] == poly(i));
+    #endif
     assert(m.get<5u>() == m2.get<5u>());
 }

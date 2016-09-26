@@ -64,6 +64,7 @@ struct SomeClass {
     SomeClass(unsigned const v = 42u) : value(v) { inc(constructions); }
     unsigned value;
     void f(unsigned const expected, std::atomic<unsigned> & cnt) const noexcept {
+        (void) expected;
         assert(value == expected);
         inc(cnt);
     }
@@ -180,8 +181,10 @@ int main() {
     assert(constructions.load(relax) <= maxConstructions);
     /// \warning The following assertion will fail with very low probability,
     ///          but more so if (numThreads * numIters) is too low.
+    #ifndef NDEBUG
     static auto const might_fail_with_very_low_probability_or_valgrind
             = [](bool const r) noexcept { return r; };
+    #endif
     assert(might_fail_with_very_low_probability_or_valgrind(
                constructions.load(relax) < maxConstructions));
 
