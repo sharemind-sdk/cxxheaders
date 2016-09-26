@@ -73,7 +73,8 @@ ADD_COMPILE_OPTIONS(
   "-std=c++11" "-Wall" "-Wextra" "-O2"
   "$<$<NOT:$<STREQUAL:$<CONFIGURATION>,Release>>:-ggdb>"
   "$<$<NOT:$<STREQUAL:$<CONFIGURATION>,Release>>:-fno-omit-frame-pointer>"
-  "$<$<STREQUAL:$<CONFIGURATION>,Release>:-DNDEBUG>"
+  # assert() and friends should always be enabled for tests:
+  # "$<$<STREQUAL:$<CONFIGURATION>,Release>:-DNDEBUG>"
   "$<$<STREQUAL:$<CONFIGURATION>,Release>:-fomit-frame-pointer>"
 )
 INCLUDE(CheckCXXCompilerFlag)
