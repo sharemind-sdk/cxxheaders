@@ -99,6 +99,9 @@ public: /* Methods: */
                   &m_data[0]);
     }
 
+    inline Hash hash() const noexcept
+    { return hashRawData(&m_data[0u], m_data.size()); }
+
     inline void clear() noexcept { m_data.clear(); }
     inline bool empty() const noexcept { return m_data.empty(); }
     inline size_type size() const noexcept { return m_data.size(); }
@@ -134,8 +137,7 @@ private: /* Fields: */
 
 };
 
-inline Hash hash_value(Datum const & datum) noexcept
-{ return hashRawData(datum.constData(), datum.size()); }
+inline Hash hash_value(Datum const & datum) noexcept { return datum.hash(); }
 
 } /* namespace sharemind { */
 
