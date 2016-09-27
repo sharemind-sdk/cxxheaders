@@ -44,7 +44,7 @@ class ChildNodeBase {
 
 public: /* Methods: */
 
-    virtual inline ~ChildNodeBase() {}
+    virtual inline ~ChildNodeBase() noexcept {}
 
     inline typename ParentNodeType::ParentType * parent() const noexcept
     { return m_parent; }
@@ -64,7 +64,8 @@ private: /* Methods: */
     inline typename ParentNodeType::ChildType * realChild() const noexcept
     { return m_realChild; }
 
-    inline void unregisterChild(ParentNodeType (ParentNodeType::ParentType::*parentMember))
+    inline void unregisterChild(
+            ParentNodeType (ParentNodeType::ParentType::*parentMember)) noexcept
     {
         if (m_parent) {
             (m_parent->*parentMember).unregisterChild(this);
@@ -94,7 +95,8 @@ public: /* Methods: */
                      typename ParentNodeType::ChildType * realChild)
         : ChildNodeBase<ParentNodeType>(parent, realChild, parentMember) {}
 
-    inline ~ChildNode() override { this->unregisterChild(parentMember); }
+    inline ~ChildNode() noexcept override
+    { this->unregisterChild(parentMember); }
 
 };
 
@@ -119,8 +121,11 @@ private: /* Types: */
 
     /* Methods: */
 
-        explicit lock_guard(MutexT & mutex) : m_mutex(mutex) { mutex.lock(); }
-        ~lock_guard() { m_mutex.unlock(); }
+        explicit lock_guard(MutexT & mutex) noexcept
+            : m_mutex(mutex)
+        { mutex.lock(); }
+
+        ~lock_guard() noexcept { m_mutex.unlock(); }
 
     /* Fields: */
 
@@ -136,7 +141,7 @@ public: /* Methods: */
     inline ParentNode(Args && ... args)
         : m_childDestructor(std::forward<Args>(args)...) {}
 
-    inline ~ParentNode() {
+    inline ~ParentNode() noexcept {
         lock_guard lock(m_mutex);
         for (ChildNodeType * const node : m_childNodes)
             m_childDestructor(node->freeByParent());
@@ -162,7 +167,7 @@ private: /* Methods: */
         m_childNodes.insert(childNode);
     }
 
-    inline void unregisterChild(ChildNodeType * const childNode) {
+    inline void unregisterChild(ChildNodeType * const childNode) noexcept {
         lock_guard lock(m_mutex);
         assert(m_childNodes.count(childNode));
         m_childNodes.erase(childNode);
@@ -211,19 +216,19 @@ struct Parent {
 
 struct Child {
 
-    ObjectTree::ChildNode<Parent::ParentNodeType, &Parent::parentNode> childNode;
+    ObjectTree::ChildNode<Parent::ParentNodeType, &Parent::parentNode>
+            childNode;
 
     Child(Parent * parent, int v) : childNode(parent, this), m_a(v)
         { cout << "Child(): " << m_a << endl;}
-    ~Child() { cout << "~Child(): " << m_a << endl; }
+
+    ~Child() noexcept { cout << "~Child(): " << m_a << endl; }
 
     int m_a;
 
 };
 
-void Parent::freeChild(Child * child) {
-    delete child;
-}
+void Parent::freeChild(Child * child) noexcept { delete child; }
 
 int main() {
     Parent * p = new Parent();
