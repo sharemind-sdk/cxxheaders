@@ -39,10 +39,10 @@ template <class Key,
           class Allocator = std::allocator<std::pair<Key const, T *> > >
 class ScopedObjectMap {
 
-    static_assert(std::is_nothrow_destructible<T>::value,
+    static_assert(sharemind::is_nothrow_destructible<T>::value,
                   "T is required to be nothrow destructible");
 
-    static_assert(std::is_nothrow_destructible<T>::value,
+    static_assert(sharemind::is_nothrow_destructible<T>::value,
                   "T is required to be nothrow destructible. Maybe T is an "
                   "incomplete type?");
 
@@ -50,7 +50,7 @@ private: /* Types: */
 
     using impl_t = std::map<Key, T *, Compare, Allocator>;
     #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION >= 40800)
-    static_assert(std::is_nothrow_destructible<impl_t>::value,
+    static_assert(sharemind::is_nothrow_destructible<impl_t>::value,
                   "impl_t is required to be nothrow destructible");
     #endif
 

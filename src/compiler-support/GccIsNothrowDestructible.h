@@ -21,13 +21,24 @@
 #define SHAREMIND_GCCISNOTHROWDESTRUCTIBLE_H
 
 #include <sharemind/compiler-support/GccVersion.h>
-
-
 #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
+#define SHAREMIND_GCC_BROKEN_IS_NOTHROW_DESTRUCTIBLE true
+#else
+#define SHAREMIND_GCC_BROKEN_IS_NOTHROW_DESTRUCTIBLE false
+#endif
+
 #include <type_traits>
+#if SHAREMIND_GCC_BROKEN_IS_NOTHROW_DESTRUCTIBLE
 #include <utility>
+#endif
+
+
 namespace sharemind {
-namespace workaround {
+
+#if SHAREMIND_GCC_BROKEN_IS_NOTHROW_DESTRUCTIBLE
+
+namespace Detail {
+
 struct is_nothrow_destructible_helper {
   template<typename _Tp>
   static std::integral_constant<bool, noexcept(std::declval<_Tp&>().~_Tp())>
@@ -35,6 +46,8 @@ struct is_nothrow_destructible_helper {
 
   template<typename> static std::false_type test(...);
 };
+
+} /* namespace Detail { */
 
 template<typename T>
 struct is_nothrow_destructible
@@ -45,17 +58,19 @@ struct is_nothrow_destructible
           || std::is_function<T>::value)
         && (std::is_reference<T>::value
             || std::is_scalar<T>::value
-            || decltype(is_nothrow_destructible_helper::test<
+            || decltype(Detail::is_nothrow_destructible_helper::test<
                             typename std::remove_reference<
                                     typename std::remove_all_extents<T>::type>
                                 ::type>(0))::value)
       >::type {};
 
-} /* namespace workaround { */
-} /* namespace sharemind { */
-namespace std {
-using sharemind::workaround::is_nothrow_destructible;
-} /* namespace std { */
+#else
+
+template <typename T>
+using is_nothrow_destructible = std::is_nothrow_destructible<T>;
+
 #endif
+
+} /* namespace sharemind { */
 
 #endif /* SHAREMIND_GCCISNOTHROWDESTRUCTIBLE_H */
