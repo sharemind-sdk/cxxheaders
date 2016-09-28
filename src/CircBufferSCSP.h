@@ -38,7 +38,6 @@
 #include "FunctionTraits.h"
 #include "PartialStreamOperationException.h"
 #include "PotentiallyVoidTypeInfo.h"
-#include "TicketSpinLock.h"
 
 
 namespace sharemind {
@@ -71,6 +70,7 @@ struct CircBufferScspCountActorCaller<CountActor, true> {
 
 }
 
+template <typename MutexType = std::mutex>
 class CircBufferDefaultLocking {
 
 public: /* Constants: */
@@ -79,12 +79,12 @@ public: /* Constants: */
 
 public: /* Types: */
 
-    class ScopedReadLock: public std::unique_lock<TicketSpinLock> {
+    class ScopedReadLock: public std::unique_lock<MutexType> {
 
     public: /* Methods: */
 
         ScopedReadLock(CircBufferDefaultLocking & locking)
-            : std::unique_lock<TicketSpinLock>(locking.m_dataAvailableMutex)
+            : std::unique_lock<MutexType>(locking.m_dataAvailableMutex)
         {}
 
     };
@@ -92,7 +92,7 @@ public: /* Types: */
 public: /* Methods: */
 
     inline std::size_t dataAvailable() const noexcept {
-        std::lock_guard<TicketSpinLock> const guard(m_dataAvailableMutex);
+        std::lock_guard<MutexType> const guard(m_dataAvailableMutex);
         return m_dataAvailable;
     }
 
@@ -100,14 +100,14 @@ public: /* Methods: */
     { return m_dataAvailable; }
 
     inline std::size_t increaseDataAvailable(std::size_t const size) noexcept {
-        std::lock_guard<TicketSpinLock> const guard(m_dataAvailableMutex);
+        std::lock_guard<MutexType> const guard(m_dataAvailableMutex);
         m_dataAvailable += size;
         m_dataAvailableCondition.notify_one();
         return m_dataAvailable;
     }
 
     inline std::size_t decreaseDataAvailable(std::size_t const size) noexcept {
-        std::lock_guard<TicketSpinLock> const guard(m_dataAvailableMutex);
+        std::lock_guard<MutexType> const guard(m_dataAvailableMutex);
         assert(m_dataAvailable >= size);
         m_dataAvailable -= size;
         m_dataAvailableCondition.notify_one();
@@ -126,7 +126,7 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    mutable TicketSpinLock m_dataAvailableMutex;
+    mutable MutexType m_dataAvailableMutex;
     std::condition_variable_any m_dataAvailableCondition;
     std::size_t m_dataAvailable = 0u;
 
@@ -1067,7 +1067,7 @@ private: /* Methods: */
 
 } /* namespace Detail { */
 
-template <typename T, typename Locking = CircBufferDefaultLocking>
+template <typename T, typename Locking = CircBufferDefaultLocking<> >
 using CircBufferSCSP = Detail::CircBufferBase2<T, Locking>;
 
 } /* namespace sharemind { */
