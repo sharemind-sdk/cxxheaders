@@ -71,7 +71,7 @@ struct CircBufferScspCountActorCaller<CountActor, true> {
 }
 
 template <typename MutexType = std::mutex>
-class CircBufferDefaultLocking {
+class CircBufferScspLocking {
 
 public: /* Constants: */
 
@@ -83,7 +83,7 @@ public: /* Types: */
 
     public: /* Methods: */
 
-        ScopedReadLock(CircBufferDefaultLocking & locking)
+        ScopedReadLock(CircBufferScspLocking & locking)
             : std::unique_lock<MutexType>(locking.m_dataAvailableMutex)
         {}
 
@@ -1067,7 +1067,7 @@ private: /* Methods: */
 
 } /* namespace Detail { */
 
-template <typename T, typename Locking = CircBufferDefaultLocking<> >
+template <typename T, typename Locking = CircBufferScspLocking<> >
 using CircBufferSCSP = Detail::CircBufferBase2<T, Locking>;
 
 } /* namespace sharemind { */
