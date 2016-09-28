@@ -68,7 +68,15 @@ struct CircBufferScspCountActorCaller<CountActor, true> {
     { return actor(std::forward<Args>(args)...); }
 };
 
-}
+template <typename MutexType>
+struct CircBufferScspLockingConditionVariable
+{ using type = std::condition_variable_any; };
+
+template <>
+struct CircBufferScspLockingConditionVariable<std::mutex>
+{ using type = std::condition_variable_any; };
+
+} /* namespace Detail { */
 
 template <typename MutexType = std::mutex>
 class CircBufferScspLocking {
@@ -127,7 +135,8 @@ public: /* Methods: */
 private: /* Fields: */
 
     mutable MutexType m_dataAvailableMutex;
-    std::condition_variable_any m_dataAvailableCondition;
+    typename Detail::CircBufferScspLockingConditionVariable<MutexType>::type
+            m_dataAvailableCondition;
     std::size_t m_dataAvailable = 0u;
 
 };
