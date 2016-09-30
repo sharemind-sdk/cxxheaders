@@ -74,7 +74,7 @@ struct CircBufferScspLockingConditionVariable
 
 template <>
 struct CircBufferScspLockingConditionVariable<std::mutex>
-{ using type = std::condition_variable_any; };
+{ using type = std::condition_variable; };
 
 } /* namespace Detail { */
 
