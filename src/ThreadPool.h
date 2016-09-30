@@ -20,6 +20,12 @@
 #ifndef SHAREMIND_THREADPOOL_H
 #define SHAREMIND_THREADPOOL_H
 
+/** \todo Maybe this affects other setups as well? */
+#include <sharemind/compiler-support/GccVersion.h>
+#if defined(SHAREMIND_GCC_VERSION) && SHAREMIND_GCC_VERSION < 40800
+#define SHAREMIND_THREADPOOL_USING_GCC47_SLOW_TICKETSPINLOCK_WORKAROUND
+#endif
+
 #include <algorithm>
 #include <atomic>
 #include <cassert>
@@ -31,7 +37,9 @@
 #include <thread>
 #include <vector>
 #include <type_traits>
+#ifndef SHAREMIND_THREADPOOL_USING_GCC47_SLOW_TICKETSPINLOCK_WORKAROUND
 #include "TicketSpinLock.h"
+#endif
 
 
 namespace sharemind {
@@ -115,7 +123,7 @@ public: /* Methods: */
     bool notifyStop() noexcept {
         if (m_stopStarted.test_and_set())
             return true;
-        std::lock_guard<TicketSpinLock> const tailGuard(m_tailMutex);
+        std::lock_guard<decltype(m_tailMutex)> const tailGuard(m_tailMutex);
         m_stop = true;
         m_dataCond.notify_all();
         return false;
@@ -188,7 +196,7 @@ public: /* Methods: */
         assert(task);
         assert(task->m_value);
         TaskWrapper * const newTail = task.get();
-        std::lock_guard<TicketSpinLock> const tailGuard(m_tailMutex);
+        std::lock_guard<decltype(m_tailMutex)> const tailGuard(m_tailMutex);
         TaskWrapper * const oldTail = m_tail;
         oldTail->m_value = std::move(task->m_value);
         oldTail->m_next = std::move(task);
@@ -228,7 +236,7 @@ private: /* Methods: */
         std::lock_guard<std::mutex> const headGuard(m_headMutex);
         assert(m_head);
         {
-            std::unique_lock<TicketSpinLock> tailLock(m_tailMutex);
+            std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
             for (;;) {
                 if (m_stop)
                     return Task{};
@@ -264,8 +272,13 @@ private: /* Methods: */
 private: /* Fields: */
 
     std::mutex m_headMutex;
+    #if SHAREMIND_THREADPOOL_USING_GCC47_SLOW_TICKETSPINLOCK_WORKAROUND
+    std::mutex m_tailMutex;
+    std::condition_variable m_dataCond;
+    #else
     TicketSpinLock m_tailMutex;
     std::condition_variable_any m_dataCond;
+    #endif
     TaskWrapper * m_tail;
     Task m_head;
     bool m_stop = false;
@@ -278,5 +291,7 @@ private: /* Fields: */
 }; /* class ThreadPool { */
 
 } /* namespace sharemind {*/
+
+#undef SHAREMIND_THREADPOOL_USING_GCC47_SLOW_TICKETSPINLOCK_WORKAROUND
 
 #endif /* SHAREMIND_THREADPOOL_H */
