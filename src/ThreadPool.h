@@ -272,7 +272,7 @@ private: /* Methods: */
 private: /* Fields: */
 
     std::mutex m_headMutex;
-    #if SHAREMIND_THREADPOOL_USING_GCC47_SLOW_TICKETSPINLOCK_WORKAROUND
+    #ifdef SHAREMIND_THREADPOOL_USING_GCC47_SLOW_TICKETSPINLOCK_WORKAROUND
     std::mutex m_tailMutex;
     std::condition_variable m_dataCond;
     #else
