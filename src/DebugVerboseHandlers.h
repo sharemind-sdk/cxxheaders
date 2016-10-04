@@ -62,9 +62,9 @@ inline void verbosePrintException(std::exception_ptr e,
 }
 
 SHAREMIND_GCC_NORETURN_PART1
-void verboseTerminateHandler() noexcept SHAREMIND_GCC_NORETURN_PART2;
+inline void verboseTerminateHandler() noexcept SHAREMIND_GCC_NORETURN_PART2;
 
-void verboseTerminateHandler() noexcept {
+inline void verboseTerminateHandler() noexcept {
     if (std::exception_ptr const e = std::current_exception()) {
         verbosePrintException(e,
                               std::cerr << "std::terminate() called with "
@@ -78,9 +78,9 @@ void verboseTerminateHandler() noexcept {
 
 
 SHAREMIND_GCC_NORETURN_PART1
-void verboseUnexpectedHandler() noexcept SHAREMIND_GCC_NORETURN_PART2;
+inline void verboseUnexpectedHandler() noexcept SHAREMIND_GCC_NORETURN_PART2;
 
-void verboseUnexpectedHandler() noexcept {
+inline void verboseUnexpectedHandler() noexcept {
     if (std::exception_ptr const e = std::current_exception()) {
         verbosePrintException(e,
                               std::cerr << "std::unexpected() called with "
