@@ -73,7 +73,7 @@ void verboseTerminateHandler() noexcept {
         std::cerr << "std::terminate() called without active exceptions!"
                   << std::endl;
     }
-    abort();
+    std::abort();
 }
 
 
@@ -89,7 +89,7 @@ void verboseUnexpectedHandler() noexcept {
         std::cerr << "std::unexpected() called without active exceptions!"
                   << std::endl;
     }
-    abort();
+    std::abort();
 }
 
 #ifdef __GNUC__
