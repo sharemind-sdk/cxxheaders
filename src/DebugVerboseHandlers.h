@@ -92,17 +92,28 @@ inline void verboseUnexpectedHandler() noexcept {
     std::abort();
 }
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
-std::terminate_handler const verboseTerminateHandler_old =
-        std::set_terminate(verboseTerminateHandler);
-std::unexpected_handler const verboseUnexpectedHandler_old =
-        std::set_unexpected(verboseUnexpectedHandler);
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+inline void enableDebugVerboseHandlers() noexcept {
+    std::set_terminate(&verboseTerminateHandler);
+    std::set_unexpected(&verboseUnexpectedHandler);
+}
+
+class ScopedDebugVerboseHandlers {
+
+public: /* Methods: */
+
+    inline ~ScopedDebugVerboseHandlers() noexcept {
+        std::set_unexpected(m_oldVerboseUnexpectedHandler);
+        std::set_terminate(m_oldVerboseTerminateHandler);
+    }
+
+private: /* Fields: */
+
+    std::terminate_handler const m_oldVerboseTerminateHandler{
+            std::set_terminate(&verboseTerminateHandler)};
+    std::unexpected_handler const m_oldVerboseUnexpectedHandler{
+            std::set_unexpected(&verboseUnexpectedHandler)};
+
+};
 
 } /* namespace sharemind { */
 
