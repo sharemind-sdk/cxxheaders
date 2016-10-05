@@ -64,6 +64,11 @@ public: /* Methods: */
         , m_lower (static_cast<uint64_t>(rhs))
     { }
 
+    uint128_t (uint64_t upper, uint64_t lower)
+        : m_upper (upper)
+        , m_lower (lower)
+    { }
+
     template <typename T>
     uint128_t& operator = (T rhs) {
         m_upper = 0;
@@ -114,11 +119,6 @@ private: /* Methods: */
     friend bool operator >= (uint128_t x, uint128_t y);
 
     friend std::ostream& operator << (std::ostream& os, uint128_t x);
-
-    uint128_t (uint64_t upper, uint64_t lower)
-        : m_upper (upper)
-        , m_lower (lower)
-    { }
 
     static void divMod (uint128_t x, uint128_t y, uint128_t& quotient, uint128_t& reminder);
 
