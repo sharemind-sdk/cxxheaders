@@ -68,6 +68,118 @@ public: /* Types: */
 
     };
 
+    /**
+      \brief Allows queueing of serial jobs on any thread pool.
+
+      This class provides means to utilize a thread pool to execute jobs which
+      are not allowed to run in parallel. Even if the thread pool has N > 1
+      threads, no two jobs queued by this class will be executed in parallel.
+    */
+    class OneThreadSharedSlice {
+
+    public: /* Methods: */
+
+        inline OneThreadSharedSlice(std::shared_ptr<ThreadPool> threadPool)
+            : m_threadPool(std::move(threadPool))
+        {}
+
+        inline ~OneThreadSharedSlice() noexcept { notifyStop(); }
+
+        inline void init(std::shared_ptr<OneThreadSharedSlice> sharedSelf) {
+            assert(sharedSelf.get() == this);
+            std::weak_ptr<OneThreadSharedSlice> weakSelf(sharedSelf);
+            #ifndef NDEBUG
+            std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
+            #endif
+            assert(m_tail == m_head.get());
+            m_sliceTask =
+                    ThreadPool::createTask(
+                        [weakSelf](Task && sliceTask) noexcept {
+                            if (auto const self = weakSelf.lock())
+                              self->run(std::move(sliceTask));
+                        });
+        }
+
+        inline void submit(Task task) noexcept {
+            assert(task);
+            assert(task->m_value);
+            assert(!task->m_next);
+            TaskWrapper * const newTail = task.get();
+            std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
+            if (m_stop) /// \todo Maybe we should assert(!m_stop) instead?
+                return;
+            assert(m_threadPool);
+            TaskWrapper * const oldTail = m_tail;
+            oldTail->m_value = std::move(task->m_value);
+            oldTail->m_next = std::move(task);
+            m_tail = newTail;
+
+            if (m_sliceTask)
+                m_threadPool->submit(std::move(m_sliceTask));
+        }
+
+        inline void notifyStop() noexcept {
+            std::shared_ptr<ThreadPool> gcThreadPool;
+            std::lock_guard<decltype(m_tailMutex)> tailGuard(m_tailMutex);
+            m_stop = true;
+            gcThreadPool = std::move(m_threadPool);
+        }
+
+    private: /* Methods: */
+
+        inline void run(Task && sliceTask) noexcept {
+            {
+                // Retrieve first task (or return if stopping):
+                Task task;
+                {
+                    std::lock_guard<decltype(m_tailMutex)> const guard(
+                                m_tailMutex);
+                    if (m_stop)
+                        return;
+                    assert(m_head);
+                    assert(m_head.get() != m_tail);
+                    assert(m_head->m_value);
+                    assert(m_head->m_next);
+                    task = std::move(m_head);
+                    m_head = std::move(task->m_next);
+                }
+                TaskWrapper * const taskPtr = task.get();
+                assert(taskPtr);
+                assert(taskPtr->m_value);
+
+                // Execute the retrieved task:
+                taskPtr->m_value->operator()(std::move(task));
+            }
+
+            std::lock_guard<decltype(m_tailMutex)> tailGuard(m_tailMutex);
+            assert(m_stop || !m_threadPool);
+            assert(!m_stop || m_threadPool);
+            if (!m_stop && (m_head.get() != m_tail)) {
+                assert(m_threadPool);
+                m_threadPool->submit(std::move(sliceTask));
+            } else {
+                assert(!m_sliceTask);
+                /* Deallocation of sliceTask will be handled by the
+                   std::shared_ptr instance to this Inner object instead. */
+                m_sliceTask = std::move(sliceTask);
+            }
+        }
+
+    private: /* Fields: */
+
+        std::shared_ptr<ThreadPool> m_threadPool;
+        #ifdef SHAREMIND_THREADPOOL_USING_GCC47_SLOW_TICKETSPINLOCK_WORKAROUND
+        std::mutex m_tailMutex;
+        #else
+        TicketSpinLock m_tailMutex;
+        #endif
+        Task m_head{new TaskWrapper(nullptr)};
+        TaskWrapper * m_tail{m_head.get()};
+        bool m_stop = false;
+        Task m_sliceTask;
+
+    }; /* struct SharedSlice */
+
 private: /* Types: */
 
     struct TaskBase {
