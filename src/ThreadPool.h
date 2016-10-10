@@ -252,33 +252,6 @@ public: /* Methods: */
         join();
     }
 
-    inline void joinFromThread() noexcept {
-        std::thread::id const myId{std::this_thread::get_id()};
-        std::unique_lock<std::mutex> const lock(m_threadsMutex,
-                                                std::try_to_lock_t());
-        if (lock.owns_lock()) {
-            auto it = m_threads.begin();
-            assert(it != m_threads.end());
-            do {
-                if (it->joinable()) {
-                    if (it->get_id() == myId) {
-                        while (++it != m_threads.end())
-                            if (it->joinable())
-                                it->join();
-                        return;
-                    }
-                    it->join();
-                }
-            } while (++it != m_threads.end());
-        }
-    }
-
-    inline void stopAndJoinFromThread() noexcept {
-        if (notifyStop())
-            return;
-        joinFromThread();
-    }
-
     template <typename F>
     static inline Task createTask(F f) {
         struct CustomTask: TaskBase {
