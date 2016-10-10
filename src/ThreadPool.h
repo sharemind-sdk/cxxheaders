@@ -152,8 +152,8 @@ public: /* Types: */
             }
 
             std::lock_guard<decltype(m_tailMutex)> tailGuard(m_tailMutex);
-            assert(m_stop || !m_threadPool);
-            assert(!m_stop || m_threadPool);
+            assert(m_stop || m_threadPool);
+            assert(!m_stop || !m_threadPool);
             if (!m_stop && (m_head.get() != m_tail)) {
                 assert(m_threadPool);
                 m_threadPool->submit(std::move(sliceTask));
