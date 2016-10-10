@@ -195,6 +195,7 @@ public: /* Methods: */
     inline void submit(Task task) noexcept {
         assert(task);
         assert(task->m_value);
+        assert(!task->m_next);
         TaskWrapper * const newTail = task.get();
         std::lock_guard<decltype(m_tailMutex)> const tailGuard(m_tailMutex);
         TaskWrapper * const oldTail = m_tail;
