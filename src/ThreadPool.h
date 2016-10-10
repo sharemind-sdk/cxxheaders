@@ -106,9 +106,9 @@ public: /* Types: */
             assert(!task->m_next);
             TaskWrapper * const newTail = task.get();
             std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
-            if (m_stop) /// \todo Maybe we should assert(!m_stop) instead?
+            /// \todo Maybe we should assert(m_threadPool) instead?
+            if (!m_threadPool)
                 return;
-            assert(m_threadPool);
             TaskWrapper * const oldTail = m_tail;
             oldTail->m_value = std::move(task->m_value);
             oldTail->m_next = std::move(task);
@@ -121,8 +121,8 @@ public: /* Types: */
         inline void notifyStop() noexcept {
             std::shared_ptr<ThreadPool> gcThreadPool;
             std::lock_guard<decltype(m_tailMutex)> tailGuard(m_tailMutex);
-            m_stop = true;
             gcThreadPool = std::move(m_threadPool);
+            assert(!m_threadPool);
         }
 
     private: /* Methods: */
@@ -134,7 +134,7 @@ public: /* Types: */
                 {
                     std::lock_guard<decltype(m_tailMutex)> const guard(
                                 m_tailMutex);
-                    if (m_stop)
+                    if (!m_threadPool)
                         return;
                     assert(m_head);
                     assert(m_head.get() != m_tail);
@@ -152,10 +152,7 @@ public: /* Types: */
             }
 
             std::lock_guard<decltype(m_tailMutex)> tailGuard(m_tailMutex);
-            assert(m_stop || m_threadPool);
-            assert(!m_stop || !m_threadPool);
-            if (!m_stop && (m_head.get() != m_tail)) {
-                assert(m_threadPool);
+            if (m_threadPool && (m_head.get() != m_tail)) {
                 m_threadPool->submit(std::move(sliceTask));
             } else {
                 assert(!m_sliceTask);
@@ -175,7 +172,6 @@ public: /* Types: */
         #endif
         Task m_head{new TaskWrapper(nullptr)};
         TaskWrapper * m_tail{m_head.get()};
-        bool m_stop = false;
         Task m_sliceTask;
 
     }; /* struct SharedSlice */
