@@ -226,6 +226,7 @@ public: /* Methods: */
 
     template <typename F>
     static std::unique_ptr<EventHandler> createSimpleHandler(F && f) {
+        static_assert(noexcept(f()), "");
         return createHandler([f](EventLoop::EventSet const) mutable noexcept
                              { f(); });
     }
