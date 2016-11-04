@@ -46,7 +46,7 @@ inline UsTime getUsTime(UsTime const onFail = 0u) noexcept {
 
 /** \returns the current "time" in microseconds. */
 template <typename E>
-inline UsTime getUsTimeOrThrow(E e) noexcept {
+inline UsTime getUsTimeOrThrow(E e) {
     timeval t;
     if (gettimeofday(&t, nullptr) != 0)
         throw e;
