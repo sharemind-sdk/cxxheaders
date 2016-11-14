@@ -126,8 +126,13 @@ public: /* Types: */
                 {
                     std::lock_guard<decltype(m_tailMutex)> const guard(
                                 m_tailMutex);
-                    if (!m_threadPool)
+                    if (!m_threadPool) {
+                        /* Deallocation of sliceTask will be handled by the
+                           std::shared_ptr instance to this Inner object
+                           instead. */
+                        m_sliceTask = std::move(sliceTask);
                         return;
+                    }
                     assert(m_head);
                     assert(m_head.get() != m_tail);
                     assert(m_head->m_value);
