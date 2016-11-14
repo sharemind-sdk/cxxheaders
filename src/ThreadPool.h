@@ -110,11 +110,12 @@ public: /* Types: */
                 m_threadPool->submit(std::move(m_sliceTask));
         }
 
-        inline void notifyStop() noexcept {
+        inline std::shared_ptr<ThreadPool> notifyStop() noexcept {
             std::shared_ptr<ThreadPool> gcThreadPool;
             std::lock_guard<decltype(m_tailMutex)> tailGuard(m_tailMutex);
             gcThreadPool = std::move(m_threadPool);
             assert(!m_threadPool);
+            return gcThreadPool;
         }
 
     private: /* Methods: */
