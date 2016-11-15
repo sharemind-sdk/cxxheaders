@@ -75,7 +75,7 @@ public: /* Types: */
             : m_threadPool(std::move(threadPool))
         {}
 
-        inline ~OneThreadSharedSlice() noexcept { notifyStop(); }
+        inline ~OneThreadSharedSlice() noexcept { stopAndJoin(); }
 
         inline void init(std::shared_ptr<OneThreadSharedSlice> sharedSelf) {
             assert(sharedSelf.get() == this);
