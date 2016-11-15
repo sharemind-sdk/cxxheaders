@@ -128,6 +128,7 @@ public: /* Types: */
                         /* Deallocation of sliceTask will be handled by the
                            std::shared_ptr instance to this Inner object
                            instead. */
+                        assert(!m_sliceTask);
                         m_sliceTask = std::move(sliceTask);
                         return;
                     }
