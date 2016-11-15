@@ -151,9 +151,9 @@ public: /* Types: */
             if (m_threadPool && (m_head.get() != m_tail)) {
                 m_threadPool->submit(std::move(sliceTask));
             } else {
-                assert(!m_sliceTask);
                 /* Deallocation of sliceTask will be handled by the
                    std::shared_ptr instance to this Inner object instead. */
+                assert(!m_sliceTask);
                 m_sliceTask = std::move(sliceTask);
             }
         }
