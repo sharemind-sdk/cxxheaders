@@ -115,12 +115,22 @@ public: /* Types: */
             return gcThreadPool;
         }
 
+        inline bool runningFromThisThread() const noexcept
+        { return runningFromThread(std::this_thread::get_id()); }
+
+        inline bool runningFromThread(std::thread::id const & id) const noexcept
+        {
+            std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
+            return m_running && (m_lastRunningThreadId == id);
+        }
+
     private: /* Methods: */
 
         inline void run(Task && sliceTask) noexcept {
             {
                 // Retrieve first task (or return if stopping):
                 Task task;
+                auto thisThreadId(std::this_thread::get_id());
                 {
                     std::lock_guard<decltype(m_tailMutex)> const guard(
                                 m_tailMutex);
@@ -138,6 +148,8 @@ public: /* Types: */
                     assert(m_head->m_next);
                     task = std::move(m_head);
                     m_head = std::move(task->m_next);
+                    m_running = true;
+                    m_lastRunningThreadId = std::move(thisThreadId);
                 }
                 TaskWrapper * const taskPtr = task.get();
                 assert(taskPtr);
@@ -148,6 +160,7 @@ public: /* Types: */
             }
 
             std::lock_guard<decltype(m_tailMutex)> tailGuard(m_tailMutex);
+            m_running = false;
             if (m_threadPool && (m_head.get() != m_tail)) {
                 m_threadPool->submit(std::move(sliceTask));
             } else {
@@ -161,10 +174,12 @@ public: /* Types: */
     private: /* Fields: */
 
         std::shared_ptr<ThreadPool> m_threadPool;
-        TicketSpinLock m_tailMutex;
+        mutable TicketSpinLock m_tailMutex;
         Task m_head{new TaskWrapper(nullptr)};
         TaskWrapper * m_tail{m_head.get()};
         Task m_sliceTask;
+        bool m_running = false;
+        std::thread::id m_lastRunningThreadId;
 
     }; /* struct SharedSlice */
 
