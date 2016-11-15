@@ -98,15 +98,12 @@ public: /* Types: */
             assert(!task->m_next);
             TaskWrapper * const newTail = task.get();
             std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
-            /// \todo Maybe we should assert(m_threadPool) instead?
-            if (!m_threadPool)
-                return;
             TaskWrapper * const oldTail = m_tail;
             oldTail->m_value = std::move(task->m_value);
             oldTail->m_next = std::move(task);
             m_tail = newTail;
 
-            if (m_sliceTask)
+            if (m_sliceTask && m_threadPool)
                 m_threadPool->submit(std::move(m_sliceTask));
         }
 
