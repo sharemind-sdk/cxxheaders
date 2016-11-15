@@ -115,6 +115,29 @@ public: /* Types: */
             return gcThreadPool;
         }
 
+        inline std::shared_ptr<ThreadPool> stopAndJoin() noexcept {
+            std::shared_ptr<ThreadPool> gcThreadPool;
+            std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
+            gcThreadPool = std::move(m_threadPool);
+            assert(!m_threadPool);
+            m_joinCond.wait(tailLock,
+                            [this]() noexcept { return m_sliceTask.get(); });
+            return gcThreadPool;
+        }
+
+        inline std::shared_ptr<ThreadPool> stopAndMaybeJoin() noexcept {
+            std::shared_ptr<ThreadPool> gcThreadPool;
+            auto const thisThreadId(std::this_thread::get_id());
+            std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
+            gcThreadPool = std::move(m_threadPool);
+            assert(!m_threadPool);
+            if (!m_running || m_lastRunningThreadId != thisThreadId)
+                m_joinCond.wait(
+                            tailLock,
+                            [this]() noexcept { return m_sliceTask.get(); });
+            return gcThreadPool;
+        }
+
         inline bool runningFromThisThread() const noexcept
         { return runningFromThread(std::this_thread::get_id()); }
 
@@ -140,6 +163,7 @@ public: /* Types: */
                            instead. */
                         assert(!m_sliceTask);
                         m_sliceTask = std::move(sliceTask);
+                        m_joinCond.notify_all();
                         return;
                     }
                     assert(m_head);
@@ -168,6 +192,7 @@ public: /* Types: */
                    std::shared_ptr instance to this Inner object instead. */
                 assert(!m_sliceTask);
                 m_sliceTask = std::move(sliceTask);
+                m_joinCond.notify_all();
             }
         }
 
@@ -175,6 +200,7 @@ public: /* Types: */
 
         std::shared_ptr<ThreadPool> m_threadPool;
         mutable TicketSpinLock m_tailMutex;
+        std::condition_variable_any m_joinCond;
         Task m_head{new TaskWrapper(nullptr)};
         TaskWrapper * m_tail{m_head.get()};
         Task m_sliceTask;
