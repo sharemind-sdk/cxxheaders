@@ -80,25 +80,25 @@ public: /* Methods: */
 
     /** \brief Inserts a item into the cache. */
     inline void insert(key_t key, str_ptr value) {
+        // Insert new element:
+        m_cacheList.emplace_front(std::move(key), std::move(value));
+
         auto const it(m_cacheMap.find(key));
         if (it != m_cacheMap.end()) {
             auto & origin = it->second->isStrong() ? m_cacheList : m_weakList;
-            // move to front of LRU list
-            m_cacheList.splice(m_cacheList.cbegin(), origin, it->second);
-            // Replace element
-            (*it->second) = CacheElement(std::move(key), std::move(value));
+            // delete old element from list
+            origin.erase(it->second);
+            // update map
+            it->second = m_cacheList.begin();
         } else {
-            // Insert new element:
-            m_cacheList.emplace_front(std::move(key), std::move(value));
             try {
                 m_cacheMap[m_cacheList.front().key()] = m_cacheList.begin();
             } catch (...) {
                 m_cacheList.pop_front();
                 throw;
             }
-
-            grow();
         }
+        grow();
     }
 
     template <typename Key>
