@@ -61,7 +61,7 @@ private: /* Types: */
 
     private: /* Fields: */
 
-        key_t m_key;
+        key_t const m_key;
         str_ptr m_strong_ptr;
         weak_ptr m_weak_ptr{m_strong_ptr};
 
