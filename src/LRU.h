@@ -170,7 +170,7 @@ private: /* Methods: */
     inline void grow() noexcept {
         // demote items that are over the limit
         while (m_cacheList.size() > m_sizeLimit) {
-            // decrese ref count
+            // decrease ref count
             m_cacheList.back().demote();
             // move from cacheList to weakList
             m_weakList.splice(
