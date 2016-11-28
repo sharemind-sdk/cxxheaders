@@ -17,9 +17,11 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
+#include "../src/LRU.h"
+
+#include <cassert>
 #include <memory>
 #include <string>
-#include "../src/LRU.h"
 
 struct Elem {};
 
