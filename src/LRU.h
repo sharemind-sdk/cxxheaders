@@ -153,18 +153,6 @@ public: /* Methods: */
 
 private: /* Methods: */
 
-    /** \brief Removes expired weak pointers */
-    inline void collect() noexcept {
-        for (auto it = m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(begin)();
-             it != m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(end)();
-             ++it) {
-            if (it->expired()) {
-                m_cacheMap.erase(it->key());
-                m_weakList.erase(it);
-            }
-        }
-    }
-
     /** \brief Increases the size of cache or removes the least recently used
      * element */
     inline void grow() noexcept {
@@ -180,7 +168,15 @@ private: /* Methods: */
         }
 
         // then do garbage collection
-        collect();
+        for (auto it = m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(begin)();
+             it != m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(end)();
+             ++it)
+        {
+            if (it->expired()) {
+                m_cacheMap.erase(it->key());
+                m_weakList.erase(it);
+            }
+        }
     }
 
 private: /* Fields */
