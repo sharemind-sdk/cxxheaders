@@ -80,10 +80,9 @@ public: /* Methods: */
 
     /** \brief Inserts a item into the cache. */
     inline void insert(key_t key, str_ptr value) {
+        auto const it(m_cacheMap.find(key));
         // Insert new element:
         m_cacheList.emplace_front(std::move(key), std::move(value));
-
-        auto const it(m_cacheMap.find(key));
         if (it != m_cacheMap.end()) {
             auto & origin = it->second->isStrong() ? m_cacheList : m_weakList;
             // delete old element from list
