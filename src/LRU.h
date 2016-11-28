@@ -13,8 +13,8 @@
 #include <cassert>
 #include <list>
 #include <memory>
-#include <unordered_map>
 #include <type_traits>
+#include <unordered_map>
 
 
 namespace sharemind {
