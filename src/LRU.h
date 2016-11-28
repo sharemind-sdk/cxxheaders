@@ -134,7 +134,6 @@ public: /* Methods: */
         m_cacheMap.clear();
         m_cacheList.clear();
         m_weakList.clear();
-        m_currentSize = 0u;
     }
 
 private: /* Methods: */
@@ -144,7 +143,7 @@ private: /* Methods: */
         for (auto it = m_weakList.cbegin(); it != m_weakList.cend(); ++it) {
             if (it->expired()) {
                 m_cacheMap.erase(it->key());
-                m_weakList.erase(std::move(it));
+                m_weakList.erase(it);
             }
         }
     }
@@ -152,12 +151,8 @@ private: /* Methods: */
     /** \brief Increases the size of cache or removes the least recently used
      * element */
     inline void grow() noexcept {
-        // Increase size or remove least recently used element, if needed:
-        if (m_currentSize < m_sizeLimit) {
-            ++m_currentSize;
-        } else {
-            // first do garbage collection
-            collect();
+        // demote items that are over the limit
+        while (m_cacheList.size() > m_sizeLimit) {
             // decrese ref count
             m_cacheList.back().demote();
             // move from cacheList to weakList
@@ -165,12 +160,14 @@ private: /* Methods: */
                               m_cacheList,
                               --m_cacheList.cend());
         }
+
+        // then do garbage collection
+        collect();
     }
 
 private: /* Fields */
 
     std::size_t const m_sizeLimit;
-    std::size_t m_currentSize = 0u;
     CacheList m_cacheList;
     CacheList m_weakList;
     CacheMap m_cacheMap;
