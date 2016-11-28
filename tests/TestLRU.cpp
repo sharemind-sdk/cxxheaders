@@ -48,7 +48,7 @@ int main() {
     elem2.reset();
     // get a expired weak element
     assert(lru.get("key2") == nullptr);
-    elem2.reset(new Elem{});
+    elem2 = std::make_shared<Elem>();
     // overwrite elem
     lru.insert("key1", elem2);
     assert(elem1.use_count() == 1);
