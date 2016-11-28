@@ -11,6 +11,7 @@
 #define SHAREMIND_MINER_LRU_H
 
 #include <cassert>
+#include <iterator>
 #include <list>
 #include <memory>
 #include <sharemind/compiler-support/ClangVersion.h>
@@ -162,9 +163,9 @@ private: /* Methods: */
             m_cacheList.back().demote();
             // move from cacheList to weakList
             m_weakList.splice(
-                        m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(begin)(),
-                        m_cacheList,
-                        --m_cacheList.SHAREMIND_LRU_LIST_WORKAROUND(end)());
+                m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(begin)(),
+                m_cacheList,
+                std::prev(m_cacheList.SHAREMIND_LRU_LIST_WORKAROUND(end)()));
         }
 
         // then do garbage collection
