@@ -45,10 +45,9 @@ int main() {
     // elem1 was used, so now also stored in cache
     assert(elem1.use_count() == 2);
     assert(elem2.use_count() == 1);
-    elem2.reset();
+    elem2 = std::make_shared<Elem>();
     // get a expired weak element
     assert(lru.get("key2") == nullptr);
-    elem2 = std::make_shared<Elem>();
     // overwrite elem
     lru.insert("key1", elem2);
     assert(elem1.use_count() == 1);
