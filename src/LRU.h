@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMIND_MINER_LRU_H
-#define SHAREMIND_MINER_LRU_H
+#ifndef SHAREMIND_LRU_H
+#define SHAREMIND_LRU_H
 
 #include <cassert>
 #include <iterator>
@@ -196,4 +196,4 @@ private: /* Fields */
 
 #undef SHAREMIND_LRU_LIST_WORKAROUND
 
-#endif /* SHAREMIND_MINER_LRU_H */
+#endif /* SHAREMIND_LRU_H */
