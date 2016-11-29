@@ -19,9 +19,10 @@
 
 #include "../src/LRU.h"
 
-#include <cassert>
 #include <memory>
 #include <string>
+#include "../src/TestAssert.h"
+
 
 struct Elem {};
 
@@ -34,29 +35,29 @@ int main() {
 
     lru.insert("key1", elem1);
     // elem1 in cache and here
-    assert(elem1.use_count() == 2);
-    assert(lru.get("key1") == elem1);
+    SHAREMIND_TESTASSERT(elem1.use_count() == 2);
+    SHAREMIND_TESTASSERT(lru.get("key1") == elem1);
     lru.insert("key2", elem2);
-    assert(elem2.use_count() == 2);
+    SHAREMIND_TESTASSERT(elem2.use_count() == 2);
     // elem1 only in here (weak in cache)
-    assert(elem1.use_count() == 1);
+    SHAREMIND_TESTASSERT(elem1.use_count() == 1);
     // get a weak element
-    assert(lru.get("key1") == elem1);
+    SHAREMIND_TESTASSERT(lru.get("key1") == elem1);
     // elem1 was used, so now also stored in cache
-    assert(elem1.use_count() == 2);
-    assert(elem2.use_count() == 1);
+    SHAREMIND_TESTASSERT(elem1.use_count() == 2);
+    SHAREMIND_TESTASSERT(elem2.use_count() == 1);
     elem2 = std::make_shared<Elem>();
     // get a expired weak element
-    assert(lru.get("key2") == nullptr);
+    SHAREMIND_TESTASSERT(lru.get("key2") == nullptr);
     // overwrite elem
     lru.insert("key1", elem2);
-    assert(elem1.use_count() == 1);
+    SHAREMIND_TESTASSERT(elem1.use_count() == 1);
     lru.insert("key2", elem2);
-    assert(elem2.use_count() == 2);
+    SHAREMIND_TESTASSERT(elem2.use_count() == 2);
     // overwrite weak element
     lru.insert("key1", elem2);
-    assert(elem2.use_count() == 2);
+    SHAREMIND_TESTASSERT(elem2.use_count() == 2);
     lru.clear();
-    assert(elem1.use_count() == 1);
-    assert(elem2.use_count() == 1);
+    SHAREMIND_TESTASSERT(elem1.use_count() == 1);
+    SHAREMIND_TESTASSERT(elem2.use_count() == 1);
 }

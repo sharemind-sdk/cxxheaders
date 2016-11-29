@@ -19,12 +19,12 @@
 
 #include "../src/ReadyOrFailedWaiter.h"
 
-#include <cassert>
 #include <cstddef>
 #include <chrono>
 #include <thread>
 #include <type_traits>
 #include "../src/compiler-support/GccIsNothrowDestructible.h"
+#include "../src/TestAssert.h"
 
 
 constexpr std::size_t numThreads = 10u;
@@ -81,14 +81,14 @@ void testWithTwoThreads() noexcept {
     {
         std::thread t([&]() noexcept { w.notifyReady(); });
         sleepMs();
-        assert(w.waitReady());
+        SHAREMIND_TESTASSERT(w.waitReady());
         t.join();
     }
     w.reset();
     {
         std::thread t([&]() noexcept { w.notifyFailure(); });
         sleepMs();
-        assert(!w.waitReady());
+        SHAREMIND_TESTASSERT(!w.waitReady());
         t.join();
     }
     w.reset();
@@ -112,13 +112,13 @@ void testWithTwoThreads() noexcept {
     w.reset();
     {
         std::thread t([&]() noexcept { sleepMs(); w.notifyReady(); });
-        assert(w.waitReady());
+        SHAREMIND_TESTASSERT(w.waitReady());
         t.join();
     }
     w.reset();
     {
         std::thread t([&]() noexcept { sleepMs(); w.notifyFailure(); });
-        assert(!w.waitReady());
+        SHAREMIND_TESTASSERT(!w.waitReady());
         t.join();
     }
 }
@@ -141,8 +141,9 @@ int main() {
     testWithTwoThreads();
     sharemind::ReadyOrFailedWaiter<true> w;
     testMultithreaded([&w]() noexcept { sleepMs(); w.notifyReady(); },
-                      [&w]() noexcept { assert(w.waitReady()); });
+                      [&w]() noexcept { SHAREMIND_TESTASSERT(w.waitReady()); });
     w.reset();
-    testMultithreaded([&w]() noexcept { sleepMs(); w.notifyFailure(); },
-                      [&w]() noexcept { assert(!w.waitReady()); });
+    testMultithreaded(
+                [&w]() noexcept { sleepMs(); w.notifyFailure(); },
+                [&w]() noexcept { SHAREMIND_TESTASSERT(!w.waitReady()); });
 }

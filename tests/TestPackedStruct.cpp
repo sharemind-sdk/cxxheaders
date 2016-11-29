@@ -20,11 +20,11 @@
 #include "../src/PackedStruct.h"
 
 #include <array>
-#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <type_traits>
 #include <utility>
+#include "../src/TestAssert.h"
 
 
 using namespace sharemind;
@@ -64,14 +64,15 @@ struct PackedStructEqualityChecker {
             >::value, "");
     static void check(Msg const & a, Msg const & b) noexcept {
         PackedStructEqualityChecker<Msg, I - 1u>::check(a, b);
-        assert(a.template get<I - 1u>() == b.template get<I - 1u>());
+        SHAREMIND_TESTASSERT(a.template get<I - 1u>()
+                             == b.template get<I - 1u>());
     }
 };
 
 template <typename Msg>
 void checkPackedStruct(Msg & m) noexcept {
     Msg const & cm = m;
-    assert(m.size() == cm.size());
+    SHAREMIND_TESTASSERT(m.size() == cm.size());
     static_assert(std::is_pod<Msg>::value, "");
     static_assert(sizeof(Msg) == Msg::staticSize, "");
 
@@ -82,12 +83,12 @@ void checkPackedStruct(Msg & m) noexcept {
         std::is_same<decltype(m.endConstVoidPtr()), void const *>::value, "");
     static_assert(
         std::is_same<decltype(cm.endConstVoidPtr()), void const *>::value, "");
-    assert(m.endVoidPtr() == cm.endVoidPtr());
-    assert(m.endVoidPtr() == m.endConstVoidPtr());
-    assert(m.endVoidPtr() == cm.endConstVoidPtr());
-    assert(m.endVoidPtr() == ptrAdd(m.data(), m.size()));
+    SHAREMIND_TESTASSERT(m.endVoidPtr() == cm.endVoidPtr());
+    SHAREMIND_TESTASSERT(m.endVoidPtr() == m.endConstVoidPtr());
+    SHAREMIND_TESTASSERT(m.endVoidPtr() == cm.endConstVoidPtr());
+    SHAREMIND_TESTASSERT(m.endVoidPtr() == ptrAdd(m.data(), m.size()));
 
-    assert(cm.size() == Msg::staticSize);
+    SHAREMIND_TESTASSERT(cm.size() == Msg::staticSize);
     Msg m2;
     std::memcpy(&m2, &cm, sizeof(Msg));
     PackedStructEqualityChecker<Msg>::check(cm, m2);

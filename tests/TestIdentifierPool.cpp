@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <random>
+#include "../src/TestAssert.h"
 
 
 int main() {
@@ -49,7 +50,7 @@ int main() {
         do { \
             auto const n = (num); \
             auto size = reserved.size(); \
-            assert(size >= n); \
+            SHAREMIND_TESTASSERT(size >= n); \
             for (unsigned i = 0u; i < n; ++i) { \
                 auto const id = reserved[--size]; \
                 reserved.pop_back(); \

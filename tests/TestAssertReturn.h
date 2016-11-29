@@ -18,20 +18,18 @@
  */
 
 #include "../src/AssertReturn.h"
-#include "../src/compiler-support/GccNoreturn.h"
 
 #include <cstdlib>
 #include <memory>
+#include "../src/compiler-support/GccNoreturn.h"
+#include "../src/TestAssert.h"
 
 #ifndef NDEBUG
-#include <cassert>
 #include <signal.h>
+
 
 SHAREMIND_GCC_NORETURN_PART1 void handleAbort(int) SHAREMIND_GCC_NORETURN_PART2;
 void handleAbort(int) { exit(0); }
-#define MYASSERT(...) assert(__VA_ARGS__);
-#else
-#define MYASSERT(...) if (!(__VA_ARGS__)) return EXIT_FAILURE;
 #endif
 
 
@@ -39,7 +37,7 @@ int main() {
     auto sPtr = std::make_shared<int>(42);
     std::weak_ptr<int> wPtr(sPtr);
     auto sPtr2 = SHAREMIND_ASSERTRETURN(wPtr.lock());
-    MYASSERT(sPtr2.use_count() == 2u);
+    SHAREMIND_TESTASSERT(sPtr2.use_count() == 2u);
 
     sPtr.reset();
     sPtr2.reset();
@@ -49,7 +47,7 @@ int main() {
     #endif
 
     auto const sPtr3 = SHAREMIND_ASSERTRETURN(wPtr.lock());
-    MYASSERT(!sPtr3);
+    SHAREMIND_TESTASSERT(!sPtr3);
     #ifndef NDEBUG
     return EXIT_FAILURE;
     #endif

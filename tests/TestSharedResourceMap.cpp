@@ -20,7 +20,6 @@
 #include "../src/SharedResourceMap.h"
 
 #include <atomic>
-#include <cassert>
 // #include <chrono>
 #include <condition_variable>
 #include <memory>
@@ -28,6 +27,8 @@
 #include <thread>
 #include <type_traits>
 #include <vector>
+#include "../src/TestAssert.h"
+
 
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
@@ -63,9 +64,10 @@ std::atomic<NC<decltype(maxConstructions)> > constructions(0u);
 struct SomeClass {
     SomeClass(unsigned const v = 42u) : value(v) { inc(constructions); }
     unsigned value;
-    void f(unsigned const expected, std::atomic<unsigned> & cnt) const noexcept {
+    void f(unsigned const expected, std::atomic<unsigned> & cnt) const noexcept
+    {
         (void) expected;
-        assert(value == expected);
+        SHAREMIND_TESTASSERT(value == expected);
         inc(cnt);
     }
 };
@@ -104,7 +106,7 @@ void threadFun() noexcept {
             unsigned const number = is40 ? 40u : 42u;
             auto & cnt = is40 ? count40 : count42;
             auto v = map.getResource(number, constr);
-            assert(v);
+            SHAREMIND_TESTASSERT(v);
             v->f(number, cnt);
         }
     } catch (std::bad_alloc const &) {}
@@ -119,26 +121,26 @@ int main() {
                     { return std::unique_ptr<SomeClass>(new SomeClass(42u)); });
         static_assert(std::is_same<decltype(a),
                                    std::shared_ptr<SomeClass> >::value, "");
-        assert(a);
-        assert(a->value == 42u);
+        SHAREMIND_TESTASSERT(a);
+        SHAREMIND_TESTASSERT(a->value == 42u);
         auto b = map.getResource(42u);
         static_assert(std::is_same<decltype(a), decltype(b)>::value, "");
-        assert(b);
-        assert(b->value == 42u);
+        SHAREMIND_TESTASSERT(b);
+        SHAREMIND_TESTASSERT(b->value == 42u);
         auto c = map.getResource(40u, constr);
         static_assert(std::is_same<decltype(a), decltype(c)>::value, "");
-        assert(c);
-        assert(c->value == 40u);
-        assert(map.size() == 2u);
-        assert(a == b);
-        assert(a != c);
-        assert(b != c);
+        SHAREMIND_TESTASSERT(c);
+        SHAREMIND_TESTASSERT(c->value == 40u);
+        SHAREMIND_TESTASSERT(map.size() == 2u);
+        SHAREMIND_TESTASSERT(a == b);
+        SHAREMIND_TESTASSERT(a != c);
+        SHAREMIND_TESTASSERT(b != c);
         b.reset();
-        assert(map.size() == 2u);
+        SHAREMIND_TESTASSERT(map.size() == 2u);
         a.reset();
-        assert(map.size() == 1u);
+        SHAREMIND_TESTASSERT(map.size() == 1u);
     }
-    assert(map.empty());
+    SHAREMIND_TESTASSERT(map.empty());
 
     constructions.store(0u, relax);
     std::vector<std::thread> threads;
@@ -174,19 +176,17 @@ int main() {
         (*threads.rbegin()).join();
         threads.pop_back();
     }
-    assert(map.empty());
-    assert(count40.load(relax) == expectedCount);
-    assert(count42.load(relax) == expectedCount);
+    SHAREMIND_TESTASSERT(map.empty());
+    SHAREMIND_TESTASSERT(count40.load(relax) == expectedCount);
+    SHAREMIND_TESTASSERT(count42.load(relax) == expectedCount);
 
-    assert(constructions.load(relax) <= maxConstructions);
+    SHAREMIND_TESTASSERT(constructions.load(relax) <= maxConstructions);
     /// \warning The following assertion will fail with very low probability,
     ///          but more so if (numThreads * numIters) is too low.
-    #ifndef NDEBUG
     static auto const might_fail_with_very_low_probability_or_valgrind
             = [](bool const r) noexcept { return r; };
-    #endif
-    assert(might_fail_with_very_low_probability_or_valgrind(
-               constructions.load(relax) < maxConstructions));
+    SHAREMIND_TESTASSERT(might_fail_with_very_low_probability_or_valgrind(
+                             constructions.load(relax) < maxConstructions));
 
     /// \todo Test forEach()
     /// \todo Test waitForEmpty()

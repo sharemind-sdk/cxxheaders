@@ -19,9 +19,9 @@
 
 #include "../src/DynamicPackedStruct.h"
 
-#include <cassert>
 #include <iostream>
 #include <type_traits>
+#include "../src/TestAssert.h"
 
 
 using namespace sharemind;
@@ -68,7 +68,7 @@ int main() {
     std::cout << "Accum[0u] is " << m.m_sizes.at(0u) << std::endl;
     std::cout << "Accum[1u] is " << m.m_sizes.at(1u) << std::endl;
 #endif
-    assert(m.size() == 55u);
+    SHAREMIND_TESTASSERT(m.size() == 55u);
     static_assert(std::is_same<decltype(m.endVoidPtr()), void *>::value, "");
     static_assert(
         std::is_same<decltype(cm.endVoidPtr()), void const *>::value, "");
@@ -76,17 +76,17 @@ int main() {
         std::is_same<decltype(m.endConstVoidPtr()), void const *>::value, "");
     static_assert(
         std::is_same<decltype(cm.endConstVoidPtr()), void const *>::value, "");
-    assert(m.endVoidPtr() == cm.endVoidPtr());
-    assert(m.endVoidPtr() == m.endConstVoidPtr());
-    assert(m.endVoidPtr() == cm.endConstVoidPtr());
-    assert(ptrAdd(m.data(), m.size()) == m.endVoidPtr());
+    SHAREMIND_TESTASSERT(m.endVoidPtr() == cm.endVoidPtr());
+    SHAREMIND_TESTASSERT(m.endVoidPtr() == m.endConstVoidPtr());
+    SHAREMIND_TESTASSERT(m.endVoidPtr() == cm.endConstVoidPtr());
+    SHAREMIND_TESTASSERT(ptrAdd(m.data(), m.size()) == m.endVoidPtr());
 
-    assert(m.elemOffset<0u>() == 0u);
-    assert(m.elemOffset<1u>() == m.elemOffset<0u>() + sizeof(int64_t));
-    assert(m.elemOffset<2u>() == m.elemOffset<1u>() + sizeof(char));
-    assert(m.elemOffset<3u>() == m.elemOffset<2u>() + 3u);
-    assert(m.elemOffset<4u>() == m.elemOffset<3u>() + sizeof(char));
-    assert(m.elemOffset<5u>() == m.elemOffset<4u>() + sizeof(int32_t) * 10u);
+    SHAREMIND_TESTASSERT(m.elemOffset<0u>() == 0u);
+    SHAREMIND_TESTASSERT(m.elemOffset<1u>() == m.elemOffset<0u>() + sizeof(int64_t));
+    SHAREMIND_TESTASSERT(m.elemOffset<2u>() == m.elemOffset<1u>() + sizeof(char));
+    SHAREMIND_TESTASSERT(m.elemOffset<3u>() == m.elemOffset<2u>() + 3u);
+    SHAREMIND_TESTASSERT(m.elemOffset<4u>() == m.elemOffset<3u>() + sizeof(char));
+    SHAREMIND_TESTASSERT(m.elemOffset<5u>() == m.elemOffset<4u>() + sizeof(int32_t) * 10u);
     char const test3[3u] = { '1', '2', '3' };
     m.set<0u>(42);
     m.set<1u>('X');
@@ -104,20 +104,20 @@ int main() {
                       { return static_cast<int32_t>(3 * i * i + 7 * i + 13); };
     for (unsigned i = 0; i < 10; i++) {
         p4[i] = poly(i);
-        assert(p4[i] == poly(i));
-        assert(*(p4 + i) == poly(i));
-        assert((p4 - 17u)[i + 17u] == poly(i));
+        SHAREMIND_TESTASSERT(p4[i] == poly(i));
+        SHAREMIND_TESTASSERT(*(p4 + i) == poly(i));
+        SHAREMIND_TESTASSERT((p4 - 17u)[i + 17u] == poly(i));
     }
     m.set<5u>(42);
     auto const m2 = m;
-    assert(m.get<0u>() == m2.get<0u>());
-    assert(m.get<1u>() == m2.get<1u>());
-    assert(std::memcmp(m2.ptr<2u>(), test3, 3u) == 0);
-    assert(m.get<3u>() == m2.get<3u>());
+    SHAREMIND_TESTASSERT(m.get<0u>() == m2.get<0u>());
+    SHAREMIND_TESTASSERT(m.get<1u>() == m2.get<1u>());
+    SHAREMIND_TESTASSERT(std::memcmp(m2.ptr<2u>(), test3, 3u) == 0);
+    SHAREMIND_TESTASSERT(m.get<3u>() == m2.get<3u>());
     #ifndef NDEBUG
     auto const p42 = m2.constPtr<4u>();
     for (unsigned i = 0; i < 10; i++)
-        assert(p42[i] == poly(i));
+        SHAREMIND_TESTASSERT(p42[i] == poly(i));
     #endif
-    assert(m.get<5u>() == m2.get<5u>());
+    SHAREMIND_TESTASSERT(m.get<5u>() == m2.get<5u>());
 }
