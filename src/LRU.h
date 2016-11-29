@@ -170,12 +170,15 @@ private: /* Methods: */
 
         // then do garbage collection
         for (auto it = m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(begin)();
-             it != m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(end)();
-             ++it)
+             it != m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(end)();)
         {
             if (it->expired()) {
                 m_cacheMap.erase(it->key());
-                m_weakList.erase(it);
+                auto toRemove(it);
+                ++it;
+                m_weakList.erase(std::move(toRemove));
+            } else {
+                ++it;
             }
         }
     }
