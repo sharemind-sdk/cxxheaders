@@ -633,7 +633,7 @@ private: /* Methods: */
         assert(availableUntilBufferEnd > 0u);
         std::size_t maxTransfer = std::numeric_limits<std::size_t>::max()
                                   - totalTransferred;
-        do {
+        for (;;) {
             if (availableUntilBufferEnd < maxTransfer) {
                 std::size_t const toTransfer = availableUntilBufferEnd;
                 std::size_t const transferred =
@@ -642,7 +642,8 @@ private: /* Methods: */
                 availableUntilBufferEnd =
                         Actions::doneRetUbe(this, transferred);
                 totalTransferred += transferred;
-                if (transferred < toTransfer)
+                if ((transferred < toTransfer)
+                    || (availableUntilBufferEnd <= 0u))
                     return totalTransferred;
                 maxTransfer -= transferred;
             } else { // Last iteration:
@@ -652,7 +653,7 @@ private: /* Methods: */
                 Actions::doneNoRet(this, transferred);
                 return totalTransferred + transferred;
             }
-        } while (availableUntilBufferEnd > 0u);
+        }
         return totalTransferred;
     }
 
