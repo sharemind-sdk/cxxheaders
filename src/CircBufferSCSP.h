@@ -570,10 +570,10 @@ private: /* Methods: */
     }
 
     template <typename Actions>
-    inline std::size_t operate(typename Actions::OtherSideType * readPtr,
+    inline std::size_t operate(typename Actions::OtherSideType * copyPtr,
                                std::size_t size) noexcept
     {
-        assert(readPtr);
+        assert(copyPtr);
         assert(size > 0u);
         std::size_t aUBE = Actions::availableUntilBufferEnd(this);
         if (aUBE == 0u)
@@ -582,17 +582,17 @@ private: /* Methods: */
         for (;;) {
             assert(aUBE > 0u);
             if (aUBE >= size) {
-                Actions::copyAction(Actions::operatePtr(this), readPtr, size);
+                Actions::copyAction(Actions::operatePtr(this), copyPtr, size);
                 Actions::doneNoRet(this, size);
                 return transferred + size;
             }
             assert(size > aUBE);
-            Actions::copyAction(Actions::operatePtr(this), readPtr, aUBE);
+            Actions::copyAction(Actions::operatePtr(this), copyPtr, aUBE);
             std::size_t const newAUBE = Actions::doneRetUbe(this, aUBE);
             transferred += aUBE;
             if (newAUBE == 0u)
                 return transferred;
-            readPtr = sharemind::ptrAdd(readPtr, aUBE);
+            copyPtr = sharemind::ptrAdd(copyPtr, aUBE);
             size -= aUBE;
             aUBE = newAUBE;
         }
