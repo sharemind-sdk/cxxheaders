@@ -32,7 +32,6 @@
 #include "compiler-support/GccInheritConstructor.h"
 #include "compiler-support/GccPR50025.h"
 #include "compiler-support/GccVersion.h"
-#include "CountMaxActor.h"
 #include "Durations.h"
 #include "Exception.h"
 #include "FunctionTraits.h"
@@ -600,11 +599,10 @@ private: /* Methods: */
     }
 
     template <typename Actions, typename Actor>
-    inline std::size_t operate(Actor && actor) noexcept {
+    inline std::size_t operate(Actor & actor) noexcept {
         static_assert(
             noexcept(actor(std::declval<typename Actions::BufferSideType *>(),
                            static_cast<std::size_t>(42u))), "");
-        CountMaxActor<Actor> countActor(std::forward<Actor>(actor));
         using WDT = typename std::remove_pointer<
                 typename sharemind::FunctionTraits<Actor>
                         ::template argument<1u>::type
@@ -612,20 +610,47 @@ private: /* Methods: */
         static_assert(std::is_const<typename Actions::BufferSideType>
                             ::value
                       == std::is_const<WDT>::value, "");
+
+        // Is there any (contiguous) data available?
         std::size_t availableUntilBufferEnd =
                 Actions::availableUntilBufferEnd(this);
-        while (availableUntilBufferEnd > 0u) {
-            std::size_t const toTransfer = availableUntilBufferEnd;
-            static_assert(noexcept(countActor(Actions::operatePtr(this),
-                                              toTransfer)), "");
-            std::size_t const transferred =
-                    countActor(Actions::operatePtr(this), toTransfer);
-            assert(transferred <= toTransfer);
-            availableUntilBufferEnd = Actions::doneRetUbe(this, transferred);
-            if (transferred < toTransfer)
-                return countActor.count();
-        }
-        return countActor.count();
+        if (availableUntilBufferEnd <= 0u)
+            return 0u;
+
+        // First iteration:
+        std::size_t totalTransferred =
+                actor(Actions::operatePtr(this), availableUntilBufferEnd);
+        assert(totalTransferred <= availableUntilBufferEnd);
+        availableUntilBufferEnd = Actions::doneRetUbe(this, totalTransferred);
+        if ((totalTransferred < availableUntilBufferEnd)
+            || (availableUntilBufferEnd <= 0u))
+            return totalTransferred;
+
+        // Other iterations:
+        assert(availableUntilBufferEnd > 0u);
+        std::size_t maxTransfer = std::numeric_limits<std::size_t>::max()
+                                  - totalTransferred;
+        do {
+            if (availableUntilBufferEnd < maxTransfer) {
+                std::size_t const toTransfer = availableUntilBufferEnd;
+                std::size_t const transferred =
+                        actor(Actions::operatePtr(this), toTransfer);
+                assert(transferred <= toTransfer);
+                availableUntilBufferEnd =
+                        Actions::doneRetUbe(this, transferred);
+                totalTransferred += transferred;
+                if (transferred < toTransfer)
+                    return totalTransferred;
+                maxTransfer -= transferred;
+            } else { // Last iteration:
+                std::size_t const transferred =
+                        actor(Actions::operatePtr(this), maxTransfer);
+                assert(transferred <= maxTransfer);
+                Actions::doneNoRet(this, transferred);
+                return totalTransferred + transferred;
+            }
+        } while (availableUntilBufferEnd > 0u);
+        return totalTransferred;
     }
 
 private: /* Types: */
@@ -729,17 +754,12 @@ public: /* Methods */
      * \returns the number of elements written.
     */
     template <typename InputProducerActor>
-    inline std::size_t write(InputProducerActor && inputProducerActor)
+    inline std::size_t write(InputProducerActor inputProducerActor)
             noexcept(noexcept(
                         std::declval<Self &>().template operate<
-                                typename Self::WriteActions,
-                                InputProducerActor>(
-                             std::forward<InputProducerActor>(
-                                 inputProducerActor))))
-    {
-        return operate<WriteActions, InputProducerActor>(
-                    std::forward<InputProducerActor>(inputProducerActor));
-    }
+                                typename Self::WriteActions>(
+                                    inputProducerActor)))
+    { return operate<WriteActions>(inputProducerActor); }
 
     /**
      * \brief Uses the given actor to read from the buffer.
@@ -747,17 +767,12 @@ public: /* Methods */
      * \returns the number of elements read.
     */
     template <typename OutputConsumerActor>
-    inline std::size_t read(OutputConsumerActor && outputConsumerActor)
+    inline std::size_t read(OutputConsumerActor outputConsumerActor)
             noexcept(noexcept(
                          std::declval<Self &>().template operate<
-                                Self::ReadActions,
-                                OutputConsumerActor>(
-                             std::forward<OutputConsumerActor>(
-                                 outputConsumerActor))))
-    {
-        return operate<ReadActions, OutputConsumerActor>(
-                    std::forward<OutputConsumerActor>(outputConsumerActor));
-    }
+                                typename Self::ReadActions>(
+                                    outputConsumerActor)))
+    { return operate<ReadActions>(outputConsumerActor); }
 
     #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
     #undef Self
