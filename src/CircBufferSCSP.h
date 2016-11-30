@@ -618,13 +618,16 @@ private: /* Methods: */
             return 0u;
 
         // First iteration:
-        std::size_t totalTransferred =
-                actor(Actions::operatePtr(this), availableUntilBufferEnd);
-        assert(totalTransferred <= availableUntilBufferEnd);
-        availableUntilBufferEnd = Actions::doneRetUbe(this, totalTransferred);
-        if ((totalTransferred < availableUntilBufferEnd)
-            || (availableUntilBufferEnd <= 0u))
-            return totalTransferred;
+        std::size_t totalTransferred;
+        {
+            std::size_t const toTransfer = availableUntilBufferEnd;
+            totalTransferred = actor(Actions::operatePtr(this), toTransfer);
+            assert(totalTransferred <= toTransfer);
+            availableUntilBufferEnd = Actions::doneRetUbe(this, totalTransferred);
+            if ((totalTransferred < toTransfer)
+                || (availableUntilBufferEnd <= 0u))
+                return totalTransferred;
+        }
 
         // Other iterations:
         assert(availableUntilBufferEnd > 0u);
