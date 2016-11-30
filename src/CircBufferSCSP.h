@@ -623,7 +623,8 @@ private: /* Methods: */
             std::size_t const toTransfer = availableUntilBufferEnd;
             totalTransferred = actor(Actions::operatePtr(this), toTransfer);
             assert(totalTransferred <= toTransfer);
-            availableUntilBufferEnd = Actions::doneRetUbe(this, totalTransferred);
+            availableUntilBufferEnd =
+                    Actions::doneRetUbe(this, totalTransferred);
             if ((totalTransferred < toTransfer)
                 || (availableUntilBufferEnd <= 0u))
                 return totalTransferred;
