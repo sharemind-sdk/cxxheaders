@@ -631,10 +631,10 @@ private: /* Methods: */
         }
 
         // Other iterations:
-        assert(availableUntilBufferEnd > 0u);
         std::size_t maxTransfer = std::numeric_limits<std::size_t>::max()
                                   - totalTransferred;
         for (;;) {
+            assert(availableUntilBufferEnd > 0u);
             if (availableUntilBufferEnd < maxTransfer) {
                 std::size_t const toTransfer = availableUntilBufferEnd;
                 std::size_t const transferred =
