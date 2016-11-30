@@ -36,37 +36,11 @@
 #include "Durations.h"
 #include "Exception.h"
 #include "FunctionTraits.h"
-#include "PartialStreamOperationException.h"
 #include "PotentiallyVoidTypeInfo.h"
 
 
 namespace sharemind {
 namespace Detail {
-
-template <typename CountActor, bool isNoexcept = CountActor::isNoexcept>
-struct CircBufferScspCountActorCaller {
-    template <typename ... Args>
-    inline std::size_t operator()(CountActor & countActor, Args && ... args) {
-        try {
-            return countActor(std::forward<Args>(args)...);
-        } catch (typename CountActor::Exception const &) {
-            PartialStreamOperationException::throwWithCurrent(
-                        countActor.count());
-        } catch (PartialStreamOperationException & e) {
-            e.addToSize(countActor.count());
-            throw;
-        } catch (...) {
-            std::unexpected();
-        }
-    }
-};
-
-template <typename CountActor>
-struct CircBufferScspCountActorCaller<CountActor, true> {
-    template <typename ... Args>
-    inline std::size_t operator()(CountActor & actor, Args && ... args) noexcept
-    { return actor(std::forward<Args>(args)...); }
-};
 
 template <typename MutexType>
 struct CircBufferScspLockingConditionVariable
@@ -626,12 +600,10 @@ private: /* Methods: */
     }
 
     template <typename Actions, typename Actor>
-    inline std::size_t operate(Actor && actor)
-            noexcept(noexcept(
-                         actor(
-                             std::declval<typename Actions::BufferSideType *>(),
-                             static_cast<std::size_t>(42u))))
-    {
+    inline std::size_t operate(Actor && actor) noexcept {
+        static_assert(
+            noexcept(actor(std::declval<typename Actions::BufferSideType *>(),
+                           static_cast<std::size_t>(42u))), "");
         CountMaxActor<Actor> countActor(std::forward<Actor>(actor));
         using WDT = typename std::remove_pointer<
                 typename sharemind::FunctionTraits<Actor>
@@ -642,11 +614,12 @@ private: /* Methods: */
                       == std::is_const<WDT>::value, "");
         std::size_t availableUntilBufferEnd =
                 Actions::availableUntilBufferEnd(this);
-        using C = Detail::CircBufferScspCountActorCaller<decltype(countActor)>;
         while (availableUntilBufferEnd > 0u) {
             std::size_t const toTransfer = availableUntilBufferEnd;
+            static_assert(noexcept(countActor(Actions::operatePtr(this),
+                                              toTransfer)), "");
             std::size_t const transferred =
-                    C()(countActor, Actions::operatePtr(this), toTransfer);
+                    countActor(Actions::operatePtr(this), toTransfer);
             assert(transferred <= toTransfer);
             availableUntilBufferEnd = Actions::doneRetUbe(this, transferred);
             if (transferred < toTransfer)
