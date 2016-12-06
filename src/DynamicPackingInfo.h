@@ -25,7 +25,6 @@
 #include <limits>
 #include <type_traits>
 #include <utility>
-#include "Add.h"
 #include "compiler-support/ClangPR26692.h"
 #include "ConstUnalignedReference.h"
 #include "PackingInfo.h"
@@ -110,6 +109,25 @@ struct FieldTraits<DynamicVectorFieldPlaceholder<T, min_, max_> > {
             DynamicVectorFieldPlaceholder<T, min_, max_>::minBytes;
     constexpr static std::size_t const maxBytes =
             DynamicVectorFieldPlaceholder<T, min_, max_>::maxBytes;
+};
+
+template <typename ... Ts> struct FieldsTraits;
+
+template <>
+struct FieldsTraits<> {
+    constexpr static bool const isStatic = true;
+    constexpr static std::size_t const minBytes = 0u;
+    constexpr static std::size_t const maxBytes = 0u;
+};
+
+template <typename T, typename ... Ts>
+struct FieldsTraits<T, Ts...> {
+    constexpr static bool const isStatic =
+            FieldTraits<T>::isStatic && FieldsTraits<Ts...>::isStatic;
+    constexpr static std::size_t const minBytes =
+            FieldTraits<T>::minBytes + FieldsTraits<Ts...>::minBytes;
+    constexpr static std::size_t const maxBytes =
+            FieldTraits<T>::maxBytes + FieldsTraits<Ts...>::maxBytes;
 };
 
 template <typename ... Ts> struct ValidSizes;
@@ -262,10 +280,10 @@ struct DynamicPackingInfo {
 /* Constants: */
 
     constexpr static std::size_t const minSizeInBytes =
-            add(0u, Detail::DynamicPacking::FieldTraits<Ts>::minBytes...);
+            Detail::DynamicPacking::FieldsTraits<Ts...>::minBytes;
 
     constexpr static std::size_t const maxSizeInBytes =
-            add(0u, Detail::DynamicPacking::FieldTraits<Ts>::maxBytes...);
+            Detail::DynamicPacking::FieldsTraits<Ts...>::maxBytes;
 
     constexpr static std::size_t const numFields = sizeof...(Ts);
 
