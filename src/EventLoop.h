@@ -32,47 +32,46 @@ class EventLoop {
 
 public: /* Constants: */
 
-    static constexpr std::size_t const DEFAULT_MAX_EVENTS = 128u;
-    static constexpr int const DEFAULT_EPOLL_TIMEOUT_MS = 50;
+    static constexpr std::size_t DEFAULT_MAX_EVENTS = 128u;
+    static constexpr int DEFAULT_EPOLL_TIMEOUT_MS = 50;
 
     #if defined(__linux__)
     using EventSet = std::uint32_t;
-    static constexpr EventSet const COMMON_ERROR_EVENTS = EPOLLERR;
-    static constexpr EventSet const INPUT_ERROR_EVENTS = COMMON_ERROR_EVENTS;
-    static constexpr EventSet const OUTPUT_ERROR_EVENTS = COMMON_ERROR_EVENTS;
-    static constexpr EventSet const ALL_ERROR_EVENTS =
+    static constexpr EventSet COMMON_ERROR_EVENTS = EPOLLERR;
+    static constexpr EventSet INPUT_ERROR_EVENTS = COMMON_ERROR_EVENTS;
+    static constexpr EventSet OUTPUT_ERROR_EVENTS = COMMON_ERROR_EVENTS;
+    static constexpr EventSet ALL_ERROR_EVENTS =
             INPUT_ERROR_EVENTS | OUTPUT_ERROR_EVENTS;
 
-    static constexpr EventSet const COMMON_HUP_EVENTS = EPOLLHUP;
-    static constexpr EventSet const INPUT_HUP_EVENTS =
+    static constexpr EventSet COMMON_HUP_EVENTS = EPOLLHUP;
+    static constexpr EventSet INPUT_HUP_EVENTS =
             COMMON_HUP_EVENTS | EPOLLRDHUP;
-    static constexpr EventSet const OUTPUT_HUP_EVENTS = COMMON_HUP_EVENTS;
-    static constexpr EventSet const ALL_HUP_EVENTS =
+    static constexpr EventSet OUTPUT_HUP_EVENTS = COMMON_HUP_EVENTS;
+    static constexpr EventSet ALL_HUP_EVENTS =
             INPUT_HUP_EVENTS | OUTPUT_HUP_EVENTS;
 
-    static constexpr EventSet const COMMON_FATAL_EVENTS =
+    static constexpr EventSet COMMON_FATAL_EVENTS =
             COMMON_ERROR_EVENTS | COMMON_HUP_EVENTS;
-    static constexpr EventSet const INPUT_FATAL_EVENTS =
+    static constexpr EventSet INPUT_FATAL_EVENTS =
             INPUT_ERROR_EVENTS | INPUT_HUP_EVENTS;
-    static constexpr EventSet const OUTPUT_FATAL_EVENTS =
+    static constexpr EventSet OUTPUT_FATAL_EVENTS =
             OUTPUT_ERROR_EVENTS | OUTPUT_HUP_EVENTS;
-    static constexpr EventSet const ALL_FATAL_EVENTS =
+    static constexpr EventSet ALL_FATAL_EVENTS =
             ALL_ERROR_EVENTS | ALL_HUP_EVENTS;
 
-    static constexpr EventSet const COMMON_DATA_EVENTS = 0u;
-    static constexpr EventSet const INPUT_DATA_EVENTS =
+    static constexpr EventSet COMMON_DATA_EVENTS = 0u;
+    static constexpr EventSet INPUT_DATA_EVENTS =
             COMMON_DATA_EVENTS | EPOLLPRI | EPOLLIN;
-    static constexpr EventSet const OUTPUT_DATA_EVENTS =
+    static constexpr EventSet OUTPUT_DATA_EVENTS =
             COMMON_DATA_EVENTS | EPOLLOUT;
-    static constexpr EventSet const ALL_DATA_EVENTS =
+    static constexpr EventSet ALL_DATA_EVENTS =
             INPUT_DATA_EVENTS | OUTPUT_DATA_EVENTS;
 
-    static constexpr EventSet const ALL_INPUT_EVENTS =
+    static constexpr EventSet ALL_INPUT_EVENTS =
             INPUT_DATA_EVENTS | INPUT_FATAL_EVENTS;
-    static constexpr EventSet const ALL_OUTPUT_EVENTS =
+    static constexpr EventSet ALL_OUTPUT_EVENTS =
             OUTPUT_DATA_EVENTS | OUTPUT_FATAL_EVENTS;
-    static constexpr EventSet const ALL_EVENTS =
-            ALL_DATA_EVENTS | ALL_FATAL_EVENTS;
+    static constexpr EventSet ALL_EVENTS = ALL_DATA_EVENTS | ALL_FATAL_EVENTS;
     #endif
 
 public: /* Types: */
@@ -331,7 +330,7 @@ public: /* Methods: */
                         return;
                     assert(signalEvent.events & INPUT_DATA_EVENTS);
                     // Flush pipe:
-                    constexpr static std::size_t const DISCARD_SIZE =
+                    constexpr static std::size_t DISCARD_SIZE =
                             sizeof(::epoll_event) * DEFAULT_MAX_EVENTS;
                     for (;;) {
                         auto const rd = ::read(m_closePipe.readEnd,

@@ -41,19 +41,19 @@ class DynamicPackedStruct {
 
 public: /* Constants: */
 
-    constexpr static std::size_t const minSizeInBytes =
+    constexpr static std::size_t minSizeInBytes =
             DynamicPackingInfo<Ts...>::minSizeInBytes;
 
-    constexpr static std::size_t const maxSizeInBytes =
+    constexpr static std::size_t maxSizeInBytes =
             DynamicPackingInfo<Ts...>::maxSizeInBytes;
 
-    constexpr static std::size_t const numFields =
+    constexpr static std::size_t numFields =
             DynamicPackingInfo<Ts...>::numFields;
 
-    constexpr static std::size_t const numDynamicFields =
+    constexpr static std::size_t numDynamicFields =
             DynamicPackingInfo<Ts...>::numDynamicFields;
 
-    constexpr static std::size_t const hasDynamicFields =
+    constexpr static std::size_t hasDynamicFields =
             DynamicPackingInfo<Ts...>::hasDynamicFields;
 
 public: /* Types: */
@@ -145,7 +145,7 @@ public: /* Methods: */
     }
 
     DynamicPackedStruct & operator=(type const & copy) {
-        constexpr static auto const lastSizesIndex = numDynamicFields - 1u;
+        constexpr static auto lastSizesIndex = numDynamicFields - 1u;
         if (copy.m_data) {
             if (m_data) {
                 if (m_sizes[lastSizesIndex] != copy.m_sizes[lastSizesIndex]) {

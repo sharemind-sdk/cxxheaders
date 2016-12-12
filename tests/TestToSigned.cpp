@@ -39,7 +39,7 @@ struct TestWithUnsigned {
     static_assert(std::is_same<R, RCVR>::value, "");
     static_assert(std::is_same<R, typename std::make_signed<T>::type>::value,
                   "");
-    constexpr static bool const value = true;
+    constexpr static bool value = true;
 };
 
 template <typename T>
@@ -55,7 +55,7 @@ struct TestWithSigned {
     static_assert(std::is_same<RCR, T const &>::value, "");
     static_assert(std::is_same<RVR, T const volatile &>::value, "");
     static_assert(std::is_same<RCVR, T const volatile &>::value, "");
-    constexpr static bool const value = true;
+    constexpr static bool value = true;
 };
 
 static_assert(TestWithUnsigned<unsigned char>::value, "");

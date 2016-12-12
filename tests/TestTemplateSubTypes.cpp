@@ -40,7 +40,7 @@ struct Test {
         template <typename ... Ts2_>
         using S = sharemind::TemplateSubTypes_t<Index_, Size_, Ts2_...>;
 
-        constexpr static bool const value =
+        constexpr static bool value =
                 std::is_same<
                     sharemind::TemplateInstantiateWithTypeParams_t<S, Input_>,
                     sharemind::TemplateTypeList<Ts_...>
@@ -51,7 +51,7 @@ struct Test {
     template <typename P, typename S>
     using More = sharemind::TemplateInstantiateWithTypeParams_t<I, P, Input, S>;
 
-    constexpr static bool const value =
+    constexpr static bool value =
             B<Input, Index, Size, Ts...>::value
             && B<More<I<X, X, X>, I<> >, Index + 3u, Size, Ts...>::value
             && B<More<I<X, Y, Z>, I<> >, Index + 3u, Size, Ts...>::value

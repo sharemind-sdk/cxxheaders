@@ -40,25 +40,25 @@
 
 namespace {
 
-constexpr unsigned const numThreads = 100u;
-constexpr unsigned const numIters = 100000u;
+constexpr unsigned numThreads = 100u;
+constexpr unsigned numIters = 100000u;
 
 template <typename T>
 using NC = typename std::remove_const<T>::type;
 
-constexpr auto const expectedCount = (numThreads * numIters) / 2u;
+constexpr auto expectedCount = (numThreads * numIters) / 2u;
 std::atomic<NC<decltype(expectedCount)> > count40(0u);
 std::atomic<NC<decltype(expectedCount)> > count42(0u);
 
 std::atomic<unsigned> whichNumber(0u);
 
-constexpr std::memory_order const relax = std::memory_order_relaxed;
+constexpr std::memory_order relax = std::memory_order_relaxed;
 
 template <typename A>
 inline A inc(std::atomic<A> & v) noexcept
 { return v.fetch_add(1u, relax); }
 
-constexpr auto const maxConstructions = (numThreads * numIters);
+constexpr auto maxConstructions = (numThreads * numIters);
 std::atomic<NC<decltype(maxConstructions)> > constructions(0u);
 
 struct SomeClass {

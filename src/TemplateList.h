@@ -24,7 +24,7 @@ namespace sharemind {
 
 template <typename T, T ... Values> struct TemplateList {
     using type = TemplateList<T, Values...>;
-    static constexpr auto const size = sizeof...(Values);
+    static constexpr auto size = sizeof...(Values);
 };
 
 } /* namespace sharemind { */

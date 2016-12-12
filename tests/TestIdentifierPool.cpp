@@ -30,12 +30,12 @@ int main() {
 
     sharemind::IdentifierPool<unsigned> pool;
     std::vector<unsigned> reserved;
-    constexpr static unsigned const ADD1 = 1000u;
-    constexpr static unsigned const REMOVE1 = 700u; // 300u
-    constexpr static unsigned const ADD2 = 900u;    // 1200u
-    constexpr static unsigned const REMOVE2 = 300u; // 900u
-    constexpr static unsigned const ADD3 = 500u;    // 1400u
-    constexpr static unsigned const REMOVE3 = 400u; // 1000u
+    constexpr static unsigned ADD1 = 1000u;
+    constexpr static unsigned REMOVE1 = 700u; // 300u
+    constexpr static unsigned ADD2 = 900u;    // 1200u
+    constexpr static unsigned REMOVE2 = 300u; // 900u
+    constexpr static unsigned ADD3 = 500u;    // 1400u
+    constexpr static unsigned REMOVE3 = 400u; // 1000u
 
     reserved.reserve(2000u);
     #define SHUFFLE \

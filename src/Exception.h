@@ -122,7 +122,7 @@ class ErrnoException: public Exception {
 
 public: /* Constants: */
 
-    constexpr static std::size_t const BUFFER_SIZE = 1024u;
+    constexpr static std::size_t BUFFER_SIZE = 1024u;
 
 public: /* Methods: */
 

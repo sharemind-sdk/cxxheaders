@@ -38,19 +38,19 @@ enum LiteralType { Oct, Dec, Hex, Float };
 
 template <std::uintmax_t Base>
 struct LiteralBase {
-    constexpr static bool const valid = true;
-    constexpr static std::uintmax_t const base = Base;
+    constexpr static bool valid = true;
+    constexpr static std::uintmax_t base = Base;
 };
 
-struct InvalidDigit { constexpr static bool const valid = false; };
+struct InvalidDigit { constexpr static bool valid = false; };
 
 template <std::uintmax_t Base, std::uintmax_t Max, std::uintmax_t Value>
 struct LastDigit: LiteralBase<Base> {
-    constexpr static bool const overflow = Value > Max;
-    constexpr static bool const valid = true;
-    constexpr static std::uintmax_t const value = Value;
-    constexpr static std::uintmax_t const rank = 1u;
-    constexpr static std::uintmax_t const digits = 1u;
+    constexpr static bool overflow = Value > Max;
+    constexpr static bool valid = true;
+    constexpr static std::uintmax_t value = Value;
+    constexpr static std::uintmax_t rank = 1u;
+    constexpr static std::uintmax_t digits = 1u;
 };
 
 template <std::uintmax_t Max, std::uintmax_t Value>
@@ -61,10 +61,10 @@ template <std::uintmax_t Max, std::uintmax_t Value>
 using HexDigit = LastDigit<16u, Max, Value>;
 
 template <std::uintmax_t Max> struct OctLiteral<Max>: LiteralBase<8u> {
-    constexpr static bool const overflow = false;
-    constexpr static bool const valid = true;
-    constexpr static std::uintmax_t const value = 0u;
-    constexpr static std::uintmax_t const digits = 0u;
+    constexpr static bool overflow = false;
+    constexpr static bool valid = true;
+    constexpr static std::uintmax_t value = 0u;
+    constexpr static std::uintmax_t digits = 0u;
 };
 template <std::uintmax_t Max> struct OctLiteral<Max, '0'>: OctDigit<Max, 0u> {};
 template <std::uintmax_t Max> struct OctLiteral<Max, '1'>: OctDigit<Max, 1u> {};
@@ -114,19 +114,19 @@ template <std::uintmax_t Max, char C> struct HexLiteral<Max, C>: InvalidDigit {}
 
 template <char ...> struct AreOctDigits: std::true_type {};
 template <char C, char ... Cs> struct AreOctDigits<C, Cs...> {
-    constexpr static bool const value =
+    constexpr static bool value =
         OctLiteral<0u, C>::valid && AreOctDigits<Cs...>::value;
 };
 
 template <char ...> struct AreDecDigits: std::true_type {};
 template <char C, char ... Cs> struct AreDecDigits<C, Cs...> {
-    constexpr static bool const value =
+    constexpr static bool value =
         DecLiteral<0u, C>::valid && AreDecDigits<Cs...>::value;
 };
 
 template <char ...> struct AreHexDigits: std::true_type {};
 template <char C, char ... Cs> struct AreHexDigits<C, Cs...> {
-    constexpr static bool const value =
+    constexpr static bool value =
         HexLiteral<0u, C>::valid && AreHexDigits<Cs...>::value;
 };
 
@@ -135,8 +135,8 @@ struct LiteralStep {
     using Head = T<Max, D>;
     using Tail = T<Max, C, Cs...>;
     static_assert(Head::base == Tail::base, "");
-    constexpr static std::uintmax_t const base = Head::base;
-    constexpr static bool const overflow =
+    constexpr static std::uintmax_t base = Head::base;
+    constexpr static bool overflow =
             Head::overflow
             || Tail::overflow
             || ((Head::value != 0)
@@ -146,9 +146,9 @@ struct LiteralStep {
                     || (Tail::value
                         > (Max - (Head::value * (Tail::rank * base))))
                 ));
-    constexpr static std::uintmax_t const rank = Tail::rank * base;
-    constexpr static std::uintmax_t const value = Head::value * rank + Tail::value;
-    constexpr static std::uintmax_t const digits = Tail::digits + Head::digits;
+    constexpr static std::uintmax_t rank = Tail::rank * base;
+    constexpr static std::uintmax_t value = Head::value * rank + Tail::value;
+    constexpr static std::uintmax_t digits = Tail::digits + Head::digits;
 };
 
 template <std::uintmax_t Max, char D, char C, char ... Cs>
@@ -167,16 +167,16 @@ struct OctLiteral<Max, D, C, Cs...>
 {};
 
 struct InvalidLiteral {
-    constexpr static bool const valid = false;
-    constexpr static std::uintmax_t const base = 0u;
-    constexpr static bool const overflow = false;
-    constexpr static std::uintmax_t const value = 0u;
-    constexpr static std::uintmax_t const rank = 0u;
-    constexpr static std::uintmax_t const digits = 0u;
+    constexpr static bool valid = false;
+    constexpr static std::uintmax_t base = 0u;
+    constexpr static bool overflow = false;
+    constexpr static std::uintmax_t value = 0u;
+    constexpr static std::uintmax_t rank = 0u;
+    constexpr static std::uintmax_t digits = 0u;
 };
 
 template <typename T>
-struct ValidLiteral: T { constexpr static bool const valid = true; };
+struct ValidLiteral: T { constexpr static bool valid = true; };
 
 template <std::uintmax_t Max, char ... Cs>
 struct Literal_: std::conditional<
@@ -215,7 +215,7 @@ struct Literal_<Max, '0', Cs...>
 
 template <std::uintmax_t Max, char ... Cs>
 struct Literal: Literal_<Max, Cs...>
-{ constexpr static auto const chars = sizeof...(Cs); };
+{ constexpr static auto chars = sizeof...(Cs); };
 
 } /* namespace Detail { */
 } /* namespace IntegerLiterals { */

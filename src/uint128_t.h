@@ -260,7 +260,7 @@ inline bool operator >= (uint128_t x, uint128_t y) { return !(x < y); }
 
 inline std::ostream& operator << (std::ostream& os, uint128_t x) {
     // enough to fit the number in base 8 + extra:
-    constexpr std::size_t const buff_size = 64;
+    constexpr std::size_t buff_size = 64;
     static char const lower[] = "0123456789abcdef";
     static char const upper[] = "0123456789ABCDEF";
     char buff[buff_size];

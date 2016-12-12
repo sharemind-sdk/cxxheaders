@@ -56,7 +56,7 @@ class CircBufferScspLocking {
 
 public: /* Constants: */
 
-    constexpr static bool const providesWait = true;
+    constexpr static bool providesWait = true;
 
 public: /* Types: */
 
@@ -118,7 +118,7 @@ class CircBufferNoLocking {
 
 public: /* Constants: */
 
-    constexpr static bool const providesWait = false;
+    constexpr static bool providesWait = false;
 
 public: /* Methods: */
 

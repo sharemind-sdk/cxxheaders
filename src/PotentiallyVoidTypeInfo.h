@@ -104,10 +104,10 @@ struct Copy<T, true> {
 };
 
 template <typename T, bool = std::is_void<T>::value>
-struct Sizeof { constexpr static auto const value = sizeof(T); };
+struct Sizeof { constexpr static auto value = sizeof(T); };
 
 template <typename T> struct Sizeof<T, true>
-{ constexpr static auto const value = sizeof(UChar); };
+{ constexpr static auto value = sizeof(UChar); };
 
 } // namespace PotentiallyVoidTypeInfo {
 } // namespace Detail {

@@ -30,12 +30,12 @@ namespace impl {
 
 template <typename T>
 struct size_in_bits {
-    static constexpr std::size_t const value = sizeof (T) * 8u;
+    static constexpr std::size_t value = sizeof (T) * 8u;
 };
 
 template <>
 struct size_in_bits<bool> {
-    static constexpr std::size_t const value = 1u;
+    static constexpr std::size_t value = 1u;
 };
 
 // Feel free to loosen the restrictions here
