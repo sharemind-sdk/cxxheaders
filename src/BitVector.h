@@ -45,7 +45,7 @@ namespace sharemind {
  * It's possible that the Block size need not be polymorphic, this would simplify (de)serialization greatly.
  */
 
-template < typename Block = uint64_t
+template < typename Block = std::uint64_t
          , typename Alloc = std::allocator<Block>
          , typename BlockStore = std::vector<Block, Alloc>
          >
@@ -56,15 +56,15 @@ private: /* Types: */
     using block_type = Block;
     using store_type = BlockStore;
 
-    static constexpr size_t bytes_per_block = sizeof (block_type);
-    static constexpr size_t bits_per_block = 8u * bytes_per_block;
+    static constexpr std::size_t bytes_per_block = sizeof (block_type);
+    static constexpr std::size_t bits_per_block = 8u * bytes_per_block;
 
     /* The following is to reduce the use of magic constant 64.
      * We assume that the serialization block width is bigger than the bit vectors block width.
      */
     struct Serialization {
-        using block_type = uint64_t;
-        static constexpr size_t block_width = 8u * sizeof (block_type);
+        using block_type = std::uint64_t;
+        static constexpr std::size_t block_width = 8u * sizeof (block_type);
     };
 
     static_assert(sizeof(block_type) <= sizeof(typename Serialization::block_type),
@@ -261,10 +261,10 @@ public: /* Methods: */
     void assignBits (InputIterator begin, InputIterator end) {
         using input_value_type = typename std::iterator_traits<InputIterator>::value_type;
         const std::vector<input_value_type> temp (begin, end);
-        const size_t size = temp.size ();
+        const std::size_t size = temp.size ();
         assert (this->size () == (8 * sizeof (input_value_type) * size));
         if (! m_blocks.empty ()) {
-            memcpy (&m_blocks[0], &temp[0], sizeof (input_value_type) * size);
+            std::memcpy(&m_blocks[0], &temp[0], sizeof (input_value_type) * size);
         }
     }
 
@@ -406,8 +406,8 @@ private: /* Methods: */
             return false;
 
         if (! empty ()) {
-            const size_t n = other.m_blocks.size ();
-            size_t i = 0;
+            std::size_t const n = other.m_blocks.size ();
+            std::size_t i = 0;
             for (i = 0; i < n - 1; ++ i) {
                 if (m_blocks[i] != other.m_blocks[i])
                     return false;
