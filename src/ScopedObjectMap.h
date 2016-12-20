@@ -24,11 +24,11 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <sharemind/compiler-support/GccVersion.h>
 #include <type_traits>
 #include <utility>
 #include "compiler-support/GccIsNothrowDestructible.h"
 #include "compiler-support/GccPR44436.h"
-#include "compiler-support/GccVersion.h"
 
 
 namespace sharemind {
