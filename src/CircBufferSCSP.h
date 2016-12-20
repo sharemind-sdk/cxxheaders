@@ -655,23 +655,6 @@ public: /* Methods: */
                                     std::forward<LoopDuration>(loopDuration));
     }
 
-    /** \returns the number of elements free before the buffer array wraps. */
-    inline std::size_t waitSpaceAvailableUntilBufferEnd() const
-    { return waitSpaceAvailableUntilBufferEnd_(); }
-
-    /** \returns the number of elements free before the buffer array wraps. */
-    template <typename StopTest = DummyStopTest,
-              typename LoopDuration =
-                  sharemind::StaticLoopDuration<3u, std::chrono::microseconds> >
-    inline std::size_t waitSpaceAvailableUntilBufferEnd(
-            StopTest && stopTest = StopTest(),
-            LoopDuration && loopDuration = LoopDuration()) const
-    {
-        return waitSpaceAvailableUntilBufferEnd_(
-                    std::forward<StopTest>(stopTest),
-                    std::forward<LoopDuration>(loopDuration));
-    }
-
     /**
      * \brief Waits until there is data pending.
      * \returns the total number of elements pending.
@@ -737,31 +720,6 @@ public: /* Methods: */
                                   std::forward<LoopDuration>(loopDuration));
     }
 
-    /**
-     * \brief Waits until there is data pending.
-     * \returns the number of elements pending before the buffer array wraps.
-    */
-    inline std::size_t waitDataAvailableUntilBufferEnd() const
-    { return waitDataAvailableUntilBufferEnd_(); }
-
-    /**
-     * \brief Waits until there is data pending.
-     * \param stopTest The condition for stopping.
-     * \param loopDuration The interval at which to execute the stop condition.
-     * \returns the number of elements pending before the buffer array wraps.
-    */
-    template <typename StopTest,
-              typename LoopDuration =
-                  sharemind::StaticLoopDuration<3u, std::chrono::microseconds> >
-    inline std::size_t waitDataAvailableUntilBufferEnd(
-            StopTest && stopTest,
-            LoopDuration && loopDuration = LoopDuration{}) const
-    {
-        return waitDataAvailableUntilBufferEnd_(
-                    std::forward<StopTest>(stopTest),
-                    std::forward<LoopDuration>(loopDuration));
-    }
-
 private: /* Methods: */
 
     template <typename ... Args>
@@ -783,15 +741,6 @@ private: /* Methods: */
     }
 
     template <typename ... Args>
-    inline std::size_t waitSpaceAvailableUntilBufferEnd_(Args && ... args) const
-    {
-        return this->m_bufferSize
-               - std::max(waitAvailable<HaveSpaceTest>(
-                              std::forward<Args>(args)...),
-                          this->m_writeOffset);
-    }
-
-    template <typename ... Args>
     inline std::size_t waitDataAvailable_(
             std::size_t & availableUntilBufferEnd,
             Args && ... args) const
@@ -801,15 +750,6 @@ private: /* Methods: */
                 waitAvailable<HaveDataTest>(std::forward<Args>(args)...);
         availableUntilBufferEnd = std::min(available, toBufferEnd);
         return available;
-    }
-
-    template <typename ... Args>
-    inline std::size_t waitDataAvailableUntilBufferEnd_(Args && ... args) const
-    {
-        std::size_t const toBufferEnd = this->m_bufferSize - this->m_readOffset;
-        return std::min(waitAvailable<HaveDataTest>(
-                            std::forward<Args>(args)...),
-                        toBufferEnd);
     }
 
     template <typename Condition>
