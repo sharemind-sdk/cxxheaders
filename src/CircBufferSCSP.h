@@ -171,68 +171,6 @@ public: /* Types: */
     using ValueType = T;
     using ValueAllocType = AllocType<T>;
 
-    class ReadActor {
-
-    public: /* Types: */
-
-        SHAREMIND_DEFINE_EXCEPTION_UNUSED(std::exception, Exception);
-
-    private: /* Types: */
-
-        using WantDataType = T;
-
-    public: /* Methods: */
-
-        ReadActor(ReadActor &&) = default;
-        ReadActor(ReadActor const &) = default;
-        ReadActor & operator=(ReadActor &&) = default;
-        ReadActor & operator=(ReadActor const &) = default;
-
-        inline ReadActor(Self & buffer) noexcept
-            : m_buffer SHAREMIND_GCCPR50025_WORKAROUND(buffer)
-        {}
-
-        inline std::size_t operator()(T * const data, std::size_t const size)
-                noexcept
-        { return m_buffer.read(data, size); }
-
-    private: /* Fields: */
-
-        Self & m_buffer;
-
-    };
-
-    class WriteActor {
-
-    public: /* Types: */
-
-        SHAREMIND_DEFINE_EXCEPTION_UNUSED(std::exception, Exception);
-
-    private: /* Types: */
-
-        using WantDataType = T const;
-
-    public: /* Methods: */
-
-        WriteActor(WriteActor &&) = default;
-        WriteActor(WriteActor const &) = default;
-        WriteActor & operator=(WriteActor &&) = default;
-        WriteActor & operator=(WriteActor const &) = default;
-
-        inline WriteActor(Self & buffer) noexcept
-            : m_buffer SHAREMIND_GCCPR50025_WORKAROUND(buffer)
-        {}
-
-        inline std::size_t operator()(T const * data, std::size_t const size)
-                noexcept
-        { return m_buffer.write(data, size); }
-
-    private: /* Fields: */
-
-        Self & m_buffer;
-
-    };
-
 public: /* Methods: */
 
     CircBufferBase(Self const &) = delete;
