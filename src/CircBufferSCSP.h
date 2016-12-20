@@ -557,10 +557,7 @@ private: /* Types: */
                                     OtherSideType_ *,
                                     std::size_t) noexcept
              , std::size_t (Self::*OFFSET_ACTION_)() const noexcept
-             , std::size_t (Self::*AVAILABLE_WITH_REF_ACTION_)(std::size_t &)
-                    const noexcept
              , std::size_t (Self::*AVAILABLE_UBE_)() const noexcept
-             , std::size_t (Self::*DONE_)(std::size_t) noexcept
              , void (Self::*DONE_NO_RET_)(std::size_t) noexcept
              , std::size_t (Self::*DONE_RET_UBE_)(std::size_t) noexcept
              >
@@ -573,27 +570,16 @@ private: /* Types: */
                                       OtherSideType_ * const b,
                                       std::size_t const size) noexcept
         { COPY_ACTION_(a, b, size); }
-        static inline std::size_t offset(Self const * thisPtr) noexcept
-        { return (thisPtr->*OFFSET_ACTION_)(); }
         static inline BufferSideType_ * operatePtr(Self const * thisPtr)
                 noexcept
         {
             return const_cast<BufferSideType_ *>(
-                        ptrAdd(thisPtr->arrayStart(), offset(thisPtr)));
-        }
-        static inline std::size_t available(
-                Self * thisPtr,
-                std::size_t & availableUntilBufferEnd) noexcept
-        {
-            return (thisPtr->*AVAILABLE_WITH_REF_ACTION_)(
-                        availableUntilBufferEnd);
+                        ptrAdd(thisPtr->arrayStart(),
+                               (thisPtr->*OFFSET_ACTION_)()));
         }
         static inline std::size_t availableUntilBufferEnd(Self * thisPtr)
                 noexcept
         { return (thisPtr->*AVAILABLE_UBE_)(); }
-        static inline std::size_t done(Self * thisPtr, std::size_t const size)
-                noexcept
-        { return (thisPtr->*DONE_)(size); }
         static inline void doneNoRet(Self * thisPtr, std::size_t const size)
                 noexcept
         { (thisPtr->*DONE_NO_RET_)(size); }
@@ -607,9 +593,7 @@ private: /* Types: */
                               typename Self::ValueType const,
                               &Self::copySecondToFirstData,
                               &Self::writeOffset,
-                              &Self::spaceAvailable,
                               &Self::spaceAvailableUntilBufferEnd,
-                              &Self::haveWritten,
                               &Self::haveWrittenNoRet,
                               &Self::haveWrittenRetUbe>;
 
@@ -618,9 +602,7 @@ private: /* Types: */
                               typename Self::ValueType,
                               &Self::copyFirstToSecondData,
                               &Self::readOffset,
-                              &Self::dataAvailable,
                               &Self::dataAvailableUntilBufferEnd,
-                              &Self::haveRead,
                               &Self::haveReadNoRet,
                               &Self::haveReadRetUbe>;
 
