@@ -264,46 +264,6 @@ public: /* Methods: */
     }
 
     /**
-     * \brief Marks data as written.
-     * \pre The list of elements written did not wrap.
-     * \param[in] size The number of elements written to the FIFO.
-     * \returns the number of elements free.
-    */
-    inline std::size_t haveWrittenNotUntilBufferEnd(std::size_t const size)
-            noexcept
-    {
-        std::size_t const ret = increaseDataAvailable(size);
-        assert(m_writeOffset < m_bufferSize);
-        assert(size < (m_bufferSize - m_writeOffset));
-        m_writeOffset += size;
-        assert(m_writeOffset < m_bufferSize);
-        return m_bufferSize - ret;
-    }
-
-    /**
-     * \brief Marks data as written.
-     * \pre The list of elements written did not wrap.
-     * \param[in] size The number of elements written to the FIFO.
-    */
-    inline void haveWrittenNotUntilBufferEndNoRet(std::size_t const size)
-            noexcept
-    { (void) haveWrittenNotUntilBufferEnd(size); }
-
-    /**
-     * \brief Marks data as written.
-     * \pre The list of elements written did not wrap.
-     * \param[in] size The number of elements written to the FIFO.
-     * \returns the total number of elements free before the buffer array
-     *          wraps.
-    */
-    inline std::size_t haveWrittenNotUntilBufferEndRetUbe(
-            std::size_t const size) noexcept
-    {
-        std::size_t const ret = haveWrittenNotUntilBufferEnd(size);
-        return std::min(ret, m_bufferSize - m_writeOffset);
-    }
-
-    /**
      * \brief Writes the given data to the buffer.
      * \param[in] data Pointer to the input data.
      * \param[in] size Size of the input data.
@@ -382,45 +342,6 @@ public: /* Methods: */
     */
     inline std::size_t haveReadRetUbe(std::size_t const size) noexcept {
         std::size_t const ret = haveRead(size);
-        return std::min(ret, m_bufferSize - m_readOffset);
-    }
-
-    /**
-     * \brief Marks data as consumed.
-     * \pre The list of elements read did not wrap.
-     * \param[in] size The number of elements to drop from the FIFO.
-     * \returns the number of elements pending.
-    */
-    inline std::size_t haveReadNotUntilBufferEnd(std::size_t const size)
-            noexcept
-    {
-        std::size_t const ret = decreaseDataAvailable(size);
-        assert(m_readOffset < m_bufferSize);
-        assert(size < (m_bufferSize - m_readOffset));
-        m_readOffset += size;
-        assert(m_readOffset < m_bufferSize);
-        return ret;
-    }
-
-    /**
-     * \brief Marks data as consumed.
-     * \pre The list of elements read did not wrap.
-     * \param[in] size The number of elements to drop from the FIFO.
-    */
-    inline void haveReadNotUntilBufferEndNoRet(std::size_t const size) noexcept
-    { (void) haveReadNotUntilBufferEnd(size); }
-
-    /**
-     * \brief Marks data as consumed.
-     * \pre The list of elements read did not wrap.
-     * \param[in] size The number of elements to drop from the FIFO.
-     * \returns the total number of elements pending before the buffer array
-     *          wraps.
-    */
-    inline std::size_t haveReadNotUntilBufferEndRetUbe(std::size_t const size)
-            noexcept
-    {
-        std::size_t const ret = haveReadNotUntilBufferEnd(size);
         return std::min(ret, m_bufferSize - m_readOffset);
     }
 
