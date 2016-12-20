@@ -259,20 +259,6 @@ public: /* Methods: */
     /**
      * \brief Marks data as written.
      * \param[in] size The number of elements written to the FIFO.
-     * \returns a pair where the first element is the number of items free, and
-     *          the second element is the total number of elements free before
-     *          the buffer array wraps.
-    */
-    inline std::pair<std::size_t, std::size_t> haveWrittenRetPair(
-            std::size_t const size) noexcept
-    {
-        std::size_t const ret = haveWritten(size);
-        return std::make_pair(ret, std::min(ret, m_bufferSize - m_writeOffset));
-    }
-
-    /**
-     * \brief Marks data as written.
-     * \param[in] size The number of elements written to the FIFO.
      * \returns the total number of elements free before the buffer array
      *          wraps.
     */
@@ -306,20 +292,6 @@ public: /* Methods: */
     inline void haveWrittenNotUntilBufferEndNoRet(std::size_t const size)
             noexcept
     { (void) haveWrittenNotUntilBufferEnd(size); }
-
-    /**
-     * \brief Marks data as written.
-     * \pre The list of elements written did not wrap.
-     * \param[in] size The number of elements written to the FIFO.
-     * \returns a pair where the first element is the number of items free, and
-     *          the second element is the total number of elements free before
-     *          the buffer array wraps.
-    */
-    inline std::pair<std::size_t, std::size_t>
-    haveWrittenNotUntilBufferEndRetPair(std::size_t const size) noexcept {
-        std::size_t const ret = haveWrittenNotUntilBufferEnd(size);
-        return std::make_pair(ret, std::min(ret, m_bufferSize - m_writeOffset));
-    }
 
     /**
      * \brief Marks data as written.
@@ -409,20 +381,6 @@ public: /* Methods: */
     /**
      * \brief Marks data as consumed.
      * \param[in] size The number of elements to drop from the FIFO.
-     * \returns a pair where the first element is the number of items pending,
-     *          and the second element is the total number of elements pending
-     *          before the buffer array wraps.
-    */
-    inline std::pair<std::size_t, std::size_t> haveReadRetPair(
-            std::size_t const size) noexcept
-    {
-        std::size_t const ret = haveRead(size);
-        return std::make_pair(ret, std::min(ret, m_bufferSize - m_readOffset));
-    }
-
-    /**
-     * \brief Marks data as consumed.
-     * \param[in] size The number of elements to drop from the FIFO.
      * \returns the total number of elements pending before the buffer array
      *          wraps.
     */
@@ -455,21 +413,6 @@ public: /* Methods: */
     */
     inline void haveReadNotUntilBufferEndNoRet(std::size_t const size) noexcept
     { (void) haveReadNotUntilBufferEnd(size); }
-
-    /**
-     * \brief Marks data as consumed.
-     * \pre The list of elements read did not wrap.
-     * \param[in] size The number of elements to drop from the FIFO.
-     * \returns a pair where the first element is the number of items pending,
-     *          and the second element is the total number of elements pending
-     *          before the buffer array wraps.
-    */
-    inline std::pair<std::size_t, std::size_t> haveReadNotUntilBufferEndRetPair(
-            std::size_t const size) noexcept
-    {
-        std::size_t const ret = haveReadNotUntilBufferEnd(size);
-        return std::make_pair(ret, std::min(ret, m_bufferSize - m_readOffset));
-    }
 
     /**
      * \brief Marks data as consumed.
@@ -619,8 +562,6 @@ private: /* Types: */
              , std::size_t (Self::*AVAILABLE_UBE_)() const noexcept
              , std::size_t (Self::*DONE_)(std::size_t) noexcept
              , void (Self::*DONE_NO_RET_)(std::size_t) noexcept
-             , std::pair<std::size_t, std::size_t> (Self::*DONE_RET_PAIR_)(
-                    std::size_t) noexcept
              , std::size_t (Self::*DONE_RET_UBE_)(std::size_t) noexcept
              >
     struct FifoBufferActions {
@@ -656,10 +597,6 @@ private: /* Types: */
         static inline void doneNoRet(Self * thisPtr, std::size_t const size)
                 noexcept
         { (thisPtr->*DONE_NO_RET_)(size); }
-        static inline std::pair<std::size_t, std::size_t> doneRetPair(
-                Self * thisPtr,
-                std::size_t const size) noexcept
-        { return (thisPtr->*DONE_RET_PAIR_)(size); }
         static inline std::size_t doneRetUbe(Self * thisPtr,
                                              std::size_t const size) noexcept
         { return (thisPtr->*DONE_RET_UBE_)(size); }
@@ -674,7 +611,6 @@ private: /* Types: */
                               &Self::spaceAvailableUntilBufferEnd,
                               &Self::haveWritten,
                               &Self::haveWrittenNoRet,
-                              &Self::haveWrittenRetPair,
                               &Self::haveWrittenRetUbe>;
 
     using ReadActions =
@@ -686,7 +622,6 @@ private: /* Types: */
                               &Self::dataAvailableUntilBufferEnd,
                               &Self::haveRead,
                               &Self::haveReadNoRet,
-                              &Self::haveReadRetPair,
                               &Self::haveReadRetUbe>;
 
 public: /* Methods */
