@@ -581,7 +581,6 @@ class CircBufferBase2<T, Locking, true>: public CircBufferBase<T, Locking> {
 
 private: /* Types: */
 
-    struct DummyStopTest { inline void operator()() const noexcept {} };
     struct HaveDataTest {
         inline static bool test(std::size_t const in,
                                 std::size_t const bufferSize) noexcept
