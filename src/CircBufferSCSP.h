@@ -787,7 +787,7 @@ public: /* Methods: */
             const
     {
         return waitDataAvailable_(availableUntilBufferEnd);
-        std::size_t const toBufferEnd = (this->bufferSize() - this->readOffset());
+        std::size_t const toBufferEnd = this->m_bufferSize - this->m_readOffset;
         std::size_t const available =
                 waitAvailable<HaveDataTest>();
         availableUntilBufferEnd = std::min(available, toBufferEnd);
@@ -845,7 +845,7 @@ private: /* Methods: */
 
     template <typename ... Args>
     inline std::size_t waitSpaceAvailable_(Args && ... args) const {
-        return this->bufferSize() - waitAvailable<HaveSpaceTest>(
+        return this->m_bufferSize - waitAvailable<HaveSpaceTest>(
                     std::forward<Args>(args)...);
     }
 
@@ -856,18 +856,18 @@ private: /* Methods: */
     {
         std::size_t const available =
                 waitAvailable<HaveSpaceTest>(std::forward<Args>(args)...);
-        availableUntilBufferEnd = this->bufferSize()
-                                  - std::max(available, this->writeOffset());
-        return this->bufferSize() - available;
+        availableUntilBufferEnd = this->m_bufferSize
+                                  - std::max(available, this->m_writeOffset);
+        return this->m_bufferSize - available;
     }
 
     template <typename ... Args>
     inline std::size_t waitSpaceAvailableUntilBufferEnd_(Args && ... args) const
     {
-        return this->bufferSize()
+        return this->m_bufferSize
                - std::max(waitAvailable<HaveSpaceTest>(
                               std::forward<Args>(args)...),
-                          this->writeOffset());
+                          this->m_writeOffset);
     }
 
     template <typename ... Args>
@@ -875,7 +875,7 @@ private: /* Methods: */
             std::size_t & availableUntilBufferEnd,
             Args && ... args) const
     {
-        std::size_t const toBufferEnd = this->bufferSize() - this->readOffset();
+        std::size_t const toBufferEnd = this->m_bufferSize - this->m_readOffset;
         std::size_t const available =
                 waitAvailable<HaveDataTest>(std::forward<Args>(args)...);
         availableUntilBufferEnd = std::min(available, toBufferEnd);
@@ -885,7 +885,7 @@ private: /* Methods: */
     template <typename ... Args>
     inline std::size_t waitDataAvailableUntilBufferEnd_(Args && ... args) const
     {
-        std::size_t const toBufferEnd = (this->bufferSize() - this->readOffset());
+        std::size_t const toBufferEnd = this->m_bufferSize - this->m_readOffset;
         return std::min(waitAvailable<HaveDataTest>(
                             std::forward<Args>(args)...),
                         toBufferEnd);
@@ -896,7 +896,7 @@ private: /* Methods: */
         Locking & lockingImpl = this->m_locking;
         typename Locking::ScopedReadLock lock(lockingImpl);
         while (!Condition::test(lockingImpl.dataAvailableNoLocking(),
-                                this->bufferSize()))
+                                this->m_bufferSize))
             lockingImpl.wait(lock);
         return lockingImpl.dataAvailableNoLocking();
     }
@@ -908,7 +908,7 @@ private: /* Methods: */
         Locking & lockingImpl = this->m_locking;
         typename Locking::ScopedReadLock lock(lockingImpl);
         while (!Condition::test(lockingImpl.dataAvailableNoLocking(),
-                                this->bufferSize()))
+                                this->m_bufferSize))
         {
             stopTest();
             lockingImpl.wait_for(lock, loopDuration);
