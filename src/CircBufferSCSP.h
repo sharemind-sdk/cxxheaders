@@ -24,16 +24,12 @@
 #include <cassert>
 #include <condition_variable>
 #include <cstddef>
-#include <exception>
 #include <mutex>
-#include <sharemind/comma.h>
 #include <sharemind/compiler-support/GccVersion.h>
 #include <type_traits>
 #include <utility>
 #include "compiler-support/GccInheritConstructor.h"
-#include "compiler-support/GccPR50025.h"
 #include "Durations.h"
-#include "Exception.h"
 #include "FunctionTraits.h"
 #include "PotentiallyVoidTypeInfo.h"
 
