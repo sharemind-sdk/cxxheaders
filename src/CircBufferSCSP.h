@@ -29,7 +29,6 @@
 #include <type_traits>
 #include <utility>
 #include "compiler-support/GccInheritConstructor.h"
-#include "Durations.h"
 #include "FunctionTraits.h"
 #include "PotentiallyVoidTypeInfo.h"
 
@@ -613,12 +612,10 @@ public: /* Methods: */
      * \param loopDuration The interval at which to execute the stop condition.
      * \returns the total number of elements pending.
     */
-    template <typename StopTest,
-              typename LoopDuration =
-                  sharemind::StaticLoopDuration<3u, std::chrono::microseconds> >
+    template <typename StopTest, typename LoopDuration>
     inline std::size_t waitSpaceAvailable(
             StopTest && stopTest,
-            LoopDuration && loopDuration = LoopDuration{}) const
+            LoopDuration && loopDuration = LoopDuration()) const
     {
         return waitSpaceAvailable_(std::forward<StopTest>(stopTest),
                                    std::forward<LoopDuration>(loopDuration));
@@ -637,12 +634,10 @@ public: /* Methods: */
      * \param loopDuration The interval at which to execute the stop condition.
      * \returns the total number of elements pending.
     */
-    template <typename StopTest,
-              typename LoopDuration =
-                  sharemind::StaticLoopDuration<3u, std::chrono::microseconds> >
+    template <typename StopTest, typename LoopDuration>
     inline std::size_t waitDataAvailable(
             StopTest && stopTest,
-            LoopDuration && loopDuration = LoopDuration{}) const
+            LoopDuration && loopDuration = LoopDuration()) const
     {
         return waitAvailable<HaveDataTest>(
                     std::forward<StopTest>(stopTest),
