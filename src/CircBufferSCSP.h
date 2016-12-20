@@ -625,37 +625,6 @@ public: /* Methods: */
     }
 
     /**
-     * \param[out] availableUntilBufferEnd where to write the total number of
-     *                                     elements pending before the buffer
-     *                                     array wraps.
-     * \returns the total number of elements free.
-    */
-    inline std::size_t waitSpaceAvailable(std::size_t & availableUntilBufferEnd)
-            const
-    { return waitSpaceAvailable_2(availableUntilBufferEnd); }
-
-    /**
-     * \param[out] availableUntilBufferEnd where to write the total number of
-     *                                     elements pending before the buffer
-     *                                     array wraps.
-     * \param stopTest The condition for stopping.
-     * \param loopDuration The interval at which to execute the stop condition.
-     * \returns the total number of elements free.
-    */
-    template <typename StopTest = DummyStopTest,
-              typename LoopDuration =
-                  sharemind::StaticLoopDuration<3u, std::chrono::microseconds> >
-    inline std::size_t waitSpaceAvailable(
-            std::size_t & availableUntilBufferEnd,
-            StopTest && stopTest = StopTest(),
-            LoopDuration && loopDuration = LoopDuration()) const
-    {
-        return waitSpaceAvailable_2(availableUntilBufferEnd,
-                                    std::forward<StopTest>(stopTest),
-                                    std::forward<LoopDuration>(loopDuration));
-    }
-
-    /**
      * \brief Waits until there is data pending.
      * \returns the total number of elements pending.
     */
@@ -680,76 +649,12 @@ public: /* Methods: */
                     std::forward<LoopDuration>(loopDuration));
     }
 
-    /**
-     * \brief Waits until there is data pending.
-     * \param[out] availableUntilBufferEnd where to write the total number of
-     *                                     elements pending before the buffer
-     *                                     array wraps.
-     * \returns the total number of elements pending.
-    */
-    inline std::size_t waitDataAvailable(std::size_t & availableUntilBufferEnd)
-            const
-    {
-        return waitDataAvailable_(availableUntilBufferEnd);
-        std::size_t const toBufferEnd = this->m_bufferSize - this->m_readOffset;
-        std::size_t const available =
-                waitAvailable<HaveDataTest>();
-        availableUntilBufferEnd = std::min(available, toBufferEnd);
-        return available;
-    }
-
-    /**
-     * \brief Waits until there is data pending.
-     * \param[out] availableUntilBufferEnd where to write the total number of
-     *                                     elements pending before the buffer
-     *                                     array wraps.
-     * \param stopTest The condition for stopping.
-     * \param loopDuration The interval at which to execute the stop condition.
-     * \returns the total number of elements pending.
-    */
-    template <typename StopTest,
-              typename LoopDuration =
-                  sharemind::StaticLoopDuration<3u, std::chrono::microseconds> >
-    inline std::size_t waitDataAvailable(
-            std::size_t & availableUntilBufferEnd,
-            StopTest && stopTest,
-            LoopDuration && loopDuration = LoopDuration{}) const
-    {
-        return waitDataAvailable_(availableUntilBufferEnd,
-                                  std::forward<StopTest>(stopTest),
-                                  std::forward<LoopDuration>(loopDuration));
-    }
-
 private: /* Methods: */
 
     template <typename ... Args>
     inline std::size_t waitSpaceAvailable_(Args && ... args) const {
         return this->m_bufferSize - waitAvailable<HaveSpaceTest>(
                     std::forward<Args>(args)...);
-    }
-
-    template <typename ... Args>
-    inline std::size_t waitSpaceAvailable_2(
-            std::size_t & availableUntilBufferEnd,
-            Args && ... args) const
-    {
-        std::size_t const available =
-                waitAvailable<HaveSpaceTest>(std::forward<Args>(args)...);
-        availableUntilBufferEnd = this->m_bufferSize
-                                  - std::max(available, this->m_writeOffset);
-        return this->m_bufferSize - available;
-    }
-
-    template <typename ... Args>
-    inline std::size_t waitDataAvailable_(
-            std::size_t & availableUntilBufferEnd,
-            Args && ... args) const
-    {
-        std::size_t const toBufferEnd = this->m_bufferSize - this->m_readOffset;
-        std::size_t const available =
-                waitAvailable<HaveDataTest>(std::forward<Args>(args)...);
-        availableUntilBufferEnd = std::min(available, toBufferEnd);
-        return available;
     }
 
     template <typename Condition>
