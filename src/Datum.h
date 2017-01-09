@@ -113,6 +113,7 @@ public: /* Methods: */
 
 private: /* Methods: */
 
+    /// \warning See https://gcc.gnu.org/PR66145
     inline static Container loadFileToContainer(std::string const & filename) {
         std::ifstream inFile;
         inFile.exceptions(std::ios_base::badbit | std::ios_base::failbit);
