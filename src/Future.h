@@ -231,6 +231,10 @@ template <template <typename> class Prom,
           typename F>
 struct Continuation final: ContinuationBase {
 
+/* Types: */
+
+    using Fun = typename std::decay<F>::type;
+
 /* Methods: */
 
     template <typename ... Args>
@@ -240,7 +244,7 @@ struct Continuation final: ContinuationBase {
     {}
 
     void run() noexcept final override {
-        return ContinuationRun<PotentiallyWrappedReturnType<F, Fut> >::run(
+        return ContinuationRun<PotentiallyWrappedReturnType<Fun, Fut> >::run(
                     m_promise,
                     m_function,
                     std::move(m_future));
@@ -249,7 +253,7 @@ struct Continuation final: ContinuationBase {
 /* Fields: */
 
     Fut m_future;
-    F m_function;
+    Fun m_function;
     Prom<UnwrappedReturnType<F, Fut> > m_promise;
 
 };
