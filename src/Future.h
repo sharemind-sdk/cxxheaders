@@ -179,7 +179,7 @@ struct Continuation final: ContinuationBase {
 
 /* Types: */
 
-    using R = typename std::result_of<F(Fut)>::type;
+    using R = typename std::result_of<typename std::decay<F>::type(Fut)>::type;
 
 /* Methods: */
 
