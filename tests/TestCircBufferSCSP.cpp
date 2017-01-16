@@ -45,14 +45,14 @@ void testWithActors(Worker worker) {
     SHAREMIND_TESTASSERT(b.dataAvailable() == bInit.dataAvailable());
 
     static auto const comp =
-            [](B & a, B & b) noexcept {
-                auto s = a.dataAvailable();
-                SHAREMIND_TESTASSERT(s == b.dataAvailable());
+            [](B & a_, B & b_) noexcept {
+                auto s = a_.dataAvailable();
+                SHAREMIND_TESTASSERT(s == b_.dataAvailable());
                 for (; s; --s) {
                     B::ValueType v1;
                     B::ValueType v2;
-                    a.read(&v1, 1u);
-                    b.read(&v2, 1u);
+                    a_.read(&v1, 1u);
+                    b_.read(&v2, 1u);
                     SHAREMIND_TESTASSERT(v1 == v2);
                 }
             };
