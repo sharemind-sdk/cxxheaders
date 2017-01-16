@@ -24,6 +24,13 @@
 #include <cstdlib>
 
 
+#define SHAREMIND_TEST_UNREACHABLE \
+    do { \
+        std::fprintf(stderr,  __FILE__ ":%d: %s: Sharemind test unreachable code reached!\n", __LINE__, __PRETTY_FUNCTION__); \
+        std::fflush(stderr); \
+        std::abort(); \
+    } while(false)
+
 #define SHAREMIND_TESTASSERT(...) \
     do { \
         if (!(__VA_ARGS__)) { \
