@@ -335,7 +335,8 @@ public: /* Methods: */
 
 #define SHAREMIND_PROMISE_COMMON(T) \
     private: /* Types: */ \
-        using SharedStatePtr = std::shared_ptr<Detail::Future::SharedState<T> >; \
+        using SharedStatePtr = \
+                std::shared_ptr<Detail::Future::SharedState<T> >; \
     public: /* Methods: */ \
         Promise(Promise const &) = delete; \
         Promise & operator=(Promise const &) = delete; \
