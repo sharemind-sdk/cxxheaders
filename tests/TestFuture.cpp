@@ -87,6 +87,9 @@ public: /* Methods: */
 struct E { int c; };
 struct V { int v; };
 
+template <typename T> struct Smth { T v; };
+template <> struct Smth<void> {};
+
 template <typename T>
 void testTypeAgnostic() noexcept {
     static_assert(std::is_default_constructible<Future<T> >::value, "");
@@ -141,6 +144,44 @@ void testTypeAgnostic() noexcept {
             f.takeValue();
             SHAREMIND_TEST_UNREACHABLE;
         } catch (E const &) {
+            SHAREMIND_TESTASSERT(!f.isValid());
+        } catch (...) {
+            SHAREMIND_TEST_UNREACHABLE;
+        }
+    }
+    {
+        Promise<T> p;
+        p.setException(std::make_exception_ptr(E()));
+        auto f(p.takeFuture().then(
+                   [](Future<T>) { return Future<Smth<T> >{}; }));
+        static_assert(std::is_same<decltype(f), Future<Smth<T> > >::value, "");
+        assert(f.isValid());
+        try {
+            f.takeValue();
+            SHAREMIND_TEST_UNREACHABLE;
+        } catch (BrokenPromiseException const &) {
+            SHAREMIND_TESTASSERT(!f.isValid());
+        } catch (...) {
+            SHAREMIND_TEST_UNREACHABLE;
+        }
+    }
+    {
+        struct E2 {};
+        auto spp(std::make_shared<Promise<Smth<T> > >());
+        spp->setException(E2());
+        Promise<T> p;
+        p.setException(std::make_exception_ptr(E()));
+        auto f(p.takeFuture().then(
+                   [spp](Future<T>) { return spp->takeFuture(); }));
+        assert(spp.unique());
+        spp.reset();
+        static_assert(std::is_same<decltype(f), Future<Smth<T> > >::value, "");
+        assert(f.isValid());
+        try {
+            f.takeValue();
+            static_assert(std::is_same<decltype(f.takeValue()), Smth<T> >::value, "");
+            SHAREMIND_TEST_UNREACHABLE;
+        } catch (E2 const &) {
             SHAREMIND_TESTASSERT(!f.isValid());
         } catch (...) {
             SHAREMIND_TEST_UNREACHABLE;

@@ -31,6 +31,13 @@
 
 
 namespace sharemind {
+
+template <typename T> class Future;
+
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(std::exception,
+                                     BrokenPromiseException,
+                                     "Promise broken!");
+
 namespace Detail {
 namespace Future {
 
@@ -147,12 +154,59 @@ struct SharedState<void> {
 
 #undef SHAREMIND_SHAREDSTATE_COMMON
 
+template <typename F, typename Fut>
+using PotentiallyWrappedReturnType =
+            typename std::result_of<typename std::decay<F>::type(Fut)>::type;
+
+template <typename T> struct Unwrap { using type = T; };
+template <typename T> struct Unwrap<sharemind::Future<T> > { using type = T; };
+
+template <typename F, typename Fut>
+using UnwrappedReturnType =
+        typename Unwrap<PotentiallyWrappedReturnType<F, Fut> >::type;
+
+
 template <typename R>
 struct ContinuationRun {
     template <typename P, typename F, typename Fut>
     static void run(P && p, F && f, Fut && fut) noexcept {
         try {
             p.setValue(f(std::forward<Fut>(fut)));
+        } catch (...) {
+            p.setException(std::current_exception());
+        }
+    }
+};
+
+template <typename T>
+struct ContinuationRun<sharemind::Future<T> > {
+    template <typename P, typename F, typename Fut>
+    static void run(P && p, F && f, Fut && fut) noexcept {
+        try {
+            auto f2(f(std::forward<Fut>(fut)));
+            if (f2.isValid()) {
+                p.setValue(f2.takeValue());
+            } else {
+                p.setException(BrokenPromiseException());
+            }
+        } catch (...) {
+            p.setException(std::current_exception());
+        }
+    }
+};
+
+template <>
+struct ContinuationRun<sharemind::Future<void> > {
+    template <typename P, typename F, typename Fut>
+    static void run(P && p, F && f, Fut && fut) noexcept {
+        try {
+            auto f2(f(std::forward<Fut>(fut)));
+            if (f2.isValid()) {
+                f2.takeValue();
+                p.setReady();
+            } else {
+                p.setException(BrokenPromiseException());
+            }
         } catch (...) {
             p.setException(std::current_exception());
         }
@@ -177,10 +231,6 @@ template <template <typename> class Prom,
           typename F>
 struct Continuation final: ContinuationBase {
 
-/* Types: */
-
-    using R = typename std::result_of<typename std::decay<F>::type(Fut)>::type;
-
 /* Methods: */
 
     template <typename ... Args>
@@ -190,16 +240,17 @@ struct Continuation final: ContinuationBase {
     {}
 
     void run() noexcept final override {
-        return ContinuationRun<R>::run(m_promise,
-                                       m_function,
-                                       std::move(m_future));
+        return ContinuationRun<PotentiallyWrappedReturnType<F, Fut> >::run(
+                    m_promise,
+                    m_function,
+                    std::move(m_future));
     }
 
 /* Fields: */
 
     Fut m_future;
     F m_function;
-    Prom<R> m_promise;
+    Prom<UnwrappedReturnType<F, Fut> > m_promise;
 
 };
 
@@ -213,9 +264,6 @@ template <typename T> class Promise;
     friend class Promise<T>; \
 private: /* Types: */ \
     using SharedStatePtr = std::shared_ptr<Detail::Future::SharedState<T> >; \
-    template <typename F> \
-    using R = typename std::result_of<\
-                    typename std::decay<F>::type(Future<T>)>::type; \
 public: /* Methods: */ \
     Future(Future const &) = delete; \
     Future & operator=(Future const &) = delete; \
@@ -244,7 +292,8 @@ class Future {
 public: /* Methods: */
 
     template <typename F>
-    auto then(F && f) -> Future<R<F> > {
+    auto then(F && f) -> Future<Detail::Future::UnwrappedReturnType<F, Future> >
+    {
         using C = Detail::Future::Continuation<Promise, Future<T>, F>;
         assert(m_state);
         auto & state = *m_state;
@@ -264,7 +313,8 @@ class Future<void> {
 public: /* Methods: */
 
     template <typename F>
-    auto then(F && f) -> Future<R<F> > {
+    auto then(F && f) -> Future<Detail::Future::UnwrappedReturnType<F, Future> >
+    {
         using C = Detail::Future::Continuation<Promise, Future<void>, F>;
         assert(m_state);
         auto & state = *m_state;
@@ -278,9 +328,6 @@ public: /* Methods: */
 
 #undef SHAREMIND_FUTURE_COMMON
 
-SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(std::exception,
-                                     BrokenPromiseException,
-                                     "Promise broken!");
 
 #define SHAREMIND_PROMISE_COMMON(T) \
     private: /* Types: */ \
