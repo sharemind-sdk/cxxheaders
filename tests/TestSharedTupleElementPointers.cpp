@@ -19,12 +19,13 @@
 
 #include "../src/SharedTupleElementPointers.h"
 
-#include <cassert>
 #include <memory>
 #include <string>
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include "../src/TestAssert.h"
+
 
 template <typename ... Ts> using T = std::tuple<Ts...>;
 template <typename T> using S = std::shared_ptr<T>;
@@ -41,47 +42,57 @@ int main() {
     auto packed(std::make_shared<T<E0, E1, E2> >(13, &x, "Hello, World!"));
 
     // Test unpackSharedTuple():
-    assert(packed.unique()); // obvious
-    assert(packed.use_count() == 1); // obvious
+    SHAREMIND_TESTASSERT(packed.unique()); // obvious
+    SHAREMIND_TESTASSERT(packed.use_count() == 1); // obvious
     {
         auto unpacked(sharemind::makeAllSharedTupleElementPtrs(packed));
         static_assert(std::is_same<decltype(unpacked),
                                    T<S<E0>, S<E1>, S<E2> > >::value, "");
-        assert(!packed.unique());
-        assert(packed.use_count() == 4);
-        assert(sameSharedPtrGroup(std::get<0u>(unpacked), packed));
-        assert(sameSharedPtrGroup(std::get<1u>(unpacked), packed));
-        assert(sameSharedPtrGroup(std::get<2u>(unpacked), packed));
-        assert(std::get<0u>(unpacked).get() == &std::get<0u>(*packed));
-        assert(std::get<1u>(unpacked).get() == &std::get<1u>(*packed));
-        assert(std::get<2u>(unpacked).get() == &std::get<2u>(*packed));
+        SHAREMIND_TESTASSERT(!packed.unique());
+        SHAREMIND_TESTASSERT(packed.use_count() == 4);
+        SHAREMIND_TESTASSERT(
+                    sameSharedPtrGroup(std::get<0u>(unpacked), packed));
+        SHAREMIND_TESTASSERT(
+                    sameSharedPtrGroup(std::get<1u>(unpacked), packed));
+        SHAREMIND_TESTASSERT(
+                    sameSharedPtrGroup(std::get<2u>(unpacked), packed));
+        SHAREMIND_TESTASSERT(
+                    std::get<0u>(unpacked).get() == &std::get<0u>(*packed));
+        SHAREMIND_TESTASSERT(
+                    std::get<1u>(unpacked).get() == &std::get<1u>(*packed));
+        SHAREMIND_TESTASSERT(
+                    std::get<2u>(unpacked).get() == &std::get<2u>(*packed));
     }
 
     // Test partiallyUnpackSharedTuple():
-    assert(packed.unique()); // obvious
-    assert(packed.use_count() == 1); // obvious
+    SHAREMIND_TESTASSERT(packed.unique()); // obvious
+    SHAREMIND_TESTASSERT(packed.use_count() == 1); // obvious
     {
         auto unpacked(sharemind::makeSharedTupleElementPtrs<1u, 0u>(packed));
         static_assert(std::is_same<decltype(unpacked),
                                    T<S<E1>, S<E0> > >::value, "");
-        assert(!packed.unique());
-        assert(packed.use_count() == 3);
-        assert(sameSharedPtrGroup(std::get<0u>(unpacked), packed));
-        assert(sameSharedPtrGroup(std::get<1u>(unpacked), packed));
-        assert(std::get<1u>(unpacked).get() == &std::get<0u>(*packed));
-        assert(std::get<0u>(unpacked).get() == &std::get<1u>(*packed));
+        SHAREMIND_TESTASSERT(!packed.unique());
+        SHAREMIND_TESTASSERT(packed.use_count() == 3);
+        SHAREMIND_TESTASSERT(
+                    sameSharedPtrGroup(std::get<0u>(unpacked), packed));
+        SHAREMIND_TESTASSERT(
+                    sameSharedPtrGroup(std::get<1u>(unpacked), packed));
+        SHAREMIND_TESTASSERT(
+                    std::get<1u>(unpacked).get() == &std::get<0u>(*packed));
+        SHAREMIND_TESTASSERT(
+                    std::get<0u>(unpacked).get() == &std::get<1u>(*packed));
     }
 
     // Test extractSharedTupleElement():
-    assert(packed.unique()); // obvious
-    assert(packed.use_count() == 1); // obvious
+    SHAREMIND_TESTASSERT(packed.unique()); // obvious
+    SHAREMIND_TESTASSERT(packed.use_count() == 1); // obvious
     {
         auto element(sharemind::makeSharedTupleElementPtr<2u>(packed));
         static_assert(std::is_same<decltype(element),
                                    std::shared_ptr<std::string> >::value, "");
-        assert(!packed.unique());
-        assert(packed.use_count() == 2);
-        assert(sameSharedPtrGroup(element, packed));
-        assert(element.get() == &std::get<2u>(*packed));
+        SHAREMIND_TESTASSERT(!packed.unique());
+        SHAREMIND_TESTASSERT(packed.use_count() == 2);
+        SHAREMIND_TESTASSERT(sameSharedPtrGroup(element, packed));
+        SHAREMIND_TESTASSERT(element.get() == &std::get<2u>(*packed));
     }
 }
