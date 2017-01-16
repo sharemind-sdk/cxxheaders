@@ -27,6 +27,8 @@
 using sharemind::BrokenPromiseException;
 using sharemind::Future;
 using sharemind::Promise;
+using sharemind::makeExceptionalFuture;
+
 
 class DelayedThread: public std::thread {
 
@@ -86,9 +88,6 @@ public: /* Methods: */
 
 struct E { int c; };
 struct V { int v; };
-
-template <typename T> struct Smth { T v; };
-template <> struct Smth<void> {};
 
 template <typename T>
 void testTypeAgnostic() noexcept {
@@ -150,11 +149,11 @@ void testTypeAgnostic() noexcept {
         }
     }
     {
+        struct X {};
         Promise<T> p;
         p.setException(std::make_exception_ptr(E()));
-        auto f(p.takeFuture().then(
-                   [](Future<T>) { return Future<Smth<T> >{}; }));
-        static_assert(std::is_same<decltype(f), Future<Smth<T> > >::value, "");
+        auto f(p.takeFuture().then([](Future<T>) { return Future<X>(); }));
+        static_assert(std::is_same<decltype(f), Future<X> >::value, "");
         assert(f.isValid());
         try {
             f.takeValue();
@@ -166,20 +165,17 @@ void testTypeAgnostic() noexcept {
         }
     }
     {
+        struct X {};
         struct E2 {};
-        auto spp(std::make_shared<Promise<Smth<T> > >());
-        spp->setException(E2());
         Promise<T> p;
         p.setException(std::make_exception_ptr(E()));
         auto f(p.takeFuture().then(
-                   [spp](Future<T>) { return spp->takeFuture(); }));
-        assert(spp.unique());
-        spp.reset();
-        static_assert(std::is_same<decltype(f), Future<Smth<T> > >::value, "");
+                   [](Future<T>) { return makeExceptionalFuture<X>(E2()); }));
+        static_assert(std::is_same<decltype(f), Future<X> >::value, "");
         assert(f.isValid());
         try {
             f.takeValue();
-            static_assert(std::is_same<decltype(f.takeValue()), Smth<T> >::value, "");
+            static_assert(std::is_same<decltype(f.takeValue()), X>::value, "");
             SHAREMIND_TEST_UNREACHABLE;
         } catch (E2 const &) {
             SHAREMIND_TESTASSERT(!f.isValid());
