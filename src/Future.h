@@ -239,8 +239,8 @@ struct Continuation final: ContinuationBase {
 
     template <typename ... Args>
     explicit Continuation(Fut && future, Args && ... args)
-        : m_future(std::move(future))
-        , m_function(std::forward<Args>(args)...)
+        : m_function(std::forward<Args>(args)...)
+        , m_future(std::move(future))
     {}
 
     void run() noexcept final override {
@@ -252,9 +252,9 @@ struct Continuation final: ContinuationBase {
 
 /* Fields: */
 
-    Fut m_future;
     Fun m_function;
     Prom<UnwrappedReturnType<F, Fut> > m_promise;
+    Fut m_future;
 
 };
 
