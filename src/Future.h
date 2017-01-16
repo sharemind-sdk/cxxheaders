@@ -454,6 +454,9 @@ Future<T> makeExceptionalFuture(Exception && exception) {
     return p.takeFuture();
 }
 
+template <typename T>
+Future<T> makeBrokenFuture() { return Promise<T>().takeFuture(); }
+
 } /* namespace sharemind { */
 
 #endif /* SHAREMIND_FUTURE_H */
