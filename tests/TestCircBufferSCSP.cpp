@@ -1,17 +1,17 @@
 #include "../src/CircBufferSCSP.h"
 
 #include <atomic>
-#include <cassert>
 #include <cstddef>
 #include <thread>
 #include <utility>
+#include "../src/TestAssert.h"
 
 
 struct B : sharemind::CircBufferSCSP<char> {
     B(std::size_t fullSize, std::size_t filledSize)
         : sharemind::CircBufferSCSP<char>(fullSize)
     {
-        assert(filledSize <= fullSize);
+        SHAREMIND_TESTASSERT(filledSize <= fullSize);
         ValueType elem = 0;
         while (filledSize--) {
             write(&elem, 1u);
@@ -41,19 +41,19 @@ void testWithActors(Worker worker) {
     startSignal.store(true, std::memory_order_release);
     t1.join();
     t2.join();
-    assert(a.dataAvailable() == aInit.dataAvailable());
-    assert(b.dataAvailable() == bInit.dataAvailable());
+    SHAREMIND_TESTASSERT(a.dataAvailable() == aInit.dataAvailable());
+    SHAREMIND_TESTASSERT(b.dataAvailable() == bInit.dataAvailable());
 
     static auto const comp =
             [](B & a, B & b) noexcept {
                 auto s = a.dataAvailable();
-                assert(s == b.dataAvailable());
+                SHAREMIND_TESTASSERT(s == b.dataAvailable());
                 for (; s; --s) {
                     B::ValueType v1;
                     B::ValueType v2;
                     a.read(&v1, 1u);
                     b.read(&v2, 1u);
-                    assert(v1 == v2);
+                    SHAREMIND_TESTASSERT(v1 == v2);
                 }
             };
     comp(a, aInit);
@@ -77,13 +77,13 @@ void testWithActors(Worker worker) {
                                 if (s <= 0u) \
                                     return 0u; \
                                 auto r = tf.rw(ptr, s); \
-                                assert(r <= s); \
-                                assert(r <= toMove); \
+                                SHAREMIND_TESTASSERT(r <= s); \
+                                SHAREMIND_TESTASSERT(r <= toMove); \
                                 toMove -= r; \
                                 return r; \
                             }; \
                     auto const moved = ft.wr(rw ## Actor); \
-                    assert(moved <= toMove); \
+                    SHAREMIND_TESTASSERT(moved <= toMove); \
                     if (moved > 0u) { \
                         toMove -= moved; \
                         break; \
