@@ -346,7 +346,7 @@ public: /* Methods: */
 
     /**
      * \brief Reads data from the buffer.
-     * \param[in] data Pointer to the output data buffer.
+     * \param[in] buffer Pointer to the output data buffer.
      * \param[in] size Size of the output data buffer.
      * \returns the number of elements read (might be less than size if FIFO was
      *          emptied).
