@@ -28,6 +28,7 @@
 #include <new>
 #include <type_traits>
 #include "Exception.h"
+#include "StripReferenceWrapper.h"
 
 
 namespace sharemind {
@@ -422,6 +423,36 @@ public: /* Methods: */
 };
 
 #undef SHAREMIND_PROMISE_COMMON
+
+
+Future<void> makeReadyFuture() {
+    Promise<void> p;
+    p.setReady();
+    return p.takeFuture();
+}
+
+template <typename T>
+auto makeReadyFuture(T && value)
+        -> Future<StripReferenceWrapper_t<typename std::decay<T>::type> >
+{
+    Promise<StripReferenceWrapper_t<typename std::decay<T>::type> > p;
+    p.setValue(std::forward<T>(value));
+    return p.takeFuture();
+}
+
+template <typename T>
+Future<T> makeExceptionalFuture(std::exception_ptr exception) {
+    Promise<T> p;
+    p.setException(std::move(exception));
+    return p.takeFuture();
+}
+
+template <typename T, typename Exception>
+Future<T> makeExceptionalFuture(Exception && exception) {
+    Promise<T> p;
+    p.setException(std::move(exception));
+    return p.takeFuture();
+}
 
 } /* namespace sharemind { */
 
