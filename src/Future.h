@@ -213,6 +213,9 @@ template <typename T> class Promise;
     friend class Promise<T>; \
 private: /* Types: */ \
     using SharedStatePtr = std::shared_ptr<Detail::Future::SharedState<T> >; \
+    template <typename F> \
+    using R = typename std::result_of<\
+                    typename std::decay<F>::type(Future<T>)>::type; \
 public: /* Methods: */ \
     Future(Future const &) = delete; \
     Future & operator=(Future const &) = delete; \
@@ -241,7 +244,7 @@ class Future {
 public: /* Methods: */
 
     template <typename F>
-    auto then(F && f) -> Future<typename std::result_of<F(Future<T>)>::type> {
+    auto then(F && f) -> Future<R<F> > {
         using C = Detail::Future::Continuation<Promise, Future<T>, F>;
         assert(m_state);
         auto & state = *m_state;
@@ -261,9 +264,7 @@ class Future<void> {
 public: /* Methods: */
 
     template <typename F>
-    auto then(F && f) ->
-            Future<typename std::result_of<F(Future<void>)>::type>
-    {
+    auto then(F && f) -> Future<R<F> > {
         using C = Detail::Future::Continuation<Promise, Future<void>, F>;
         assert(m_state);
         auto & state = *m_state;
