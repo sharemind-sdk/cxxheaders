@@ -1,0 +1,375 @@
+/*
+ * Copyright (C) 2015 Cybernetica
+ *
+ * Research/Commercial License Usage
+ * Licensees holding a valid Research License or Commercial License
+ * for the Software may use this file according to the written
+ * agreement between you and Cybernetica.
+ *
+ * GNU General Public License Usage
+ * Alternatively, this file may be used under the terms of the GNU
+ * General Public License version 3.0 as published by the Free Software
+ * Foundation and appearing in the file LICENSE.GPL included in the
+ * packaging of this file.  Please review the following information to
+ * ensure the GNU General Public License version 3.0 requirements will be
+ * met: http://www.gnu.org/copyleft/gpl-3.0.html.
+ *
+ * For further information, please contact us at sharemind@cyber.ee.
+ */
+
+#ifndef SHAREMIND_FUTURE_H
+#define SHAREMIND_FUTURE_H
+
+#include <cassert>
+#include <condition_variable>
+#include <exception>
+#include <memory>
+#include <mutex>
+#include <new>
+#include <type_traits>
+#include "Exception.h"
+
+
+namespace sharemind {
+namespace Detail {
+namespace Future {
+
+struct ContinuationBase { \
+    virtual ~ContinuationBase() noexcept {}
+    virtual void run() noexcept = 0;
+};
+
+#define SHAREMIND_SHAREDSTATE_COMMON \
+    /* Types: */ \
+        using ContinuationPtr = \
+                std::unique_ptr<Detail::Future::ContinuationBase>; \
+    /* Methods: */ \
+        void setException(std::exception_ptr e) noexcept { \
+            if (auto const continuation = \
+                    [this](std::exception_ptr e_) noexcept -> ContinuationPtr {\
+                        std::lock_guard<std::mutex> const guard(mutex); \
+                        assert(!isSet); \
+                        exception = std::move(e_); \
+                        isSet = true; \
+                        cond.notify_one(); \
+                        return std::move(m_continuation); \
+                    }(std::move(e))) \
+                continuation->run(); \
+        } \
+        std::unique_lock<std::mutex> waitReadyLock() noexcept { \
+            std::unique_lock<std::mutex> lock(mutex); \
+            cond.wait(lock, [this]() noexcept { return isSet; }); \
+            return lock; \
+        } \
+        void then(ContinuationPtr continuation) noexcept { \
+            if (auto const cont = \
+                    [this](ContinuationPtr c) noexcept -> ContinuationPtr { \
+                        std::lock_guard<std::mutex> const guard(mutex); \
+                        assert(!m_continuation); \
+                        if (isSet) \
+                            return c; \
+                        m_continuation = std::move(c); \
+                        return nullptr; \
+                    }(std::move(continuation))) \
+                cont->run(); \
+        } \
+    /* Fields: */ \
+        std::mutex mutex; \
+        std::condition_variable cond; \
+        std::exception_ptr exception; \
+        ContinuationPtr m_continuation; \
+        bool isSet = false;
+
+template <typename T>
+struct SharedState {
+
+    static_assert(!std::is_reference<T>::value, "");
+
+    SHAREMIND_SHAREDSTATE_COMMON
+
+/* Methods: */
+
+    template <typename ... Args>
+    void emplaceValue(Args && ... args)
+            noexcept(noexcept(T(std::forward<Args>(args)...)))
+    {
+        if (auto const continuation =
+                [this](Args && ... args_) noexcept -> ContinuationPtr {
+                    std::lock_guard<std::mutex> const guard(mutex);
+                    assert(!isSet);
+                    new(std::addressof(m_data)) T(std::forward<Args>(args_)...);
+                    isSet = true;
+                    cond.notify_one();
+                    return std::move(m_continuation);
+                }(std::forward<Args>(args)...))
+            continuation->run();
+    }
+
+    T takeValue() {
+        auto const lock(waitReadyLock());
+        if (exception)
+            std::rethrow_exception(exception);
+        return std::move(*reinterpret_cast<T *>(&m_data));
+    }
+
+/* Fields: */
+
+    typename std::aligned_storage<sizeof(T), alignof(T)>::type m_data;
+
+};
+
+template <>
+struct SharedState<void> {
+
+    SHAREMIND_SHAREDSTATE_COMMON
+
+/* Methods: */
+
+    void setReady() noexcept {
+        if (auto const continuation =
+                [this]() noexcept -> ContinuationPtr {
+                    std::lock_guard<std::mutex> const guard(mutex);
+                    assert(!isSet);
+                    isSet = true;
+                    cond.notify_one();
+                    return std::move(m_continuation);
+                }())
+            continuation->run();
+    }
+
+    void takeValue() {
+        auto const lock(waitReadyLock());
+        if (exception)
+            std::rethrow_exception(exception);
+    }
+
+};
+
+#undef SHAREMIND_SHAREDSTATE_COMMON
+
+template <typename R>
+struct ContinuationRun {
+    template <typename P, typename F, typename Fut>
+    static void run(P && p, F && f, Fut && fut) noexcept {
+        try {
+            p.setValue(f(std::forward<Fut>(fut)));
+        } catch (...) {
+            p.setException(std::current_exception());
+        }
+    }
+};
+
+template <>
+struct ContinuationRun<void> {
+    template <typename P, typename F, typename Fut>
+    static void run(P && p, F && f, Fut && fut) noexcept {
+        try {
+            f(std::forward<Fut>(fut));
+            p.setReady();
+        } catch (...) {
+            p.setException(std::current_exception());
+        }
+    }
+};
+
+template <template <typename> class Prom,
+          typename Fut,
+          typename F>
+struct Continuation final: ContinuationBase {
+
+/* Types: */
+
+    using R = typename std::result_of<F(Fut)>::type;
+
+/* Methods: */
+
+    template <typename ... Args>
+    explicit Continuation(Fut && future, Args && ... args)
+        : m_future(std::move(future))
+        , m_function(std::forward<Args>(args)...)
+    {}
+
+    void run() noexcept final override {
+        return ContinuationRun<R>::run(m_promise,
+                                       m_function,
+                                       std::move(m_future));
+    }
+
+/* Fields: */
+
+    Fut m_future;
+    F m_function;
+    Prom<R> m_promise;
+
+};
+
+} /* namespace Future { */
+} /* namespace Detail { */
+
+template <typename T> class Promise;
+
+
+#define SHAREMIND_FUTURE_COMMON(T) \
+    friend class Promise<T>; \
+private: /* Types: */ \
+    using SharedStatePtr = std::shared_ptr<Detail::Future::SharedState<T> >; \
+public: /* Methods: */ \
+    Future(Future const &) = delete; \
+    Future & operator=(Future const &) = delete; \
+    Future() noexcept {} \
+    Future(Future &&) noexcept = default; \
+    Future & operator=(Future &&) noexcept = default; \
+    T takeValue() { \
+        assert(m_state); \
+        return SharedStatePtr(std::move(m_state))->takeValue(); \
+    } \
+    bool isValid() const noexcept { return m_state.operator bool(); } \
+private: /* Methods: */ \
+    explicit Future(SharedStatePtr && state) noexcept \
+            : m_state(std::move(state)) \
+    {} \
+private: /* Fields: */ \
+    SharedStatePtr m_state;
+
+template <typename T>
+class Future {
+
+    static_assert(!std::is_reference<T>::value, "");
+
+    SHAREMIND_FUTURE_COMMON(T)
+
+public: /* Methods: */
+
+    template <typename F>
+    auto then(F && f) -> Future<typename std::result_of<F(Future<T>)>::type> {
+        using C = Detail::Future::Continuation<Promise, Future<T>, F>;
+        assert(m_state);
+        auto & state = *m_state;
+        std::unique_ptr<C> continuation(
+                    new C(Future(std::move(m_state)), std::move(f)));
+        auto r(continuation->m_promise.takeFuture());
+        state.then(std::move(continuation));
+        return r;
+    }
+
+};
+
+template <>
+class Future<void> {
+
+    SHAREMIND_FUTURE_COMMON(void)
+
+public: /* Methods: */
+
+    template <typename F>
+    auto then(F && f) ->
+            Future<typename std::result_of<F(Future<void>)>::type>
+    {
+        using C = Detail::Future::Continuation<Promise, Future<void>, F>;
+        assert(m_state);
+        auto & state = *m_state;
+        std::unique_ptr<C> continuation(
+                    new C(Future(std::move(m_state)), std::move(f)));
+        auto r(continuation->m_promise.takeFuture());
+        state.then(std::move(continuation));
+        return r;
+    }
+
+};
+
+#undef SHAREMIND_FUTURE_COMMON
+
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(std::exception,
+                                     BrokenPromiseException,
+                                     "Promise broken!");
+
+#define SHAREMIND_PROMISE_COMMON(T) \
+    private: /* Types: */ \
+        using SharedStatePtr = std::shared_ptr<Detail::Future::SharedState<T> >; \
+    public: /* Methods: */ \
+        Promise(Promise const &) = delete; \
+        Promise & operator=(Promise const &) = delete; \
+        Promise() {} \
+        Promise(Promise &&) noexcept = default; \
+        Promise & operator=(Promise &&) noexcept = default; \
+        ~Promise() noexcept { \
+            if (m_state) \
+                m_state->setException( \
+                        std::make_exception_ptr(BrokenPromiseException())); \
+        } \
+        void setException(std::exception_ptr e) noexcept { \
+            assert(m_state); \
+            return SharedStatePtr(std::move(m_state))->setException( \
+                            std::move(e)); \
+        } \
+        template <typename Exception> \
+        void setException(Exception && exception) noexcept { \
+            return setException( \
+                        std::make_exception_ptr( \
+                            std::forward<Exception>(exception))); \
+        } \
+        bool isValid() const noexcept \
+        { return static_cast<bool>(m_state); } \
+        bool haveFuture() const noexcept \
+        { return static_cast<bool>(m_futureState); } \
+        Future<T> takeFuture() noexcept { \
+            assert(m_futureState); \
+            return Future<T>(std::move(m_futureState)); \
+        } \
+    private: /* Fields: */ \
+        SharedStatePtr m_state{ \
+                std::make_shared<Detail::Future::SharedState<T> >()}; \
+        SharedStatePtr m_futureState{m_state};
+
+template <typename T>
+class Promise {
+
+    static_assert(!std::is_reference<T>::value, "");
+
+    SHAREMIND_PROMISE_COMMON(T)
+
+public: /* Methods: */
+
+    template <typename ... Args>
+    void emplaceValue(Args && ... args)
+            noexcept(noexcept(
+                std::declval<Detail::Future::SharedState<T> &>().emplaceValue(
+                                    std::forward<Args>(args)...)))
+    {
+        assert(m_state);
+        return SharedStatePtr(std::move(m_state))->emplaceValue(
+                        std::forward<Args>(args)...);
+    }
+
+    void setValue(T && v)
+            noexcept(noexcept(std::declval<Promise &>().emplaceValue(
+                                  std::move(v))))
+    { return emplaceValue(std::move(v)); }
+
+    void setValue(T const & v)
+            noexcept(noexcept(std::declval<Promise &>().emplaceValue(v)))
+    { return emplaceValue(v); }
+
+};
+
+template <>
+class Promise<void> {
+
+    SHAREMIND_PROMISE_COMMON(void)
+
+public: /* Methods: */
+
+    void setValue() noexcept { return setReady(); }
+
+    void setReady() noexcept {
+        assert(m_state);
+        return SharedStatePtr(std::move(m_state))->setReady();
+    }
+
+};
+
+#undef SHAREMIND_PROMISE_COMMON
+
+} /* namespace sharemind { */
+
+#endif /* SHAREMIND_FUTURE_H */
