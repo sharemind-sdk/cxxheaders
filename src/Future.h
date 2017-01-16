@@ -245,8 +245,7 @@ public: /* Methods: */
         using C = Detail::Future::Continuation<Promise, Future<T>, F>;
         assert(m_state);
         auto & state = *m_state;
-        std::unique_ptr<C> continuation(
-                    new C(Future(std::move(m_state)), std::move(f)));
+        std::unique_ptr<C> continuation(new C(std::move(*this), std::move(f)));
         auto r(continuation->m_promise.takeFuture());
         state.then(std::move(continuation));
         return r;
@@ -268,8 +267,7 @@ public: /* Methods: */
         using C = Detail::Future::Continuation<Promise, Future<void>, F>;
         assert(m_state);
         auto & state = *m_state;
-        std::unique_ptr<C> continuation(
-                    new C(Future(std::move(m_state)), std::move(f)));
+        std::unique_ptr<C> continuation(new C(std::move(*this), std::move(f)));
         auto r(continuation->m_promise.takeFuture());
         state.then(std::move(continuation));
         return r;
