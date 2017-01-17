@@ -293,7 +293,7 @@ public: /* Methods: */
             { m_f(std::move(task)); }
             typename std::decay<F>::type m_f;
         };
-        return createTask(new CustomTask(std::forward<F>(f)));
+        return createTask_(new CustomTask(std::forward<F>(f)));
     }
 
     template <typename F>
@@ -303,7 +303,7 @@ public: /* Methods: */
             inline void operator()(Task &&) noexcept final override { m_f(); }
             typename std::decay<F>::type m_f;
         };
-        return createTask(new CustomSimpleTask(std::forward<F>(f)));
+        return createTask_(new CustomSimpleTask(std::forward<F>(f)));
     }
 
     inline void submit(Task task) noexcept {
@@ -321,13 +321,8 @@ public: /* Methods: */
 
 private: /* Methods: */
 
-    static inline Task createTask(std::unique_ptr<TaskBase> task) {
-        assert(task);
-        return Task(new TaskWrapper(std::move(task)));
-    }
-
     template <typename TaskSubclass>
-    static inline Task createTask(TaskSubclass * const task) {
+    static inline Task createTask_(TaskSubclass * const task) {
         assert(task);
         return Task(new TaskWrapper(std::unique_ptr<TaskBase>(task)));
     }
