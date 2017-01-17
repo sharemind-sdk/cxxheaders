@@ -288,22 +288,22 @@ public: /* Methods: */
     template <typename F>
     static inline Task createTask(F && f) {
         struct CustomTask: TaskBase {
-            inline CustomTask(F && f) : m_f(std::move(f)) {}
+            inline CustomTask(F && f) : m_f(std::forward<F>(f)) {}
             inline void operator()(Task && task) noexcept final override
             { m_f(std::move(task)); }
-            F m_f;
+            typename std::decay<F>::type m_f;
         };
-        return createTask(new CustomTask(std::move(f)));
+        return createTask(new CustomTask(std::forward<F>(f)));
     }
 
     template <typename F>
     static inline Task createSimpleTask(F && f) {
         struct CustomSimpleTask: TaskBase {
-            inline CustomSimpleTask(F && f) : m_f(std::move(f)) {}
+            inline CustomSimpleTask(F && f) : m_f(std::forward<F>(f)) {}
             inline void operator()(Task &&) noexcept final override { m_f(); }
-            F m_f;
+            typename std::decay<F>::type m_f;
         };
-        return createTask(new CustomSimpleTask(std::move(f)));
+        return createTask(new CustomSimpleTask(std::forward<F>(f)));
     }
 
     inline void submit(Task task) noexcept {
