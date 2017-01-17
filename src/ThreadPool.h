@@ -52,10 +52,10 @@ public: /* Types: */
 
         template <typename F>
         inline ReusableTask(F && f)
-            : Task{createTask([this, f](Task && task) noexcept {
+            : Task(createTask([this, f](Task && task) noexcept {
                                   this->Task::operator=(std::move(task));
                                   f();
-                              })}
+                              }))
         {}
 
     };
@@ -88,7 +88,7 @@ public: /* Types: */
                     ThreadPool::createTask(
                         [weakSelf](Task && sliceTask) noexcept {
                             if (auto const self = weakSelf.lock())
-                              self->run(std::move(sliceTask));
+                                self->run(std::move(sliceTask));
                         });
         }
 
@@ -224,7 +224,7 @@ private: /* Types: */
 
     struct TaskWrapper final {
         inline TaskWrapper(std::unique_ptr<TaskBase> && value) noexcept
-            : m_value{std::move(value)}
+            : m_value(std::move(value))
         {}
 
         std::unique_ptr<TaskBase> m_value;
@@ -239,15 +239,15 @@ public: /* Methods: */
     ThreadPool & operator=(ThreadPool const &) = delete;
 
     inline ThreadPool()
-        : ThreadPool{[]{
+        : ThreadPool([]{
                 unsigned const n = std::thread::hardware_concurrency();
                 return (n == 0u) ? 3u : n;
-            }()}
+            }())
     {}
 
     inline ThreadPool(Pool::size_type const numThreads)
-        : ThreadPool{(assert(numThreads > 0u), numThreads),
-                     new TaskWrapper{nullptr}}
+        : ThreadPool((assert(numThreads > 0u), numThreads),
+                     new TaskWrapper(nullptr))
     {}
 
     virtual inline ~ThreadPool() noexcept {
@@ -272,7 +272,7 @@ public: /* Methods: */
 
     inline void join() noexcept {
         #ifndef NDEBUG
-        std::thread::id const myId{std::this_thread::get_id()};
+        std::thread::id const myId(std::this_thread::get_id());
         #endif
         std::lock_guard<std::mutex> const guard(m_threadsMutex);
         for (std::thread & thread : m_threads)
@@ -323,19 +323,19 @@ private: /* Methods: */
 
     static inline Task createTask(std::unique_ptr<TaskBase> task) {
         assert(task);
-        return Task{new TaskWrapper{std::move(task)}};
+        return Task(new TaskWrapper(std::move(task)));
     }
 
     template <typename TaskSubclass>
     static inline Task createTask(TaskSubclass * const task) {
         assert(task);
-        return Task{new TaskWrapper{std::unique_ptr<TaskBase>{task}}};
+        return Task(new TaskWrapper(std::unique_ptr<TaskBase>(task)));
     }
 
     inline ThreadPool(Pool::size_type const numThreads,
                       TaskWrapper * const emptyTaskWrapper)
-        : m_tail{emptyTaskWrapper}
-        , m_head{emptyTaskWrapper}
+        : m_tail(emptyTaskWrapper)
+        , m_head(emptyTaskWrapper)
     {
         m_threads.reserve(numThreads);
         try {
@@ -354,7 +354,7 @@ private: /* Methods: */
             std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
             for (;;) {
                 if (m_stop)
-                    return Task{};
+                    return Task();
                 if (m_head.get() != m_tail)
                     break;
                 #if defined(SHAREMIND_CLANG_VERSION) \
@@ -366,16 +366,13 @@ private: /* Methods: */
             }
         }
         assert(m_head->m_value);
-        Task oldHead{std::move(m_head)};
+        Task oldHead(std::move(m_head));
         m_head = std::move(oldHead->m_next);
         return oldHead;
     }
 
     inline void workerThread() noexcept {
-        for (;;) {
-            Task task{waitAndPop()};
-            if (!task)
-                return;
+        while (Task task = waitAndPop()) {
             // this->m_value(std::move(*this)); // would segfault.
             TaskWrapper * const taskPtr = task.get();
             assert(taskPtr);
