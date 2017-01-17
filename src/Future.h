@@ -23,6 +23,7 @@
 #include <cassert>
 #include <condition_variable>
 #include <exception>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <new>
@@ -336,8 +337,13 @@ public: /* Methods: */
 #undef SHAREMIND_FUTURE_COMMON
 
 
+template <typename T> class PackagedTask;
+
+
 #define SHAREMIND_PROMISE_COMMON(T) \
+        template <typename T_> friend class PackagedTask; \
     private: /* Types: */ \
+        enum Invalid_ { INVALID_ }; \
         using SharedStatePtr = \
                 std::shared_ptr<Detail::Future::SharedState<T> >; \
     public: /* Methods: */ \
@@ -370,6 +376,11 @@ public: /* Methods: */
             assert(m_futureState); \
             return Future<T>(std::move(m_futureState)); \
         } \
+    private: /* Methods: */ \
+        Promise(Invalid_ const) noexcept \
+            : m_state(nullptr) \
+            , m_futureState(nullptr) \
+        {} \
     private: /* Fields: */ \
         SharedStatePtr m_state{ \
                 std::make_shared<Detail::Future::SharedState<T> >()}; \
@@ -456,6 +467,74 @@ Future<T> makeExceptionalFuture(Exception && exception) {
 
 template <typename T>
 Future<T> makeBrokenFuture() { return Promise<T>().takeFuture(); }
+
+
+template <typename> class PackagedTask;
+
+template <typename R, typename ... ArgTypes>
+class PackagedTask<R(ArgTypes...)> {
+
+private: /* Types: */
+
+    using Function = std::function<R(ArgTypes...)>;
+
+public: /* Methods: */
+
+    PackagedTask()
+            noexcept(std::is_nothrow_constructible<
+                            Promise<R>,
+                            typename Promise<R>::Invalid_
+                     >::value
+                     && std::is_nothrow_default_constructible<Function>::value)
+        : m_promise(Promise<R>::INVALID_)
+    {}
+
+    template <typename F>
+    PackagedTask(F && f)
+            noexcept(std::is_nothrow_default_constructible<Promise<R> >::value
+                     && std::is_nothrow_constructible<Function, F>::value)
+        : m_function(std::forward<F>(f))
+    {}
+
+    PackagedTask(PackagedTask const &) = 0;
+    PackagedTask & operator=(PackagedTask const &) = 0;
+
+    PackagedTask(PackagedTask && move)
+            noexcept(std::is_nothrow_move_constructible<Promise<R> >::value
+                     && std::is_nothrow_move_constructible<Function>::value)
+        : m_promise(std::move(move.m_promise))
+        , m_function(std::move(move.m_function))
+    {}
+
+    PackagedTask & operator=(PackagedTask && move)
+            noexcept(std::is_nothrow_move_assignable<Promise<R> >::value
+                     && std::is_nothrow_move_assignable<Function>::value)
+    {
+        m_promise = std::move(move.m_promise);
+        m_function = std::move(move.m_function);
+    }
+
+    template <typename ... Args>
+    void operator()(Args && ... args) noexcept {
+        try {
+            m_promise.setValue(m_function(std::forward<Args>(args)...));
+        } catch (...) {
+            m_promise.setException(std::current_exception());
+        }
+    }
+
+    Future<R> takeFuture() noexcept { return m_promise.takeFuture(); }
+
+    bool isValid() const noexcept { return m_promise.isValid(); }
+
+    void reset() noexcept { operator=(PackagedTask(std::move(m_function))); }
+
+private: /* Methods: */
+
+    Promise<R> m_promise;
+    Function m_function;
+
+};
 
 } /* namespace sharemind { */
 
