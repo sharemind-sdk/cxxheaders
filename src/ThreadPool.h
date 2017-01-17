@@ -246,7 +246,7 @@ public: /* Methods: */
     {}
 
     inline ThreadPool(Pool::size_type const numThreads)
-        : ThreadPool((assert(numThreads > 0u), numThreads),
+        : ThreadPool(((void) assert(numThreads > 0u), numThreads),
                      new TaskWrapper(nullptr))
     {}
 
@@ -276,7 +276,7 @@ public: /* Methods: */
         #endif
         std::lock_guard<std::mutex> const guard(m_threadsMutex);
         for (std::thread & thread : m_threads)
-            if ((assert(thread.get_id() != myId), thread.joinable()))
+            if (((void) assert(thread.get_id() != myId), thread.joinable()))
                 thread.join();
     }
 
