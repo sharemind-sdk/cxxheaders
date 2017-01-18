@@ -92,7 +92,7 @@ struct V { int v; };
 
 template <typename T>
 void testTypeAgnostic() noexcept {
-    static_assert(std::is_default_constructible<Future<T> >::value, "");
+    static_assert(std::is_nothrow_default_constructible<Future<T> >::value, "");
     static_assert(!std::is_copy_constructible<Future<T> >::value, "");
     static_assert(std::is_nothrow_move_constructible<Future<T> >::value, "");
     static_assert(std::is_nothrow_destructible<Future<T> >::value, "");
