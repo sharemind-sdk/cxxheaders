@@ -281,6 +281,8 @@ public: /* Methods: */ \
         return SharedStatePtr(std::move(m_state))->takeValue(); \
     } \
     bool isValid() const noexcept { return m_state.operator bool(); } \
+    void swap(Future<T> & other) noexcept \
+    { return m_state.swap(other.m_state); } \
 private: /* Methods: */ \
     explicit Future(SharedStatePtr && state) noexcept \
             : m_state(std::move(state)) \
@@ -375,6 +377,10 @@ template <typename T> class PackagedTask;
         Future<T> takeFuture() noexcept { \
             assert(m_futureState); \
             return Future<T>(std::move(m_futureState)); \
+        } \
+        void swap(Promise<T> & other) noexcept { \
+            m_state.swap(other.m_state); \
+            m_futureState.swap(other.m_futureState); \
         } \
     private: /* Methods: */ \
         Promise(Invalid_ const) noexcept \
@@ -529,6 +535,11 @@ public: /* Methods: */
 
     void reset() noexcept { operator=(PackagedTask(std::move(m_function))); }
 
+    void swap(PackagedTask & other) noexcept {
+        m_promise.swap(other.m_promise);
+        m_function.swap(other.m_function);
+    }
+
 private: /* Methods: */
 
     Promise<R> m_promise;
@@ -537,5 +548,22 @@ private: /* Methods: */
 };
 
 } /* namespace sharemind { */
+
+namespace std {
+
+template <typename T>
+void swap(sharemind::Future<T> & lhs, sharemind::Future<T> & rhs) noexcept
+{ return lhs.swap(rhs); }
+
+template <typename T>
+void swap(sharemind::Promise<T> & lhs, sharemind::Promise<T> & rhs) noexcept
+{ return lhs.swap(rhs); }
+
+template <typename R, typename ... ArgTypes>
+void swap(sharemind::PackagedTask<R(ArgTypes...)> & lhs,
+          sharemind::PackagedTask<R(ArgTypes...)> & rhs) noexcept
+{ return lhs.swap(rhs); }
+
+} /* namespace std { */
 
 #endif /* SHAREMIND_FUTURE_H */
