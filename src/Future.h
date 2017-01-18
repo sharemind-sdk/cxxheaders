@@ -502,8 +502,8 @@ public: /* Methods: */
         : m_function(std::forward<F>(f))
     {}
 
-    PackagedTask(PackagedTask const &) = 0;
-    PackagedTask & operator=(PackagedTask const &) = 0;
+    PackagedTask(PackagedTask const &) = delete;
+    PackagedTask & operator=(PackagedTask const &) = delete;
 
     PackagedTask(PackagedTask && move)
             noexcept(std::is_nothrow_move_constructible<Promise<R> >::value
