@@ -533,7 +533,7 @@ public: /* Methods: */
 
     bool isValid() const noexcept { return m_promise.isValid(); }
 
-    void reset() { operator=(PackagedTask(std::move(m_function))); }
+    void reset() { swap(PackagedTask(std::move(m_function))); }
 
     void swap(PackagedTask & other) noexcept {
         m_promise.swap(other.m_promise);
