@@ -495,8 +495,9 @@ public: /* Methods: */
 
     template <typename F>
     PackagedTask(F && f)
-            noexcept(std::is_nothrow_default_constructible<Promise<R> >::value
-                     && std::is_nothrow_constructible<Function, F>::value)
+            noexcept(noexcept(std::is_nothrow_constructible<
+                                    decltype(PackagedTask::m_function),
+                                    decltype(std::forward<F>(f))>::value))
         : m_function(std::forward<F>(f))
     {}
 
