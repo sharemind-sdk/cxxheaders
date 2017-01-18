@@ -536,6 +536,7 @@ public: /* Methods: */
 
     void swap(PackagedTask & other) noexcept {
         m_promise.swap(other.m_promise);
+        static_assert(noexcept(m_function.swap(other.m_function)), "");
         m_function.swap(other.m_function);
     }
 
