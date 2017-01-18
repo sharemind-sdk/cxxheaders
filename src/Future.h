@@ -504,19 +504,20 @@ public: /* Methods: */
     PackagedTask(PackagedTask const &) = delete;
     PackagedTask & operator=(PackagedTask const &) = delete;
 
-    PackagedTask(PackagedTask && move)
-            noexcept(std::is_nothrow_move_constructible<Promise<R> >::value
-                     && std::is_nothrow_move_constructible<Function>::value)
+    PackagedTask(PackagedTask && move) noexcept
         : m_promise(std::move(move.m_promise))
-        , m_function(std::move(move.m_function))
-    {}
-
-    PackagedTask & operator=(PackagedTask && move)
-            noexcept(std::is_nothrow_move_assignable<Promise<R> >::value
-                     && std::is_nothrow_move_assignable<Function>::value)
     {
-        m_promise = std::move(move.m_promise);
-        m_function = std::move(move.m_function);
+        static_assert(
+                std::is_nothrow_default_constructible<
+                    decltype(m_function)>::value, "");
+        static_assert(noexcept(m_function.swap(move.m_function)), "");
+        m_function.swap(move.m_function);
+    }
+
+    PackagedTask & operator=(PackagedTask && move) noexcept {
+        PackagedTask tmp(std::move(move));
+        swap(tmp);
+        return *this;
     }
 
     template <typename ... Args>
