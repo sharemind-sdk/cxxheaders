@@ -486,14 +486,12 @@ private: /* Types: */
 
 public: /* Methods: */
 
-    PackagedTask()
-            noexcept(std::is_nothrow_constructible<
-                            Promise<R>,
-                            typename Promise<R>::Invalid_
-                     >::value
-                     && std::is_nothrow_default_constructible<Function>::value)
+    PackagedTask() noexcept
         : m_promise(Promise<R>::INVALID_)
-    {}
+    {
+        static_assert(std::is_nothrow_default_constructible<
+                            decltype(m_function)>::value, "");
+    }
 
     template <typename F>
     PackagedTask(F && f)
