@@ -414,4 +414,11 @@ int main() {
                                Future<V> >::value, "");
     static_assert(noexcept(std::declval<PT &>().takeFuture()), "");
     static_assert(noexcept(std::declval<PT &>().swap(std::declval<PT &>())), "");
+
+    static_assert(noexcept(std::swap(std::declval<Future<V> &>(),
+                                     std::declval<Future<V> &>())), "");
+    static_assert(noexcept(std::swap(std::declval<Promise<V> &>(),
+                                     std::declval<Promise<V> &>())), "");
+    static_assert(noexcept(std::swap(std::declval<PT &>(),
+                                     std::declval<PT &>())), "");
 }
