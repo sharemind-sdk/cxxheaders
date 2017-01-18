@@ -98,6 +98,12 @@ void testTypeAgnostic() noexcept {
     static_assert(std::is_nothrow_destructible<Future<T> >::value, "");
     static_assert(!std::is_copy_assignable<Future<T> >::value, "");
     static_assert(std::is_nothrow_move_assignable<Future<T> >::value, "");
+    static_assert(std::is_same<decltype(std::declval<Future<T> &>().takeValue()), T>::value, "");
+    static_assert(!noexcept(std::declval<Future<T> &>().takeValue()), "");
+    static_assert(std::is_same<decltype(std::declval<Future<T> &>().isValid()), bool>::value, "");
+    static_assert(noexcept(std::declval<Future<T> &>().isValid()), "");
+    static_assert(std::is_same<decltype(std::declval<Future<T> &>().swap(std::declval<Future<T> &>())), void>::value, "");
+    static_assert(noexcept(std::declval<Future<T> &>().swap(std::declval<Future<T> &>())), "");
 
     static_assert(std::is_default_constructible<Promise<T> >::value, "");
     static_assert(!std::is_copy_constructible<Promise<T> >::value, "");
