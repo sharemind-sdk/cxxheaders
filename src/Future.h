@@ -28,6 +28,7 @@
 #include <mutex>
 #include <new>
 #include <type_traits>
+#include <utility>
 #include "Exception.h"
 #include "StripReferenceWrapper.h"
 
