@@ -174,7 +174,8 @@ struct ContinuationRun {
     template <typename P, typename F, typename Fut>
     static void run(P && p, F && f, Fut && fut) noexcept {
         try {
-            p.setValue(f(std::forward<Fut>(fut)));
+            static_assert(std::is_rvalue_reference<Fut &&>::value, "");
+            p.setValue(f(std::move(fut)));
         } catch (...) {
             p.setException(std::current_exception());
         }
@@ -186,7 +187,8 @@ struct ContinuationRun<sharemind::Future<T> > {
     template <typename P, typename F, typename Fut>
     static void run(P && p, F && f, Fut && fut) noexcept {
         try {
-            auto f2(f(std::forward<Fut>(fut)));
+            static_assert(std::is_rvalue_reference<Fut &&>::value, "");
+            auto f2(f(std::move(fut)));
             if (f2.isValid()) {
                 p.setValue(f2.takeValue());
             } else {
@@ -203,7 +205,8 @@ struct ContinuationRun<sharemind::Future<void> > {
     template <typename P, typename F, typename Fut>
     static void run(P && p, F && f, Fut && fut) noexcept {
         try {
-            auto f2(f(std::forward<Fut>(fut)));
+            static_assert(std::is_rvalue_reference<Fut &&>::value, "");
+            auto f2(f(std::move(fut)));
             if (f2.isValid()) {
                 f2.takeValue();
                 p.setReady();
@@ -221,7 +224,8 @@ struct ContinuationRun<void> {
     template <typename P, typename F, typename Fut>
     static void run(P && p, F && f, Fut && fut) noexcept {
         try {
-            f(std::forward<Fut>(fut));
+            static_assert(std::is_rvalue_reference<Fut &&>::value, "");
+            f(std::move(fut));
             p.setReady();
         } catch (...) {
             p.setException(std::current_exception());
