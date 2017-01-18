@@ -26,6 +26,7 @@
 
 using sharemind::BrokenPromiseException;
 using sharemind::Future;
+using sharemind::PackagedTask;
 using sharemind::Promise;
 using sharemind::makeExceptionalFuture;
 
@@ -397,4 +398,20 @@ int main() {
             SHAREMIND_TEST_UNREACHABLE;
         }
     }
+
+    using PT = PackagedTask<V(V,V)>;
+    static_assert(std::is_default_constructible<PT>::value, "");
+    static_assert(!std::is_copy_constructible<PT>::value, "");
+    static_assert(std::is_nothrow_move_constructible<PT>::value, "");
+    static_assert(std::is_nothrow_destructible<PT>::value, "");
+    static_assert(!std::is_copy_assignable<PT>::value, "");
+    static_assert(std::is_nothrow_move_assignable<PT>::value, "");
+    static_assert(noexcept(std::declval<PT &>()(std::declval<V>(), std::declval<V>())), "");
+    static_assert(std::is_same<decltype(std::declval<PT &>().isValid()),
+                               bool>::value, "");
+    static_assert(noexcept(std::declval<PT &>().isValid()), "");
+    static_assert(std::is_same<decltype(std::declval<PT &>().takeFuture()),
+                               Future<V> >::value, "");
+    static_assert(noexcept(std::declval<PT &>().takeFuture()), "");
+    static_assert(noexcept(std::declval<PT &>().swap(std::declval<PT &>())), "");
 }
