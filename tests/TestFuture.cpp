@@ -90,6 +90,15 @@ public: /* Methods: */
 struct E { int c; };
 struct V { int v; };
 
+template <typename R>
+struct TestContinuation {
+    template <typename T>
+    R operator()(T &&) {
+        static_assert(std::is_rvalue_reference<T &&>::value, "");
+        return R();
+    }
+};
+
 template <typename T>
 void testTypeAgnostic() noexcept {
     static_assert(std::is_nothrow_default_constructible<Future<T> >::value, "");
@@ -104,6 +113,11 @@ void testTypeAgnostic() noexcept {
     static_assert(noexcept(std::declval<Future<T> &>().isValid()), "");
     static_assert(std::is_same<decltype(std::declval<Future<T> &>().swap(std::declval<Future<T> &>())), void>::value, "");
     static_assert(noexcept(std::declval<Future<T> &>().swap(std::declval<Future<T> &>())), "");
+    static_assert(std::is_same<decltype(std::declval<Future<T> &>().then(std::declval<TestContinuation<void> &>())), Future<void> >::value, "");
+    {
+        struct X {};
+        static_assert(std::is_same<decltype(std::declval<Future<T> &>().then(std::declval<TestContinuation<X> &>())), Future<X> >::value, "");
+    }
 
     static_assert(std::is_default_constructible<Promise<T> >::value, "");
     static_assert(!std::is_copy_constructible<Promise<T> >::value, "");
