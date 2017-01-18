@@ -105,9 +105,18 @@ void testTypeAgnostic() noexcept {
     static_assert(std::is_nothrow_destructible<Promise<T> >::value, "");
     static_assert(!std::is_copy_assignable<Promise<T> >::value, "");
     static_assert(std::is_nothrow_move_assignable<Promise<T> >::value, "");
-
-    static_assert(std::is_same<decltype(Promise<T>().takeFuture()), Future<T> >::value, "");
-    static_assert(std::is_same<decltype(Promise<T>().setException(std::declval<std::exception_ptr>())), void>::value, "");
+    static_assert(std::is_same<decltype(std::declval<Promise<T> &>().setException(std::declval<E>())), void>::value, "");
+    static_assert(noexcept(std::declval<Promise<T> &>().setException(std::declval<E>())), "");
+    static_assert(std::is_same<decltype(std::declval<Promise<T> &>().setException(std::declval<std::exception_ptr>())), void>::value, "");
+    static_assert(noexcept(std::declval<Promise<T> &>().setException(std::declval<std::exception_ptr>())), "");
+    static_assert(std::is_same<decltype(std::declval<Promise<T> &>().isValid()), bool>::value, "");
+    static_assert(noexcept(std::declval<Promise<T> &>().isValid()), "");
+    static_assert(std::is_same<decltype(std::declval<Promise<T> &>().haveFuture()), bool>::value, "");
+    static_assert(noexcept(std::declval<Promise<T> &>().haveFuture()), "");
+    static_assert(std::is_same<decltype(std::declval<Promise<T> &>().takeFuture()), Future<T> >::value, "");
+    static_assert(noexcept(std::declval<Promise<T> &>().takeFuture()), "");
+    static_assert(std::is_same<decltype(std::declval<Promise<T> &>().swap(std::declval<Promise<T> &>())), void>::value, "");
+    static_assert(noexcept(std::declval<Promise<T> &>().swap(std::declval<Promise<T> &>())), "");
 
     {
         std::unique_ptr<Promise<T> > pp(new Promise<T>());
