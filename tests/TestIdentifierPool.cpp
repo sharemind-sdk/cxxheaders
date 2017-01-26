@@ -29,7 +29,7 @@ int main() {
     std::mt19937 g(rd());
 
     sharemind::IdentifierPool<unsigned> pool;
-    std::vector<unsigned> reserved;
+    std::vector<decltype(pool.reserve())> reserved;
     constexpr static unsigned ADD1 = 1000u;
     constexpr static unsigned REMOVE1 = 700u; // 300u
     constexpr static unsigned ADD2 = 900u;    // 1200u
@@ -44,18 +44,15 @@ int main() {
         do { \
             auto const n = (num); \
             for (unsigned i = 0u; i < n; ++i) \
-                reserved.push_back(pool.reserve()); \
+                reserved.emplace_back(pool.reserve()); \
         } while(false);
     #define REMOVE(num) \
         do { \
             auto const n = (num); \
             auto size = reserved.size(); \
             SHAREMIND_TESTASSERT(size >= n); \
-            for (unsigned i = 0u; i < n; ++i) { \
-                auto const id = reserved[--size]; \
+            for (unsigned i = 0u; i < n; ++i) \
                 reserved.pop_back(); \
-                pool.recycle(id); \
-            } \
         } while (false)
 
     ADD(ADD1); SHUFFLE; REMOVE(REMOVE1);

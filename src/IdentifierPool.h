@@ -21,6 +21,8 @@
 #define SHAREMIND_IDENTIFIERPOOL_H
 
 #include <cassert>
+#include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <set>
 #include <type_traits>
@@ -38,6 +40,8 @@ class IdentifierPool {
 
 public: /* Types: */
 
+    using ValueType = T;
+
     SHAREMIND_DEFINE_EXCEPTION(std::exception, Exception);
     /**
       \brief Signifies that ID reservation failed because the identifier space
@@ -48,6 +52,104 @@ public: /* Types: */
             ReserveException,
             "No more identifiers can be reserved.");
 
+private: /* Types: */
+
+    struct State {
+
+    /* Methods: */
+
+        inline T reserve() {
+            std::lock_guard<std::mutex> const guard(m_mutex);
+            T tryNext = m_tryNextId;
+            T const oldTryNext = tryNext;
+            while (m_reserved.find(tryNext) != m_reserved.end())
+                if (++tryNext == oldTryNext)
+                    throw ReserveException();
+            m_reserved.insert(tryNext);
+            m_tryNextId = tryNext + 1u;
+            return tryNext;
+        }
+
+        /**
+           \brief Releases the given ID back to the pool.
+           \param[in] id The ID to release.
+           \pre The given id is reserved by the pool.
+           \post The given id is not reserved by the pool.
+        */
+        inline void recycle(T const id) noexcept {
+            std::lock_guard<std::mutex> const guard(m_mutex);
+            #ifndef NDEBUG
+            auto const numErased =
+            #endif
+                    m_reserved.erase(id);
+            assert(numErased > 0u);
+        }
+
+    /* Fields: */
+        std::mutex m_mutex;
+        std::set<T> m_reserved; /**< The ordered set of reserved IDs. */
+        T m_tryNextId = 0u;     /**< The next ID to try to reserve. */
+    };
+
+public: /* Types: */
+
+    class IdHolder {
+
+        friend class IdentifierPool<T>;
+
+    public: /* Types: */
+
+        using ValueType = T;
+
+    public: /* Methods: */
+
+        IdHolder();
+
+        IdHolder(std::shared_ptr<State> state) noexcept
+            : m_id(state->reserve())
+            , m_state(std::move(state))
+        {}
+
+        IdHolder(IdHolder const & copy) = delete;
+        IdHolder & operator=(IdHolder const & copy) = delete;
+
+        IdHolder(IdHolder && move) noexcept
+            : m_id(move.m_id)
+            , m_state(std::move(move.m_state))
+        {}
+
+        IdHolder & operator=(IdHolder && move) noexcept {
+            if (m_state)
+                m_state->recycle(m_id);
+            m_id = move.m_id;
+            m_state = std::move(move.m_state);
+            return *this;
+        }
+
+        ~IdHolder() noexcept {
+            if (m_state)
+                m_state->recycle(m_id);
+        }
+
+        operator bool() const noexcept { return valid(); }
+        bool valid() const noexcept { return m_state != nullptr; }
+        T id() const noexcept { return m_id; }
+        T const & idRef() const noexcept { return m_id; }
+
+        void release() noexcept {
+            if (m_state) {
+                m_state->recycle(m_id);
+                m_state.reset();
+            }
+        }
+
+    private: /* Fields: */
+
+        T m_id;
+        std::shared_ptr<State> m_state = nullptr;
+
+    };
+
 public: /* Methods: */
 
     /**
@@ -57,43 +159,11 @@ public: /* Methods: */
       \throws ReserveException on pool exhaustion.
       \throws std::bad_alloc when out of memory.
     */
-    T reserve() {
-        T tryNext = m_tryNextId;
-        T const oldTryNext = tryNext;
-        while (m_reserved.find(tryNext) != m_reserved.end())
-            if (++tryNext == oldTryNext)
-                throw ReserveException();
-        m_reserved.insert(tryNext);
-        m_tryNextId = tryNext + 1u;
-        return tryNext;
-    }
-
-    /**
-      \brief Returns whether the given ID is reserved.
-      \param[in] id The ID to check.
-      \returns whether the given ID is reserved.
-    */
-    inline bool reserved(T const id) const noexcept
-    { return m_reserved.find(id) != m_reserved.end(); }
-
-    /**
-       \brief Releases the given ID back to the pool.
-       \param[in] id The ID to release.
-       \pre The given id is reserved by the pool.
-       \post The given id is not reserved by the pool.
-    */
-    inline void recycle(T const id) noexcept {
-        #ifndef NDEBUG
-        auto const numErased =
-        #endif
-                m_reserved.erase(id);
-        assert(numErased > 0u);
-    }
+    IdHolder reserve() { return m_state; }
 
 private: /* Fields: */
 
-    std::set<T> m_reserved; /**< The ordered set of reserved IDs. */
-    T m_tryNextId = 0u;     /**< The next ID to try to reserve. */
+    std::shared_ptr<State> m_state{std::make_shared<State>()};
 
 };
 
