@@ -167,6 +167,9 @@ private: /* Fields: */
 
 };
 
+template <typename T>
+using IdHolder = typename IdentifierPool<T>::IdHolder;
+
 } /* namespace sharemind { */
 
 #endif /* SHAREMIND_IDENTIFIERPOOL_H */

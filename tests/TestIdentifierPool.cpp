@@ -29,7 +29,7 @@ int main() {
     std::mt19937 g(rd());
 
     sharemind::IdentifierPool<unsigned> pool;
-    std::vector<decltype(pool.reserve())> reserved;
+    std::vector<sharemind::IdHolder<unsigned> > reserved;
     constexpr static unsigned ADD1 = 1000u;
     constexpr static unsigned REMOVE1 = 700u; // 300u
     constexpr static unsigned ADD2 = 900u;    // 1200u
