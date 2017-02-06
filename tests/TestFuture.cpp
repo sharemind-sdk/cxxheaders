@@ -21,6 +21,7 @@
 
 #include <chrono>
 #include <thread>
+#include "../src/MakeUnique.h"
 #include "../src/TestAssert.h"
 
 
@@ -29,6 +30,7 @@ using sharemind::Future;
 using sharemind::PackagedTask;
 using sharemind::Promise;
 using sharemind::makeExceptionalFuture;
+using sharemind::makeUnique;
 
 
 class DelayedThread: public std::thread {
@@ -139,7 +141,7 @@ void testTypeAgnostic() noexcept {
     static_assert(noexcept(std::declval<Promise<T> &>().swap(std::declval<Promise<T> &>())), "");
 
     {
-        std::unique_ptr<Promise<T> > pp(new Promise<T>());
+        auto pp(makeUnique<Promise<T> >());
         SHAREMIND_TESTASSERT(pp->isValid());
         SHAREMIND_TESTASSERT(pp->haveFuture());
         auto f = pp->takeFuture();
@@ -158,7 +160,7 @@ void testTypeAgnostic() noexcept {
         }
     }
     {
-        std::unique_ptr<Promise<T> > pp(new Promise<T>());
+        auto pp(makeUnique<Promise<T> >());
         SHAREMIND_TESTASSERT(pp->isValid());
         SHAREMIND_TESTASSERT(pp->haveFuture());
         static_cast<void>(pp->takeFuture()); // Drop
@@ -221,7 +223,7 @@ int main() {
 
     // Future getting ready without waiting:
     {
-        std::unique_ptr<Promise<void> > pp(new Promise<void>);
+        auto pp(makeUnique<Promise<void> >());
         auto f = pp->takeFuture();
         pp->setReady();
         SHAREMIND_TESTASSERT(!pp->isValid());
@@ -233,7 +235,7 @@ int main() {
 
         SHAREMIND_TESTASSERT(!f.isValid());
     }{
-        std::unique_ptr<Promise<V> > pp(new Promise<V>);
+        auto pp(makeUnique<Promise<V> >());
         SHAREMIND_TESTASSERT(pp->isValid());
         SHAREMIND_TESTASSERT(pp->haveFuture());
 
