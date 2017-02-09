@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_UUID_H
 #define SHAREMIND_UUID_H
 
+#include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/name_generator.hpp>
 #include <utility>
@@ -57,5 +58,30 @@ inline Uuid generateSharemindNameUuid(Args && ... args) noexcept {
 
 
 } /* namespace sharemind { */
+
+namespace std {
+
+template <> struct hash<sharemind::Uuid> {
+
+/* Types: */
+
+    using argument_type = sharemind::Uuid;
+    using result_type = std::size_t;
+
+    static_assert(
+            std::is_same<
+                decltype(boost::hash<argument_type>()(
+                             std::declval<argument_type const &>())),
+                result_type
+            >::value, "");
+
+/* Methods: */
+
+    result_type operator()(argument_type const & uuid) const noexcept
+    { return boost::hash<argument_type>()(uuid); }
+
+};
+
+} /* namespace std { */
 
 #endif /* SHAREMIND_UUID_H */
