@@ -103,7 +103,7 @@ public: /* Types: */
 
     public: /* Methods: */
 
-        IdHolder();
+        IdHolder() {}
 
         IdHolder(std::shared_ptr<State> state) noexcept
             : m_id(state->reserve())
