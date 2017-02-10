@@ -19,52 +19,73 @@
 
 #include "../src/MakeUnique.h"
 
+#include <cstddef>
 #include <memory>
-#include <type_traits>
+#include <utility>
 #include "../src/AssertReturn.h"
 #include "../src/TestAssert.h"
-#include "../src/Void.h"
+#include "../src/Detected.h"
 
 
 using sharemind::makeUnique;
-using sharemind::Void_t;
+using sharemind::IsDetected;
+using sharemind::IsDetectedExact;
 
+template <typename T> using U = std::unique_ptr<T>;
+
+struct V {};
 struct X {
-    static constexpr int const DEFAULT = 8;
-    X(int const v = DEFAULT) noexcept : m_v(v) {}
-    int m_v;
+    X() noexcept {}
+    explicit X(V * const v) noexcept : m_v(v) {}
+    V * const m_v = nullptr;
 };
+struct Y;
+template <typename T> struct Z;
 
-static_assert(std::is_same<decltype(makeUnique<X>()),
-                           std::unique_ptr<X> >::value, "");
-static_assert(std::is_same<decltype(makeUnique<X>(42)),
-                           std::unique_ptr<X> >::value, "");
-static_assert(std::is_same<decltype(makeUnique<X[]>(42)),
-                           std::unique_ptr<X[]> >::value, "");
 
-using False = std::integral_constant<bool, false>;
-using True = std::integral_constant<bool, true>;
 
-template <typename T, class = void> struct CanMakeUnique: False {};
-template <typename T>
-struct CanMakeUnique<T, Void_t<decltype(makeUnique<T>())> >: True {};
-static_assert(CanMakeUnique<X>::value, "");
-// static_assert(CanMakeUnique<X[]>::value, ""); // Needs arg
-static_assert(!CanMakeUnique<X[42]>::value, "");
+template <typename T, typename ... Args>
+using CanMakeUnique = decltype(makeUnique<T>(std::declval<Args>()...));
 
-template <typename T, class = void> struct CanMakeUniqueWithArg: False {};
-template <typename T>
-struct CanMakeUniqueWithArg<T, Void_t<decltype(makeUnique<T>(42))> > : True {};
-static_assert(CanMakeUniqueWithArg<X>::value, "");
-static_assert(CanMakeUniqueWithArg<X[]>::value, "");
-static_assert(!CanMakeUniqueWithArg<X[42]>::value, "");
+// No arguments:
+static_assert(IsDetected<CanMakeUnique, X>::value, "");
+static_assert(IsDetectedExact<U<X>, CanMakeUnique, X>::value, "");
+static_assert(!IsDetected<CanMakeUnique, X[]>::value, "");
+static_assert(!IsDetected<CanMakeUnique, X[42]>::value, "");
+
+// Random (Y *, Z<Y> const &) arguments:
+static_assert(IsDetected<CanMakeUnique, X, Y *, Z<Y> const &>::value, "");
+static_assert(IsDetectedExact<U<X>, CanMakeUnique, X, Y *, Z<Y> const &>::value,
+              "");
+static_assert(!IsDetected<CanMakeUnique, X[], Y *, Z<Y> const &>::value, "");
+static_assert(!IsDetected<CanMakeUnique, X[42], Y *, Z<Y> const &>::value, "");
+
+// Size arguments:
+static_assert(IsDetected<CanMakeUnique, X, std::size_t>::value, "");
+static_assert(IsDetectedExact<U<X>, CanMakeUnique, X, std::size_t>::value, "");
+static_assert(IsDetected<CanMakeUnique, X[], std::size_t>::value, "");
+static_assert(IsDetectedExact<U<X[]>, CanMakeUnique, X[], std::size_t>::value,
+              "");
+static_assert(!IsDetected<CanMakeUnique, X[42], std::size_t>::value, "");
+
+// Size and random (Y *, Z<Y> const &) arguments:
+static_assert(
+        IsDetected<CanMakeUnique, X, std::size_t, Y *, Z<Y> const &>::value,"");
+static_assert(
+        IsDetectedExact<U<X>, CanMakeUnique, X, std::size_t, Y *, Z<Y> const &>
+            ::value, "");
+static_assert(
+        !IsDetected<CanMakeUnique, X[], std::size_t, Y *, Z<Y> const &>::value,
+        "");
+static_assert(
+        !IsDetected<CanMakeUnique, X[42], std::size_t, Y *, Z<Y> const &>
+            ::value, "");
 
 int main() {
-    SHAREMIND_TESTASSERT(
-                SHAREMIND_ASSERTRETURN(makeUnique<X>())->m_v == X::DEFAULT);
-    SHAREMIND_TESTASSERT(
-                SHAREMIND_ASSERTRETURN(makeUnique<X>(42))->m_v == 42);
+    V v;
+    SHAREMIND_TESTASSERT(!SHAREMIND_ASSERTRETURN(makeUnique<X>())->m_v);
+    SHAREMIND_TESTASSERT(SHAREMIND_ASSERTRETURN(makeUnique<X>(&v))->m_v == &v);
     auto const ptr(SHAREMIND_ASSERTRETURN(makeUnique<X[]>(42)));
     for (unsigned i = 0u; i < 42u; ++i)
-        SHAREMIND_TESTASSERT(ptr[i].m_v == X::DEFAULT);
+        SHAREMIND_TESTASSERT(!ptr[i].m_v);
 }
