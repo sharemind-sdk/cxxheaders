@@ -22,7 +22,6 @@
 #include <type_traits>
 #include "../src/TemplateInstantiateWithTypeParams.h"
 #include "../src/TemplateTypeList.h"
-#include "../src/Void.h"
 
 
 template <typename ...> struct I {};
