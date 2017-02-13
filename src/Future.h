@@ -446,7 +446,7 @@ public: /* Methods: */
 #undef SHAREMIND_PROMISE_COMMON
 
 
-Future<void> makeReadyFuture() {
+inline Future<void> makeReadyFuture() {
     Promise<void> p;
     p.setReady();
     return p.takeFuture();
