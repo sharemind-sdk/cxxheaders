@@ -30,17 +30,25 @@
 
 
 namespace sharemind {
+namespace Detail {
+namespace IntrusiveUnorderedSharedItemSet {
+
+template <typename, bool> struct ItemTraits;
+
+} /* namespace IntrusiveUnorderedSharedItemSet { */
+} /* namespace Detail { */
 
 template <typename T, typename ... Args>
 class IntrusiveUnorderedSharedItemSet;
 
+template <typename T>
 class IntrusiveUnorderedSharedItemSetItemBase
         : public boost::intrusive::unordered_set_base_hook<
                     boost::intrusive::link_mode<boost::intrusive::normal_link> >
 {
 
-    template <typename, typename ...>
-    friend class IntrusiveUnorderedSharedItemSet;
+    template <typename, bool>
+    friend struct Detail::IntrusiveUnorderedSharedItemSet::ItemTraits;
 
 public: /* Methods: */
 
@@ -48,22 +56,73 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    std::shared_ptr<IntrusiveUnorderedSharedItemSetItemBase> m_selfPtr;
+    std::shared_ptr<T> m_selfPtr;
 
 };
 
+namespace Detail {
+namespace IntrusiveUnorderedSharedItemSet {
+
+
+template <typename T>
+struct IsValidBase {
+
+    template <typename V>
+    static decltype(
+            static_cast<IntrusiveUnorderedSharedItemSetItemBase<V> const &>(
+                std::declval<T>()),
+            std::true_type())
+    test(IntrusiveUnorderedSharedItemSetItemBase<V> const &);
+
+    static std::false_type test(...);
+
+    constexpr static bool const value =
+            decltype(test(std::declval<T>()))::value;
+};
+
+template <typename T, bool = IsValidBase<T>::value>
+struct ItemTraits { constexpr static bool const isValid = false; };
+
+template <typename T>
+struct ItemTraits<T, true> {
+
+    constexpr static bool const isValid = true;
+
+    template <typename V>
+    static decltype(
+            static_cast<IntrusiveUnorderedSharedItemSetItemBase<V> const &>(
+                std::declval<T>()),
+            IntrusiveUnorderedSharedItemSetItemBase<V>())
+    holderTypeTest(IntrusiveUnorderedSharedItemSetItemBase<V> const &);
+
+    using HolderType = decltype(holderTypeTest(std::declval<T>()));
+
+    static std::shared_ptr<T> const & getPtr(HolderType const & holder) noexcept
+    { return holder.m_selfPtr; }
+
+    static std::shared_ptr<T> takePtr(HolderType & holder) noexcept
+    { return std::move(holder.m_selfPtr); }
+
+    static void putPtr(HolderType & holder, std::shared_ptr<T> ptr) noexcept
+    { holder.m_selfPtr = std::move(ptr); }
+
+};
+
+} /* namespace IntrusiveUnorderedSharedItemSet { */
+} /* namespace Detail { */
+
 template <typename T, typename ... Args>
 class IntrusiveUnorderedSharedItemSet {
-
-    static_assert(
-            std::is_base_of<IntrusiveUnorderedSharedItemSetItemBase, T>::value,
-            "T must inherit from IntrusiveUnorderedSharedItemSetItemBase!");
 
 public: /* Constants: */
 
     constexpr static std::size_t defaultNumberOfBuckets = 200u;
 
 private: /* Types: */
+
+    using ItemTraits = Detail::IntrusiveUnorderedSharedItemSet::ItemTraits<T>;
+    using IsValidBase = Detail::IntrusiveUnorderedSharedItemSet::IsValidBase<T>;
+    static_assert(IsValidBase::value, "Invalid item type!");
 
     using Container = boost::intrusive::unordered_set<T, Args...>;
 
@@ -107,7 +166,7 @@ public: /* Methods: */
         noexcept(noexcept(std::declval<Container &>().insert(*v)))
     {
         auto r(m_container.insert(*v));
-        v->m_selfPtr = std::move(v);
+        ItemTraits::putPtr(*v, std::move(v));
         return r;
     }
 
@@ -131,11 +190,26 @@ public: /* Methods: */
                     &IntrusiveUnorderedSharedItemSet::disposer);
     }
 
+    std::shared_ptr<T> take(ConstIterator it)
+            noexcept(noexcept(std::declval<Container &>().erase(std::move(it))))
+    {
+        auto r(ItemTraits::takePtr(*it));
+        m_container.erase(std::move(it));
+        return r;
+    }
+
+    void take(ValueType & v)
+            noexcept(noexcept(std::declval<Container &>().erase(v)))
+    {
+        auto r(ItemTraits::takePtr(v));
+        m_container.erase(v);
+        return r;
+    }
+
 private: /* Methods: */
 
-    static void disposer(IntrusiveUnorderedSharedItemSetItemBase * const item)
-            noexcept
-    { item->m_selfPtr.reset(); }
+    static void disposer(T * const item) noexcept
+    { ItemTraits::takePtr(*item); }
 
 private: /* Fields: */
 
