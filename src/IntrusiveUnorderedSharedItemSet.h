@@ -69,6 +69,7 @@ private: /* Types: */
 
 public: /* Types: */
 
+    using ValueType = typename Container::value_type;
     using ConstIterator = typename Container::const_iterator;
     using Iterator = typename Container::iterator;
 
@@ -117,6 +118,16 @@ public: /* Methods: */
     {
         return m_container.erase_and_dispose(
                     std::move(it),
+                    &IntrusiveUnorderedSharedItemSet::disposer);
+    }
+
+    void erase(ValueType & v)
+            noexcept(noexcept(std::declval<Container &>().erase_and_dispose(
+                                  v,
+                                  &IntrusiveUnorderedSharedItemSet::disposer)))
+    {
+        return m_container.erase_and_dispose(
+                    v,
                     &IntrusiveUnorderedSharedItemSet::disposer);
     }
 
