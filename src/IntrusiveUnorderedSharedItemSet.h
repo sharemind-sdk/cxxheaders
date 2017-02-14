@@ -111,8 +111,14 @@ public: /* Methods: */
     }
 
     void erase(ConstIterator it)
-            noexcept(noexcept(std::declval<Container &>().erase(std::move(it))))
-    { return m_container.erase(std::move(it)); }
+            noexcept(noexcept(std::declval<Container &>().erase_and_dispose(
+                                  std::move(it),
+                                  &IntrusiveUnorderedSharedItemSet::disposer)))
+    {
+        return m_container.erase_and_dispose(
+                    std::move(it),
+                    &IntrusiveUnorderedSharedItemSet::disposer);
+    }
 
 private: /* Methods: */
 
