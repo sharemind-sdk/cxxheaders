@@ -198,7 +198,7 @@ public: /* Methods: */
         return r;
     }
 
-    void take(ValueType & v)
+    std::shared_ptr<T> take(ValueType & v)
             noexcept(noexcept(std::declval<Container &>().erase(v)))
     {
         auto r(ItemTraits::takePtr(v));
