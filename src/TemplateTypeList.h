@@ -20,11 +20,17 @@
 #ifndef SHAREMIND_TEMPLATETYPELIST_H
 #define SHAREMIND_TEMPLATETYPELIST_H
 
+#include <tuple>
+
+
 namespace sharemind {
 
 template <typename ... Ts> struct TemplateTypeList {
-    using type = TemplateTypeList<Ts...>;
+    using AsTuple = std::tuple<Ts...>;
     static constexpr auto size = sizeof...(Ts);
+
+    template <std::size_t N>
+    using type = typename std::tuple_element<N, AsTuple>::type;
 };
 
 } /* namespace sharemind { */
