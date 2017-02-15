@@ -131,6 +131,8 @@ public: /* Types: */
     using ValueType = typename Container::value_type;
     using ConstIterator = typename Container::const_iterator;
     using Iterator = typename Container::iterator;
+    using ConstReference = typename Container::const_reference;
+    using Reference = typename Container::reference;
 
 public: /* Methods: */
 
@@ -180,13 +182,13 @@ public: /* Methods: */
                     &IntrusiveUnorderedSharedItemSet::disposer);
     }
 
-    void erase(ValueType & v)
+    void erase(ConstReference cRef)
             noexcept(noexcept(std::declval<Container &>().erase_and_dispose(
-                                  v,
+                                  cRef,
                                   &IntrusiveUnorderedSharedItemSet::disposer)))
     {
         return m_container.erase_and_dispose(
-                    v,
+                    cRef,
                     &IntrusiveUnorderedSharedItemSet::disposer);
     }
 
@@ -198,11 +200,11 @@ public: /* Methods: */
         return r;
     }
 
-    std::shared_ptr<T> take(ValueType & v)
-            noexcept(noexcept(std::declval<Container &>().erase(v)))
+    std::shared_ptr<T> take(Reference ref)
+            noexcept(noexcept(std::declval<Container &>().erase(ref)))
     {
-        auto r(ItemTraits::takePtr(v));
-        m_container.erase(v);
+        auto r(ItemTraits::takePtr(ref));
+        m_container.erase(ref);
         return r;
     }
 
