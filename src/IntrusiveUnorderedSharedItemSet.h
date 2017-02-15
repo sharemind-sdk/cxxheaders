@@ -189,7 +189,7 @@ public: /* Methods: */
                     &IntrusiveUnorderedSharedItemSet::disposer);
     }
 
-    void erase(ConstReference cRef)
+    SizeType erase(ConstReference cRef)
             noexcept(noexcept(std::declval<Container &>().erase_and_dispose(
                                   cRef,
                                   &IntrusiveUnorderedSharedItemSet::disposer)))
