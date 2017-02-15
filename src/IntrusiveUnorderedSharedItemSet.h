@@ -129,6 +129,7 @@ private: /* Types: */
 public: /* Types: */
 
     using ValueType = typename Container::value_type;
+    using SizeType = typename Container::size_type;
     using ConstIterator = typename Container::const_iterator;
     using Iterator = typename Container::iterator;
     using ConstReference = typename Container::const_reference;
