@@ -21,8 +21,8 @@
 #define SHAREMIND_FUNCTIONTRAITS_H
 
 #include <cstddef>
-#include <tuple>
 #include <type_traits>
+#include "TemplateTypeList.h"
 
 
 namespace sharemind {
@@ -33,13 +33,11 @@ struct FunctionTraits;
 template <typename R, typename ... Args>
 struct FunctionTraits<R(Args...)> {
   using return_type = R;
-  static constexpr std::size_t arity = sizeof...(Args);
-  template <std::size_t N> struct argument {
-    static_assert(N < arity, "invalid parameter index");
-    using type = typename std::tuple_element<N, std::tuple<Args...> >::type;
-  };
+  using arguments = TemplateTypeList<Args...>;
+  static constexpr std::size_t arity = arguments::size;
+
   template <std::size_t N>
-  using argument_type = typename argument<N>::type;
+  using argument = typename arguments::template type<N>;
 };
 
 template <typename R, typename ... Args>

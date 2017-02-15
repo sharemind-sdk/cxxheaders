@@ -402,7 +402,7 @@ private: /* Methods: */
                            static_cast<std::size_t>(42u))), "");
         using WDT = typename std::remove_pointer<
                 typename sharemind::FunctionTraits<Actor>
-                        ::template argument<1u>::type
+                        ::template argument<1u>
             >::type;
         static_assert(std::is_const<typename Actions::BufferSideType>
                             ::value
