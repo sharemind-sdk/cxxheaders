@@ -56,7 +56,7 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    std::shared_ptr<T> m_selfPtr;
+    mutable std::shared_ptr<T> m_selfPtr;
 
 };
 
@@ -100,8 +100,8 @@ struct ItemTraits<T, true> {
     static std::shared_ptr<T> const & getPtr(HolderType const & holder) noexcept
     { return holder.m_selfPtr; }
 
-    static std::shared_ptr<T> takePtr(HolderType & holder) noexcept
-    { return std::move(holder.m_selfPtr); }
+    static std::shared_ptr<T> takePtr(HolderType const & holder) noexcept
+    { return std::shared_ptr<T>(std::move(holder.m_selfPtr)); }
 
     static void putPtr(HolderType & holder, std::shared_ptr<T> ptr) noexcept
     { holder.m_selfPtr = std::move(ptr); }
