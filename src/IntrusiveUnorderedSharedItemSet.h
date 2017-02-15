@@ -146,6 +146,12 @@ public: /* Methods: */
                     &IntrusiveUnorderedSharedItemSet::disposer);
     }
 
+    Iterator iteratorTo(Reference value) noexcept
+    { return m_container.iterator_to(value); }
+
+    ConstIterator iteratorTo(ConstReference value) const noexcept
+    { return m_container.iterator_to(value); }
+
     template <typename KeyType, typename KeyHasher, typename KeyComparator>
     T * find(KeyType const & key,
              KeyHasher keyHasher,
