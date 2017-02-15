@@ -147,6 +147,10 @@ public: /* Methods: */
                     &IntrusiveUnorderedSharedItemSet::disposer);
     }
 
+    bool empty() const noexcept { return m_container.empty(); }
+
+    SizeType size() const noexcept { return m_container.size(); }
+
     Iterator iteratorTo(Reference value) noexcept
     { return m_container.iterator_to(value); }
 
