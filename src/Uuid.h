@@ -21,8 +21,11 @@
 #define SHAREMIND_UUID_H
 
 #include <boost/functional/hash.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/name_generator.hpp>
+#include <string>
 #include <utility>
 
 
@@ -56,6 +59,25 @@ inline Uuid generateSharemindNameUuid(Args && ... args) noexcept {
     return generator(std::forward<Args>(args)...);
 }
 
+/**
+ * \brief Convert a sharemind::Uuid to a std::string representation
+ *        hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh where h is a hexidecimal digit.
+ * \param u The Uuid struct.
+ * \return The string representation of u.
+ */
+inline std::string uuidToString(Uuid const & u) {
+    return boost::uuids::to_string(u);
+}
+
+/**
+ * \brief Convert string representation to sharemind::Uuid struct.
+ *        Assumes input is in same format as output by sharemind::uuidToString method.
+ * \param uuidStr Uuid string representation.
+ * \return The Uuid struct.
+ */
+inline Uuid uuidFromString(std::string const & uuidStr) {
+    return boost::lexical_cast<Uuid>(uuidStr);
+}
 
 } /* namespace sharemind { */
 
