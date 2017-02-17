@@ -17,17 +17,29 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
+#include <algorithm>
+
 #include "../src/TestAssert.h"
 #include "../src/Uuid.h"
 
-
 int main() {
     using namespace sharemind;
-    Uuid u;
-    SHAREMIND_TESTASSERT(u != sharemindNamespaceUuid);
+    Uuid u {0};
+    SHAREMIND_TESTASSERT(std::all_of(u.begin(), u.end(),
+                                     [](uint8_t x){ return x == 0; }));
+    constexpr const char* zeroUuidStr = "00000000-0000-0000-0000-000000000000";
+    SHAREMIND_TESTASSERT(uuidToString(u) == zeroUuidStr);
     SHAREMIND_TESTASSERT(uuidFromString(uuidToString(sharemindNamespaceUuid)) ==
                          sharemindNamespaceUuid);
     SHAREMIND_TESTASSERT(uuidFromString(uuidToString(u)) == u);
+    SHAREMIND_TESTASSERT(u != sharemindNamespaceUuid);
     SHAREMIND_TESTASSERT(uuidToString(u) !=
                          uuidToString(sharemindNamespaceUuid));
+
+    try {
+        u = uuidFromString("asd");
+    } catch (boost::bad_lexical_cast const &) {
+        return 0;
+    }
+    SHAREMIND_TEST_UNREACHABLE;
 }

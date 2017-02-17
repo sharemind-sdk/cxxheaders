@@ -62,8 +62,8 @@ inline Uuid generateSharemindNameUuid(Args && ... args) noexcept {
 /**
  * \brief Convert a sharemind::Uuid to a std::string representation
  *        hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh where h is a hexidecimal digit.
- * \param u The Uuid struct.
- * \return The string representation of u.
+ * \param[in] u The Uuid struct.
+ * \returns The string representation of u.
  */
 inline std::string uuidToString(Uuid const & u) {
     return boost::uuids::to_string(u);
@@ -71,9 +71,11 @@ inline std::string uuidToString(Uuid const & u) {
 
 /**
  * \brief Convert string representation to sharemind::Uuid struct.
- *        Assumes input is in same format as output by sharemind::uuidToString method.
- * \param uuidStr Uuid string representation.
- * \return The Uuid struct.
+ *
+ * \pre Assumes input is in same format as output by sharemind::uuidToString method.
+ * \param[in] uuidStr Uuid string representation.
+ * \returns The Uuid struct.
+ * \throws boost::bad_lexical_cast when input is not in correct format.
  */
 inline Uuid uuidFromString(std::string const & uuidStr) {
     return boost::lexical_cast<Uuid>(uuidStr);
