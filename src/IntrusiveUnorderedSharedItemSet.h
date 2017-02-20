@@ -186,8 +186,8 @@ public: /* Methods: */
     std::pair<Iterator, bool> insert(std::shared_ptr<T> v)
         noexcept(noexcept(std::declval<Container &>().insert(*v)))
     {
-        auto r(m_container.insert(*v));
         auto & item = *v;
+        auto r(m_container.insert(item));
         ItemTraits::putPtr(item, std::move(v));
         return r;
     }
