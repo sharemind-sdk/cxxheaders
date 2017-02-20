@@ -380,7 +380,7 @@ template <typename T> class PackagedTask;
         } \
         bool isValid() const noexcept \
         { return static_cast<bool>(m_state); } \
-        bool haveFuture() const noexcept \
+        bool hasFuture() const noexcept \
         { return static_cast<bool>(m_futureState); } \
         Future<T> takeFuture() noexcept { \
             assert(m_futureState); \

@@ -133,8 +133,8 @@ void testTypeAgnostic() noexcept {
     static_assert(noexcept(std::declval<Promise<T> &>().setException(std::declval<std::exception_ptr>())), "");
     static_assert(std::is_same<decltype(std::declval<Promise<T> &>().isValid()), bool>::value, "");
     static_assert(noexcept(std::declval<Promise<T> &>().isValid()), "");
-    static_assert(std::is_same<decltype(std::declval<Promise<T> &>().haveFuture()), bool>::value, "");
-    static_assert(noexcept(std::declval<Promise<T> &>().haveFuture()), "");
+    static_assert(std::is_same<decltype(std::declval<Promise<T> &>().hasFuture()), bool>::value, "");
+    static_assert(noexcept(std::declval<Promise<T> &>().hasFuture()), "");
     static_assert(std::is_same<decltype(std::declval<Promise<T> &>().takeFuture()), Future<T> >::value, "");
     static_assert(noexcept(std::declval<Promise<T> &>().takeFuture()), "");
     static_assert(std::is_same<decltype(std::declval<Promise<T> &>().swap(std::declval<Promise<T> &>())), void>::value, "");
@@ -143,10 +143,10 @@ void testTypeAgnostic() noexcept {
     {
         auto pp(makeUnique<Promise<T> >());
         SHAREMIND_TESTASSERT(pp->isValid());
-        SHAREMIND_TESTASSERT(pp->haveFuture());
+        SHAREMIND_TESTASSERT(pp->hasFuture());
         auto f = pp->takeFuture();
         SHAREMIND_TESTASSERT(pp->isValid());
-        SHAREMIND_TESTASSERT(!pp->haveFuture());
+        SHAREMIND_TESTASSERT(!pp->hasFuture());
         SHAREMIND_TESTASSERT(f.isValid());
         pp.reset();
         SHAREMIND_TESTASSERT(f.isValid());
@@ -162,10 +162,10 @@ void testTypeAgnostic() noexcept {
     {
         auto pp(makeUnique<Promise<T> >());
         SHAREMIND_TESTASSERT(pp->isValid());
-        SHAREMIND_TESTASSERT(pp->haveFuture());
+        SHAREMIND_TESTASSERT(pp->hasFuture());
         static_cast<void>(pp->takeFuture()); // Drop
         SHAREMIND_TESTASSERT(pp->isValid());
-        SHAREMIND_TESTASSERT(!pp->haveFuture());
+        SHAREMIND_TESTASSERT(!pp->hasFuture());
     }
     {
         Promise<T> p;
@@ -227,7 +227,7 @@ int main() {
         auto f = pp->takeFuture();
         pp->setReady();
         SHAREMIND_TESTASSERT(!pp->isValid());
-        SHAREMIND_TESTASSERT(!pp->haveFuture());
+        SHAREMIND_TESTASSERT(!pp->hasFuture());
         pp.reset();
 
         static_assert(std::is_same<decltype(f.takeValue()), void>::value, "");
@@ -237,11 +237,11 @@ int main() {
     }{
         auto pp(makeUnique<Promise<V> >());
         SHAREMIND_TESTASSERT(pp->isValid());
-        SHAREMIND_TESTASSERT(pp->haveFuture());
+        SHAREMIND_TESTASSERT(pp->hasFuture());
 
         auto f = pp->takeFuture();
         SHAREMIND_TESTASSERT(pp->isValid());
-        SHAREMIND_TESTASSERT(!pp->haveFuture());
+        SHAREMIND_TESTASSERT(!pp->hasFuture());
         SHAREMIND_TESTASSERT(f.isValid());
 
         pp->setValue(V{42});
@@ -260,7 +260,7 @@ int main() {
         auto pp = std::make_shared<Promise<void> >();
         auto f = pp->takeFuture();
         SHAREMIND_TESTASSERT(pp->isValid());
-        SHAREMIND_TESTASSERT(!pp->haveFuture());
+        SHAREMIND_TESTASSERT(!pp->hasFuture());
         SHAREMIND_TESTASSERT(f.isValid());
 
         SetReadyDelayedThread(std::move(pp));
