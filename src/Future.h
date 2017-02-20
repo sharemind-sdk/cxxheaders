@@ -67,6 +67,10 @@ struct ContinuationBase { \
                     }(std::move(e))) \
                 continuation->run(); \
         } \
+        bool ready() noexcept { \
+            std::lock_guard<std::mutex> const guard(mutex); \
+            return isSet; \
+        } \
         std::unique_lock<std::mutex> waitReadyLock() noexcept { \
             std::unique_lock<std::mutex> lock(mutex); \
             cond.wait(lock, [this]() noexcept { return isSet; }); \
@@ -287,6 +291,10 @@ public: /* Methods: */ \
         return SharedStatePtr(std::move(m_state))->takeValue(); \
     } \
     bool isValid() const noexcept { return m_state.operator bool(); } \
+    bool isReady() const noexcept { \
+        assert(m_state); \
+        return m_state->ready(); \
+    } \
     void swap(Future<T> & other) noexcept \
     { return m_state.swap(other.m_state); } \
 private: /* Methods: */ \
