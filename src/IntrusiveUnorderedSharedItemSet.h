@@ -187,7 +187,8 @@ public: /* Methods: */
         noexcept(noexcept(std::declval<Container &>().insert(*v)))
     {
         auto r(m_container.insert(*v));
-        ItemTraits::putPtr(*v, std::move(v));
+        auto & item = *v;
+        ItemTraits::putPtr(item, std::move(v));
         return r;
     }
 
