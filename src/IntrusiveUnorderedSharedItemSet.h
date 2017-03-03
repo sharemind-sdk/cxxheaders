@@ -229,6 +229,14 @@ public: /* Methods: */
         return r;
     }
 
+    static inline std::shared_ptr<ValueType> retrieveSharedPtr(
+            ConstIterator const it) noexcept
+    { return ItemTraits::getPtr(*it); }
+
+    static inline std::shared_ptr<ValueType> retrieveSharedPtr(
+            ConstReference const cref) noexcept
+    { return ItemTraits::getPtr(cref); }
+
 private: /* Methods: */
 
     static void disposer(T * const item) noexcept
