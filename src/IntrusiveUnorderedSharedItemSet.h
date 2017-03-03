@@ -44,7 +44,8 @@ class IntrusiveUnorderedSharedItemSet;
 template <typename T>
 class IntrusiveUnorderedSharedItemSetItemBase
         : public boost::intrusive::unordered_set_base_hook<
-                    boost::intrusive::link_mode<boost::intrusive::normal_link> >
+                    boost::intrusive::link_mode<boost::intrusive::normal_link>,
+                    boost::intrusive::store_hash<true> >
 {
 
     template <typename, bool>
