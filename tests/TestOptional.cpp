@@ -19,6 +19,8 @@
 
 #include "../src/Optional.h"
 
+#include "../src/TestAssert.h"
+
 
 #if 0
 #include <cstdio>
@@ -80,7 +82,7 @@ struct TestStats {
     }
 
     static void assumeAndReset(unsigned expected) {
-        assert(m_total == expected);
+        SHAREMIND_TESTASSERT(m_total == expected);
         m_total = 0u;
     }
 
@@ -147,12 +149,12 @@ struct TestType {
     }
 
     ~TestType() noexcept {
-         DEBUG_MSG("%p ~destroy\n", this);
-        assert(m_stats);
-        assert(!m_stats->m_destroyed);
+        DEBUG_MSG("%p ~destroy\n", this);
+        SHAREMIND_TESTASSERT(m_stats);
+        SHAREMIND_TESTASSERT(!m_stats->m_destroyed);
         m_stats->m_destroyed = true;
         m_stats.reset();
-        assert(!m_stats);
+        SHAREMIND_TESTASSERT(!m_stats);
     }
 
     std::shared_ptr<TestStats> m_stats{std::make_shared<TestStats>()};
@@ -183,24 +185,24 @@ int main() {
     #define TMP(c) inPlace, TMP_(c)
     #define GEN(n,c) OT n(TMP(c))
     DEBUG_MSG("Nothing\n");
-    assert(!OT());
+    SHAREMIND_TESTASSERT(!OT());
     TestStats::assumeAndReset(0u);
-    { OT x; assert(x.value(TMP_('x')) == 'x'); }
+    { OT x; SHAREMIND_TESTASSERT(x.value(TMP_('x')) == 'x'); }
     TestStats::assumeAndReset(1u);
-    assert(OT().value(TMP_('x')) == 'x');
+    SHAREMIND_TESTASSERT(OT().value(TMP_('x')) == 'x');
     TestStats::assumeAndReset(1u);
 
     DEBUG_MSG("\nJust\n");
-    assert(OT(TMP('x')));
+    SHAREMIND_TESTASSERT(OT(TMP('x')));
     TestStats::assumeAndReset(1u);
-    assert(OT(TMP('x'))->m_value == 'x');
+    SHAREMIND_TESTASSERT(OT(TMP('x'))->m_value == 'x');
     TestStats::assumeAndReset(1u);
     {
         auto const stats(std::make_shared<TestStats>());
         TestStats::assumeAndReset(1u);
         { OT(inPlace, stats, 'x'); }
         TestStats::assumeAndReset(0u);
-        assert(*stats == TestStats(false, 0u, 0u, false, 0u, 0u, true));
+        SHAREMIND_TESTASSERT(*stats == TestStats(false, 0u, 0u, false, 0u, 0u, true));
         TestStats::assumeAndReset(1u);
     }
     DEBUG_MSG("\nCopy construct from nothing\n");
@@ -209,8 +211,8 @@ int main() {
         TestStats::assumeAndReset(0u);
         OT y(x);
         TestStats::assumeAndReset(0u);
-        assert(!x);
-        assert(!y);
+        SHAREMIND_TESTASSERT(!x);
+        SHAREMIND_TESTASSERT(!y);
     }
     DEBUG_MSG("\nCopy construct from something\n");
     {
@@ -221,15 +223,15 @@ int main() {
         TestStats::assumeAndReset(1u);
         OT y(x);
         TestStats::assumeAndReset(1u);
-        assert(xStats == x->m_stats);
-        assert(!(*oldXStats == *xStats));
+        SHAREMIND_TESTASSERT(xStats == x->m_stats);
+        SHAREMIND_TESTASSERT(!(*oldXStats == *xStats));
         ++oldXStats->m_copiedFrom;
-        assert(*oldXStats == *xStats);
-        assert(x);
-        assert(y);
-        assert(*x == 'x');
-        assert(*y == 'x');
-        assert(*y->m_stats == TestStats(true, 0u, 0u, false, 0u, 0u, false));
+        SHAREMIND_TESTASSERT(*oldXStats == *xStats);
+        SHAREMIND_TESTASSERT(x);
+        SHAREMIND_TESTASSERT(y);
+        SHAREMIND_TESTASSERT(*x == 'x');
+        SHAREMIND_TESTASSERT(*y == 'x');
+        SHAREMIND_TESTASSERT(*y->m_stats == TestStats(true, 0u, 0u, false, 0u, 0u, false));
         TestStats::assumeAndReset(1u);
     }
     DEBUG_MSG("\nMove construct from nothing\n");
@@ -238,8 +240,8 @@ int main() {
         TestStats::assumeAndReset(0u);
         OT y(std::move(x));
         TestStats::assumeAndReset(0u);
-        assert(!x);
-        assert(!y);
+        SHAREMIND_TESTASSERT(!x);
+        SHAREMIND_TESTASSERT(!y);
     }
     DEBUG_MSG("\nMove construct from something\n");
     {
@@ -250,14 +252,14 @@ int main() {
         TestStats::assumeAndReset(1u);
         OT y(std::move(x));
         TestStats::assumeAndReset(1u);
-        assert(xStats == x->m_stats);
-        assert(!(*oldXStats == *xStats));
+        SHAREMIND_TESTASSERT(xStats == x->m_stats);
+        SHAREMIND_TESTASSERT(!(*oldXStats == *xStats));
         ++oldXStats->m_movedFrom;
-        assert(*oldXStats == *xStats);
-        assert(x);
-        assert(y);
-        assert(*y == 'x');
-        assert(*y->m_stats == TestStats(false, 0u, 0u, true, 0u, 0u, false));
+        SHAREMIND_TESTASSERT(*oldXStats == *xStats);
+        SHAREMIND_TESTASSERT(x);
+        SHAREMIND_TESTASSERT(y);
+        SHAREMIND_TESTASSERT(*y == 'x');
+        SHAREMIND_TESTASSERT(*y->m_stats == TestStats(false, 0u, 0u, true, 0u, 0u, false));
         TestStats::assumeAndReset(1u);
     }
     DEBUG_MSG("\nMove-assign nothing to nothing\n");
@@ -265,8 +267,8 @@ int main() {
         OT x;
         OT y;
         x = std::move(y);
-        assert(!x);
-        assert(!y);
+        SHAREMIND_TESTASSERT(!x);
+        SHAREMIND_TESTASSERT(!y);
         TestStats::assumeAndReset(0u);
     }
     DEBUG_MSG("\nMove-assign nothing to something\n");
@@ -281,18 +283,18 @@ int main() {
         x = std::move(y);
         DEBUG_MSG("END\n");
         TestStats::assumeAndReset(0u);
-        assert(!x);
-        assert(!y);
-        assert(xStats.unique());
-        assert(!(*oldXStats == *xStats));
-        assert(*oldXStats == TestStats(false, 0u, 0u, false, 0u, 0u, false));
+        SHAREMIND_TESTASSERT(!x);
+        SHAREMIND_TESTASSERT(!y);
+        SHAREMIND_TESTASSERT(xStats.unique());
+        SHAREMIND_TESTASSERT(!(*oldXStats == *xStats));
+        SHAREMIND_TESTASSERT(*oldXStats == TestStats(false, 0u, 0u, false, 0u, 0u, false));
         TestStats::assumeAndReset(1u);
         oldXStats->m_destroyed = true;
-        assert(*oldXStats == TestStats(false, 0u, 0u, false, 0u, 0u, true));
+        SHAREMIND_TESTASSERT(*oldXStats == TestStats(false, 0u, 0u, false, 0u, 0u, true));
         TestStats::assumeAndReset(1u);
-        assert(*xStats == TestStats(false, 0u, 0u, false, 0u, 0u, true));
+        SHAREMIND_TESTASSERT(*xStats == TestStats(false, 0u, 0u, false, 0u, 0u, true));
         TestStats::assumeAndReset(1u);
-        assert(*oldXStats == *xStats);
+        SHAREMIND_TESTASSERT(*oldXStats == *xStats);
     }
     DEBUG_MSG("\nMove-assign something to nothing\n");
     {
@@ -306,14 +308,14 @@ int main() {
         y = std::move(x);
         DEBUG_MSG("END\n");
         TestStats::assumeAndReset(1u);
-        assert(x);
-        assert(y);
-        assert(*y == 'x');
-        assert(xStats == x->m_stats);
-        assert(!(*oldXStats == *xStats));
+        SHAREMIND_TESTASSERT(x);
+        SHAREMIND_TESTASSERT(y);
+        SHAREMIND_TESTASSERT(*y == 'x');
+        SHAREMIND_TESTASSERT(xStats == x->m_stats);
+        SHAREMIND_TESTASSERT(!(*oldXStats == *xStats));
         ++oldXStats->m_movedFrom;
-        assert(*oldXStats == *xStats);
-        assert(*y->m_stats == TestStats(false, 0u, 0u, true, 0u, 0u, false));
+        SHAREMIND_TESTASSERT(*oldXStats == *xStats);
+        SHAREMIND_TESTASSERT(*y->m_stats == TestStats(false, 0u, 0u, true, 0u, 0u, false));
         TestStats::assumeAndReset(1u);
     }
     DEBUG_MSG("\nMove-assign something to something\n");
@@ -332,17 +334,17 @@ int main() {
         x = std::move(y);
         DEBUG_MSG("END\n");
         TestStats::assumeAndReset(0u);
-        assert(x);
-        assert(*x == 'y');
-        assert(y);
-        assert(xStats == x->m_stats);
-        assert(yStats == y->m_stats);
-        assert(!(*oldXStats == *xStats));
+        SHAREMIND_TESTASSERT(x);
+        SHAREMIND_TESTASSERT(*x == 'y');
+        SHAREMIND_TESTASSERT(y);
+        SHAREMIND_TESTASSERT(xStats == x->m_stats);
+        SHAREMIND_TESTASSERT(yStats == y->m_stats);
+        SHAREMIND_TESTASSERT(!(*oldXStats == *xStats));
         ++oldXStats->m_moveAssignCalls;
-        assert(*oldXStats == *xStats);
-        assert(!(*oldYStats == *yStats));
+        SHAREMIND_TESTASSERT(*oldXStats == *xStats);
+        SHAREMIND_TESTASSERT(!(*oldYStats == *yStats));
         ++oldYStats->m_movedFrom;
-        assert(*oldYStats == *yStats);
+        SHAREMIND_TESTASSERT(*oldYStats == *yStats);
         TestStats::assumeAndReset(0u);
     }
     DEBUG_MSG("\nCopy-assign nothing to nothing\n");
@@ -351,8 +353,8 @@ int main() {
         OT y;
         x = y;
         TestStats::assumeAndReset(0u);
-        assert(!x);
-        assert(!y);
+        SHAREMIND_TESTASSERT(!x);
+        SHAREMIND_TESTASSERT(!y);
     }
     DEBUG_MSG("\nCopy-assign nothing to something\n");
     {
@@ -366,18 +368,18 @@ int main() {
         x = y;
         DEBUG_MSG("END\n");
         TestStats::assumeAndReset(0u);
-        assert(!x);
-        assert(!y);
-        assert(xStats.unique());
-        assert(!(*oldXStats == *xStats));
-        assert(*oldXStats == TestStats(false, 0u, 0u, false, 0u, 0u, false));
+        SHAREMIND_TESTASSERT(!x);
+        SHAREMIND_TESTASSERT(!y);
+        SHAREMIND_TESTASSERT(xStats.unique());
+        SHAREMIND_TESTASSERT(!(*oldXStats == *xStats));
+        SHAREMIND_TESTASSERT(*oldXStats == TestStats(false, 0u, 0u, false, 0u, 0u, false));
         TestStats::assumeAndReset(1u);
         oldXStats->m_destroyed = true;
-        assert(*oldXStats == TestStats(false, 0u, 0u, false, 0u, 0u, true));
+        SHAREMIND_TESTASSERT(*oldXStats == TestStats(false, 0u, 0u, false, 0u, 0u, true));
         TestStats::assumeAndReset(1u);
-        assert(*xStats == TestStats(false, 0u, 0u, false, 0u, 0u, true));
+        SHAREMIND_TESTASSERT(*xStats == TestStats(false, 0u, 0u, false, 0u, 0u, true));
         TestStats::assumeAndReset(1u);
-        assert(*oldXStats == *xStats);
+        SHAREMIND_TESTASSERT(*oldXStats == *xStats);
     }
     DEBUG_MSG("\nCopy-assign something to nothing\n");
     {
@@ -391,15 +393,15 @@ int main() {
         y = x;
         DEBUG_MSG("END\n");
         TestStats::assumeAndReset(1u);
-        assert(x);
-        assert(y);
-        assert(*y == 'x');
-        assert(xStats == x->m_stats);
-        assert(xStats != y->m_stats);
-        assert(!(*oldXStats == *xStats));
+        SHAREMIND_TESTASSERT(x);
+        SHAREMIND_TESTASSERT(y);
+        SHAREMIND_TESTASSERT(*y == 'x');
+        SHAREMIND_TESTASSERT(xStats == x->m_stats);
+        SHAREMIND_TESTASSERT(xStats != y->m_stats);
+        SHAREMIND_TESTASSERT(!(*oldXStats == *xStats));
         ++oldXStats->m_copiedFrom;
-        assert(*oldXStats == *xStats);
-        assert(*y->m_stats == TestStats(true, 0u, 0u, false, 0u, 0u, false));
+        SHAREMIND_TESTASSERT(*oldXStats == *xStats);
+        SHAREMIND_TESTASSERT(*y->m_stats == TestStats(true, 0u, 0u, false, 0u, 0u, false));
         TestStats::assumeAndReset(1u);
     }
     DEBUG_MSG("\nCopy-assign something to something\n");
@@ -418,17 +420,17 @@ int main() {
         x = y;
         DEBUG_MSG("END\n");
         TestStats::assumeAndReset(0u);
-        assert(x);
-        assert(*x == 'y');
-        assert(y);
-        assert(xStats == x->m_stats);
-        assert(yStats == y->m_stats);
-        assert(!(*oldXStats == *xStats));
+        SHAREMIND_TESTASSERT(x);
+        SHAREMIND_TESTASSERT(*x == 'y');
+        SHAREMIND_TESTASSERT(y);
+        SHAREMIND_TESTASSERT(xStats == x->m_stats);
+        SHAREMIND_TESTASSERT(yStats == y->m_stats);
+        SHAREMIND_TESTASSERT(!(*oldXStats == *xStats));
         ++oldXStats->m_copyAssignCalls;
-        assert(*oldXStats == *xStats);
-        assert(!(*oldYStats == *yStats));
+        SHAREMIND_TESTASSERT(*oldXStats == *xStats);
+        SHAREMIND_TESTASSERT(!(*oldYStats == *yStats));
         ++oldYStats->m_copiedFrom;
-        assert(*oldYStats == *yStats);
+        SHAREMIND_TESTASSERT(*oldYStats == *yStats);
         TestStats::assumeAndReset(0u);
     }
 }
