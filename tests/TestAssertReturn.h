@@ -23,11 +23,38 @@
 #include <memory>
 #include "../src/compiler-support/GccNoreturn.h"
 #include "../src/TestAssert.h"
-
 #ifndef NDEBUG
 #include <signal.h>
+#endif
+#include <type_traits>
 
 
+struct A { explicit operator bool() const volatile noexcept; };
+struct B { explicit operator bool() const volatile; };
+#define SAME(T) \
+    std::is_same<decltype(sharemind::assertReturn(std::declval<T>())), \
+                 decltype(std::declval<T>())>::value
+static_assert(SAME(A), "");
+static_assert(SAME(A const), "");
+static_assert(SAME(A volatile), "");
+static_assert(SAME(A const volatile), "");
+static_assert(SAME(A &), "");
+static_assert(SAME(A const &), "");
+static_assert(SAME(A volatile &), "");
+static_assert(SAME(A const volatile &), "");
+static_assert(SAME(A &&), "");
+static_assert(SAME(A const &&), "");
+static_assert(SAME(A volatile &&), "");
+static_assert(SAME(A const volatile &&), "");
+static_assert(noexcept(sharemind::assertReturn(std::declval<A>())), "");
+#ifndef NDEBUG
+static_assert(!noexcept(sharemind::assertReturn(std::declval<B>())), "");
+#else
+static_assert(noexcept(sharemind::assertReturn(std::declval<B>())), "");
+#endif
+
+
+#ifndef NDEBUG
 SHAREMIND_GCC_NORETURN_PART1 void handleAbort(int) SHAREMIND_GCC_NORETURN_PART2;
 void handleAbort(int) { exit(0); }
 #endif
@@ -36,7 +63,7 @@ void handleAbort(int) { exit(0); }
 int main() {
     auto sPtr = std::make_shared<int>(42);
     std::weak_ptr<int> wPtr(sPtr);
-    auto sPtr2 = SHAREMIND_ASSERTRETURN(wPtr.lock());
+    auto sPtr2 = sharemind::assertReturn(wPtr.lock());
     SHAREMIND_TESTASSERT(sPtr2.use_count() == 2u);
 
     sPtr.reset();
@@ -46,7 +73,7 @@ int main() {
     signal(SIGABRT, &handleAbort);
     #endif
 
-    auto const sPtr3 = SHAREMIND_ASSERTRETURN(wPtr.lock());
+    auto const sPtr3 = sharemind::assertReturn(wPtr.lock());
     SHAREMIND_TESTASSERT(!sPtr3);
     #ifndef NDEBUG
     return EXIT_FAILURE;

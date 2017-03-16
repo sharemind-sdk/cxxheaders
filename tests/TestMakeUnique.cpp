@@ -83,9 +83,9 @@ static_assert(
 
 int main() {
     V v;
-    SHAREMIND_TESTASSERT(!SHAREMIND_ASSERTRETURN(makeUnique<X>())->m_v);
-    SHAREMIND_TESTASSERT(SHAREMIND_ASSERTRETURN(makeUnique<X>(&v))->m_v == &v);
-    auto const ptr(SHAREMIND_ASSERTRETURN(makeUnique<X[]>(42)));
+    SHAREMIND_TESTASSERT(!sharemind::assertReturn(makeUnique<X>())->m_v);
+    SHAREMIND_TESTASSERT(sharemind::assertReturn(makeUnique<X>(&v))->m_v == &v);
+    auto const ptr(sharemind::assertReturn(makeUnique<X[]>(42)));
     for (unsigned i = 0u; i < 42u; ++i)
         SHAREMIND_TESTASSERT(!ptr[i].m_v);
 }

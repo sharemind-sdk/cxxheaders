@@ -21,19 +21,22 @@
 #define SHAREMIND_ASSERTRETURN_H
 
 #include <cassert>
+#include <utility>
 
-#ifndef NDEBUG
-#define SHAREMIND_ASSERTRETURN(...) \
-    [](decltype(__VA_ARGS__) v) \
-        noexcept(noexcept(__VA_ARGS__)) \
-        -> decltype(__VA_ARGS__) \
-    { \
-        assert(v); \
-        return v; \
-    }(__VA_ARGS__)
-#else
-#define SHAREMIND_ASSERTRETURN(...) __VA_ARGS__
-#endif
 
+namespace sharemind {
+
+template <typename T>
+T && assertReturn(T && v)
+        noexcept
+            #ifndef NDEBUG
+            (noexcept((v) ? true : false))
+            #endif
+{
+    assert(v);
+    return std::forward<T>(v);
+}
+
+} /* namespace sharemind { */
 
 #endif /* SHAREMIND_ASSERTRETURN_H */
