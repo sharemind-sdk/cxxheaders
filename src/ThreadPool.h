@@ -69,143 +69,153 @@ public: /* Types: */
     */
     class OneThreadSharedSlice {
 
+    private: /* Types: */
+
+        struct Internal {
+
+        /* Methods: */
+
+            inline Internal(std::shared_ptr<ThreadPool> threadPool)
+                : m_threadPool(std::move(threadPool))
+            {}
+
+            inline ~Internal() noexcept { stopAndJoin(); }
+
+            inline void submit(Task && task) noexcept {
+                assert(task);
+                assert(task->m_value);
+                assert(!task->m_next);
+                TaskWrapper * const newTail = task.get();
+                std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
+                TaskWrapper * const oldTail = m_tail;
+                oldTail->m_value = std::move(task->m_value);
+                oldTail->m_next = std::move(task);
+                m_tail = newTail;
+
+                if (m_sliceTask && m_threadPool)
+                    m_threadPool->submit(std::move(m_sliceTask));
+            }
+
+            inline std::shared_ptr<ThreadPool> stopAndJoin() noexcept {
+                std::shared_ptr<ThreadPool> gcThreadPool;
+                std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
+                gcThreadPool = std::move(m_threadPool);
+                assert(!m_threadPool);
+                m_joinCond.wait(tailLock,
+                                [this]() noexcept { return m_sliceTask.get(); });
+                return gcThreadPool;
+            }
+
+            inline std::shared_ptr<ThreadPool> stopAndMaybeJoin() noexcept {
+                std::shared_ptr<ThreadPool> gcThreadPool;
+                auto const thisThreadId(std::this_thread::get_id());
+                std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
+                gcThreadPool = std::move(m_threadPool);
+                assert(!m_threadPool);
+                if (!m_running || m_lastRunningThreadId != thisThreadId)
+                    m_joinCond.wait(
+                                tailLock,
+                                [this]() noexcept { return m_sliceTask.get(); });
+                return gcThreadPool;
+            }
+
+            inline bool runningFromThisThread() const noexcept
+            { return runningFromThread(std::this_thread::get_id()); }
+
+            inline bool runningFromThread(std::thread::id const & id) const noexcept
+            {
+                std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
+                return m_running && (m_lastRunningThreadId == id);
+            }
+
+            inline void run(Task && sliceTask) noexcept {
+                {
+                    // Retrieve first task (or return if stopping):
+                    Task task;
+                    auto thisThreadId(std::this_thread::get_id());
+                    {
+                        std::lock_guard<decltype(m_tailMutex)> const guard(
+                                    m_tailMutex);
+                        if (!m_threadPool) {
+                            /* Deallocation of sliceTask will be handled by the
+                               std::shared_ptr instance to this Inner object
+                               instead. */
+                            assert(!m_sliceTask);
+                            m_sliceTask = std::move(sliceTask);
+                            m_joinCond.notify_all();
+                            return;
+                        }
+                        assert(m_head);
+                        assert(m_head.get() != m_tail);
+                        assert(m_head->m_value);
+                        assert(m_head->m_next);
+                        task = std::move(m_head);
+                        m_head = std::move(task->m_next);
+                        m_running = true;
+                        m_lastRunningThreadId = std::move(thisThreadId);
+                    }
+                    TaskWrapper * const taskPtr = task.get();
+                    assert(taskPtr);
+                    assert(taskPtr->m_value);
+
+                    // Execute the retrieved task:
+                    taskPtr->m_value->operator()(std::move(task));
+                }
+
+                std::lock_guard<decltype(m_tailMutex)> tailGuard(m_tailMutex);
+                m_running = false;
+                if (m_threadPool && (m_head.get() != m_tail)) {
+                    m_threadPool->submit(std::move(sliceTask));
+                } else {
+                    /* Deallocation of sliceTask will be handled by the
+                       std::shared_ptr instance to this Inner object instead. */
+                    assert(!m_sliceTask);
+                    m_sliceTask = std::move(sliceTask);
+                    m_joinCond.notify_all();
+                }
+            }
+
+        /* Fields: */
+
+            std::shared_ptr<ThreadPool> m_threadPool;
+            mutable TicketSpinLock m_tailMutex;
+            std::condition_variable_any m_joinCond;
+            Task m_head{new TaskWrapper(nullptr)};
+            TaskWrapper * m_tail{m_head.get()};
+            Task m_sliceTask;
+            bool m_running = false;
+            std::thread::id m_lastRunningThreadId;
+
+        };
+
     public: /* Methods: */
 
         inline OneThreadSharedSlice(std::shared_ptr<ThreadPool> threadPool)
-            : m_threadPool(std::move(threadPool))
-        {}
-
-        inline ~OneThreadSharedSlice() noexcept { stopAndJoin(); }
-
-        inline void init(std::shared_ptr<OneThreadSharedSlice> sharedSelf) {
-            assert(sharedSelf.get() == this);
-            std::weak_ptr<OneThreadSharedSlice> weakSelf(sharedSelf);
-            #ifndef NDEBUG
-            std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
-            #endif
-            assert(m_tail == m_head.get());
-            m_sliceTask =
+            : m_internal(std::make_shared<Internal>(std::move(threadPool)))
+        {
+            std::weak_ptr<Internal> weakInternal(m_internal);
+            m_internal->m_sliceTask =
                     ThreadPool::createTask(
-                        [weakSelf](Task && sliceTask) noexcept {
-                            if (auto const self = weakSelf.lock())
+                        [weakInternal](Task && sliceTask) noexcept {
+                            if (auto const self = weakInternal.lock())
                                 self->run(std::move(sliceTask));
                         });
         }
 
-        inline void submit(Task task) noexcept {
-            assert(task);
-            assert(task->m_value);
-            assert(!task->m_next);
-            TaskWrapper * const newTail = task.get();
-            std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
-            TaskWrapper * const oldTail = m_tail;
-            oldTail->m_value = std::move(task->m_value);
-            oldTail->m_next = std::move(task);
-            m_tail = newTail;
+        inline ~OneThreadSharedSlice() noexcept { m_internal->stopAndJoin(); }
 
-            if (m_sliceTask && m_threadPool)
-                m_threadPool->submit(std::move(m_sliceTask));
-        }
+        inline void submit(Task task) noexcept
+        { m_internal->submit(std::move(task)); }
 
-        inline std::shared_ptr<ThreadPool> notifyStop() noexcept {
-            std::shared_ptr<ThreadPool> gcThreadPool;
-            std::lock_guard<decltype(m_tailMutex)> tailGuard(m_tailMutex);
-            gcThreadPool = std::move(m_threadPool);
-            assert(!m_threadPool);
-            return gcThreadPool;
-        }
+        inline std::shared_ptr<ThreadPool> stopAndJoin() noexcept
+        { return m_internal->stopAndJoin(); }
 
-        inline std::shared_ptr<ThreadPool> stopAndJoin() noexcept {
-            std::shared_ptr<ThreadPool> gcThreadPool;
-            std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
-            gcThreadPool = std::move(m_threadPool);
-            assert(!m_threadPool);
-            m_joinCond.wait(tailLock,
-                            [this]() noexcept { return m_sliceTask.get(); });
-            return gcThreadPool;
-        }
-
-        inline std::shared_ptr<ThreadPool> stopAndMaybeJoin() noexcept {
-            std::shared_ptr<ThreadPool> gcThreadPool;
-            auto const thisThreadId(std::this_thread::get_id());
-            std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
-            gcThreadPool = std::move(m_threadPool);
-            assert(!m_threadPool);
-            if (!m_running || m_lastRunningThreadId != thisThreadId)
-                m_joinCond.wait(
-                            tailLock,
-                            [this]() noexcept { return m_sliceTask.get(); });
-            return gcThreadPool;
-        }
-
-        inline bool runningFromThisThread() const noexcept
-        { return runningFromThread(std::this_thread::get_id()); }
-
-        inline bool runningFromThread(std::thread::id const & id) const noexcept
-        {
-            std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
-            return m_running && (m_lastRunningThreadId == id);
-        }
-
-    private: /* Methods: */
-
-        inline void run(Task && sliceTask) noexcept {
-            {
-                // Retrieve first task (or return if stopping):
-                Task task;
-                auto thisThreadId(std::this_thread::get_id());
-                {
-                    std::lock_guard<decltype(m_tailMutex)> const guard(
-                                m_tailMutex);
-                    if (!m_threadPool) {
-                        /* Deallocation of sliceTask will be handled by the
-                           std::shared_ptr instance to this Inner object
-                           instead. */
-                        assert(!m_sliceTask);
-                        m_sliceTask = std::move(sliceTask);
-                        m_joinCond.notify_all();
-                        return;
-                    }
-                    assert(m_head);
-                    assert(m_head.get() != m_tail);
-                    assert(m_head->m_value);
-                    assert(m_head->m_next);
-                    task = std::move(m_head);
-                    m_head = std::move(task->m_next);
-                    m_running = true;
-                    m_lastRunningThreadId = std::move(thisThreadId);
-                }
-                TaskWrapper * const taskPtr = task.get();
-                assert(taskPtr);
-                assert(taskPtr->m_value);
-
-                // Execute the retrieved task:
-                taskPtr->m_value->operator()(std::move(task));
-            }
-
-            std::lock_guard<decltype(m_tailMutex)> tailGuard(m_tailMutex);
-            m_running = false;
-            if (m_threadPool && (m_head.get() != m_tail)) {
-                m_threadPool->submit(std::move(sliceTask));
-            } else {
-                /* Deallocation of sliceTask will be handled by the
-                   std::shared_ptr instance to this Inner object instead. */
-                assert(!m_sliceTask);
-                m_sliceTask = std::move(sliceTask);
-                m_joinCond.notify_all();
-            }
-        }
+        inline std::shared_ptr<ThreadPool> stopAndMaybeJoin() noexcept
+        { return m_internal->stopAndMaybeJoin(); }
 
     private: /* Fields: */
 
-        std::shared_ptr<ThreadPool> m_threadPool;
-        mutable TicketSpinLock m_tailMutex;
-        std::condition_variable_any m_joinCond;
-        Task m_head{new TaskWrapper(nullptr)};
-        TaskWrapper * m_tail{m_head.get()};
-        Task m_sliceTask;
-        bool m_running = false;
-        std::thread::id m_lastRunningThreadId;
+        std::shared_ptr<Internal> m_internal;
 
     }; /* struct SharedSlice */
 
