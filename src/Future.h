@@ -411,6 +411,7 @@ template <typename T> class PackagedTask;
                         std::make_exception_ptr(BrokenPromiseException())); \
         } \
         void abandon() noexcept { \
+            assert(m_state); \
             return SharedStatePtr(std::move(m_state))->setException( \
                     std::make_exception_ptr(BrokenPromiseException())); \
         } \
