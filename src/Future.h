@@ -53,71 +53,68 @@ struct ContinuationBase { \
 
 #define SHAREMIND_SHAREDSTATE_COMMON \
     /* Types: */ \
-        using ContinuationPtr = \
-                std::unique_ptr<Detail::Future::ContinuationBase>; \
+    using ContinuationPtr = std::unique_ptr<Detail::Future::ContinuationBase>; \
     /* Methods: */ \
-        void setException(std::exception_ptr e) noexcept { \
-            if (auto const continuation = \
-                    [this](std::exception_ptr e_) noexcept -> ContinuationPtr {\
-                        std::lock_guard<std::mutex> const guard(mutex); \
-                        assert(!isSet); \
-                        exception = std::move(e_); \
-                        isSet = true; \
-                        cond.notify_one(); \
-                        return std::move(m_continuation); \
-                    }(std::move(e))) \
-                continuation->run(); \
-        } \
-        bool ready() noexcept { \
-            std::lock_guard<std::mutex> const guard(mutex); \
-            return isSet; \
-        } \
-        std::unique_lock<std::mutex> waitReadyLock() noexcept { \
-            std::unique_lock<std::mutex> lock(mutex); \
-            cond.wait(lock, [this]() noexcept { return isSet; }); \
-            return lock; \
-        } \
-        void wait() noexcept { \
-            std::unique_lock<std::mutex> lock(mutex); \
-            return cond.wait(lock, [this]() noexcept { return isSet; }); \
-        } \
-        template <typename Rep, typename Period> \
-        bool waitFor(std::chrono::duration<Rep, Period> const & duration) \
-                noexcept \
-        { \
-            std::unique_lock<std::mutex> lock(mutex); \
-            return cond.wait_for(lock, \
-                                 duration, \
-                                 [this]() noexcept { return isSet; }); \
-        } \
-        template <typename Clock, typename Duration> \
-        bool waitUntil( \
-                std::chrono::time_point<Clock, Duration> const & timePoint) \
-                noexcept \
-        { \
-            std::unique_lock<std::mutex> lock(mutex); \
-            return cond.wait_until(lock, \
-                                   timePoint, \
-                                   [this]() noexcept { return isSet; }); \
-        } \
-        void then(ContinuationPtr continuation) noexcept { \
-            if (auto const cont = \
-                    [this](ContinuationPtr c) noexcept -> ContinuationPtr { \
-                        std::lock_guard<std::mutex> const guard(mutex); \
-                        assert(!m_continuation); \
-                        if (isSet) \
-                            return c; \
-                        m_continuation = std::move(c); \
-                        return nullptr; \
-                    }(std::move(continuation))) \
-                cont->run(); \
-        } \
+    void setException(std::exception_ptr e) noexcept { \
+        if (auto const continuation = \
+                [this](std::exception_ptr e_) noexcept -> ContinuationPtr {\
+                    std::lock_guard<std::mutex> const guard(mutex); \
+                    assert(!isSet); \
+                    exception = std::move(e_); \
+                    isSet = true; \
+                    cond.notify_one(); \
+                    return std::move(m_continuation); \
+                }(std::move(e))) \
+            continuation->run(); \
+    } \
+    bool ready() noexcept { \
+        std::lock_guard<std::mutex> const guard(mutex); \
+        return isSet; \
+    } \
+    std::unique_lock<std::mutex> waitReadyLock() noexcept { \
+        std::unique_lock<std::mutex> lock(mutex); \
+        cond.wait(lock, [this]() noexcept { return isSet; }); \
+        return lock; \
+    } \
+    void wait() noexcept { \
+        std::unique_lock<std::mutex> lock(mutex); \
+        return cond.wait(lock, [this]() noexcept { return isSet; }); \
+    } \
+    template <typename Rep, typename Period> \
+    bool waitFor(std::chrono::duration<Rep, Period> const & duration) noexcept \
+    { \
+        std::unique_lock<std::mutex> lock(mutex); \
+        return cond.wait_for(lock, \
+                             duration, \
+                             [this]() noexcept { return isSet; }); \
+    } \
+    template <typename Clock, typename Duration> \
+    bool waitUntil(std::chrono::time_point<Clock, Duration> const & timePoint) \
+            noexcept \
+    { \
+        std::unique_lock<std::mutex> lock(mutex); \
+        return cond.wait_until(lock, \
+                               timePoint, \
+                               [this]() noexcept { return isSet; }); \
+    } \
+    void then(ContinuationPtr continuation) noexcept { \
+        if (auto const cont = \
+                [this](ContinuationPtr c) noexcept -> ContinuationPtr { \
+                    std::lock_guard<std::mutex> const guard(mutex); \
+                    assert(!m_continuation); \
+                    if (isSet) \
+                        return c; \
+                    m_continuation = std::move(c); \
+                    return nullptr; \
+                }(std::move(continuation))) \
+            cont->run(); \
+    } \
     /* Fields: */ \
-        std::mutex mutex; \
-        std::condition_variable cond; \
-        std::exception_ptr exception; \
-        ContinuationPtr m_continuation; \
-        bool isSet = false;
+    std::mutex mutex; \
+    std::condition_variable cond; \
+    std::exception_ptr exception; \
+    ContinuationPtr m_continuation; \
+    bool isSet = false;
 
 template <typename T>
 struct SharedState {
