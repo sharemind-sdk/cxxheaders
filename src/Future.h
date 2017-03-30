@@ -21,6 +21,7 @@
 #define SHAREMIND_FUTURE_H
 
 #include <cassert>
+#include <chrono>
 #include <condition_variable>
 #include <exception>
 #include <functional>
@@ -75,6 +76,29 @@ struct ContinuationBase { \
             std::unique_lock<std::mutex> lock(mutex); \
             cond.wait(lock, [this]() noexcept { return isSet; }); \
             return lock; \
+        } \
+        void wait() noexcept { \
+            std::unique_lock<std::mutex> lock(mutex); \
+            return cond.wait(lock, [this]() noexcept { return isSet; }); \
+        } \
+        template <typename Rep, typename Period> \
+        bool waitFor(std::chrono::duration<Rep, Period> const & duration) \
+                noexcept \
+        { \
+            std::unique_lock<std::mutex> lock(mutex); \
+            return cond.wait_for(lock, \
+                                 duration, \
+                                 [this]() noexcept { return isSet; }); \
+        } \
+        template <typename Clock, typename Duration> \
+        bool waitUntil( \
+                std::chrono::time_point<Clock, Duration> const & timePoint) \
+                noexcept \
+        { \
+            std::unique_lock<std::mutex> lock(mutex); \
+            return cond.wait_until(lock, \
+                                   timePoint, \
+                                   [this]() noexcept { return isSet; }); \
         } \
         void then(ContinuationPtr continuation) noexcept { \
             if (auto const cont = \
@@ -294,6 +318,24 @@ public: /* Methods: */ \
     bool isReady() const noexcept { \
         assert(m_state); \
         return m_state->ready(); \
+    } \
+    void wait() const noexcept { \
+        assert(m_state); \
+        return m_state->wait(); \
+    } \
+    template <typename Rep, typename Period> \
+    bool waitFor(std::chrono::duration<Rep, Period> const & duration) \
+            const noexcept \
+    { \
+        assert(m_state); \
+        return m_state->waitFor(duration); \
+    } \
+    template <typename Clock, typename Duration> \
+    bool waitUntil(std::chrono::time_point<Clock, Duration> const & timePoint) \
+            const noexcept \
+    { \
+        assert(m_state); \
+        return m_state->waitUntil(timePoint); \
     } \
     void swap(Future<T> & other) noexcept \
     { return m_state.swap(other.m_state); } \
