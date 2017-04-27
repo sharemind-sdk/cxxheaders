@@ -50,7 +50,7 @@ struct EA2 {
 };
 struct E { E(EA1 &&, EA2 &&) noexcept {} };
 
-void sleepMs() noexcept
+inline void sleepMs() noexcept
 { std::this_thread::sleep_for(std::chrono::milliseconds(waitMs)); }
 
 template <typename Waiter>
@@ -76,7 +76,7 @@ static_assert(StaticAssertions<sharemind::ReadyOrFailedWaiter<> >::value, "");
 static_assert(StaticAssertions<sharemind::ReadyOrFailedWaiter<true> >::value, "");
 static_assert(StaticAssertions<sharemind::ReadyOrFailedWaiter<false> >::value, "");
 
-void testWithTwoThreads() noexcept {
+inline void testWithTwoThreads() noexcept {
     sharemind::ReadyOrFailedWaiter<> w;
     {
         std::thread t([&]() noexcept { w.notifyReady(); });
