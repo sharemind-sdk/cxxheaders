@@ -24,7 +24,7 @@
 
 int main() {
     using namespace sharemind;
-    Uuid u ({0});
+    Uuid u { {0} };
     SHAREMIND_TESTASSERT(std::all_of(u.begin(), u.end(),
                                      [](uint8_t x){ return x == 0; }));
     constexpr const char* zeroUuidStr = "00000000-0000-0000-0000-000000000000";
