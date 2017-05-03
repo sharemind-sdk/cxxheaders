@@ -43,13 +43,6 @@ public: /* Types: */
     using size_type = Container::size_type;
     using value_type = Container::value_type;
 
-    struct Hasher {
-
-        Hash operator()(Datum const & d) const noexcept
-        { return d.hash(); }
-
-    };
-
 public: /* Methods: */
 
     inline Datum()
