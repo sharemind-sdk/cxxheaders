@@ -34,6 +34,7 @@ inline void split(InputIterator first,
                   MatchAction matchAction)
         noexcept(
             std::is_nothrow_default_constructible<InputIterator>::value
+            && std::is_nothrow_destructible<InputIterator>::value
             && noexcept(static_cast<bool>(first != last))
             && noexcept(first = ++last)
             && noexcept(first = last)
@@ -63,6 +64,7 @@ inline void splitNoAllowEmpty(InputIterator first,
                               MatchAction matchAction)
         noexcept(
             std::is_nothrow_default_constructible<InputIterator>::value
+            && std::is_nothrow_destructible<InputIterator>::value
             && noexcept(first = ++last)
             && noexcept(static_cast<bool>(first == last))
             && noexcept(static_cast<bool>(!delimPredicate(*first)))
