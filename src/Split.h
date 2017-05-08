@@ -31,13 +31,12 @@ inline void split(InputIterator first,
                   DelimPredicate delimPredicate,
                   MatchAction matchAction)
 {
-    auto lastIt = first;
-    decltype(lastIt) it;
-    for (; lastIt != last; (matchAction(lastIt, it), lastIt = ++it)) {
-        it = lastIt;
+    InputIterator it;
+    for (; first != last; (matchAction(first, it), first = ++it)) {
+        it = first;
         while (!delimPredicate(*it)) {
             if (++it == last) {
-                matchAction(lastIt, it);
+                matchAction(first, it);
                 return;
             }
         }
@@ -52,19 +51,18 @@ inline void splitNoAllowEmpty(InputIterator first,
                               DelimPredicate delimPredicate,
                               MatchAction matchAction)
 {
-    auto lastIt = first;
-    decltype(lastIt) it;
-    for (;; (matchAction(lastIt, it), lastIt = ++it)) {
-        for (;; ++lastIt) { // Skip delimeters
-            if (lastIt == last)
+    InputIterator it;
+    for (;; (matchAction(first, it), first = ++it)) {
+        for (;; ++first) { // Skip delimeters
+            if (first == last)
                 return;
-            if (!delimPredicate(*lastIt))
+            if (!delimPredicate(*first))
                 break;
-        }; // lastIt now points to first non-delimeter
-        it = lastIt;
+        }; // first now points to the first non-delimeter in a sequence
+        it = first;
         do {
             if (++it == last) {
-                matchAction(lastIt, it);
+                matchAction(first, it);
                 return;
             }
         } while (!delimPredicate(*it));
