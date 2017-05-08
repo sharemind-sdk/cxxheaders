@@ -32,7 +32,7 @@ inline void split(InputIterator first,
                   MatchAction matchAction)
 {
     InputIterator it;
-    for (; first != last; (matchAction(first, it), first = ++it)) {
+    for (; first != last; first = ++it) {
         it = first;
         while (!delimPredicate(*it)) {
             if (++it == last) {
@@ -40,6 +40,7 @@ inline void split(InputIterator first,
                 return;
             }
         }
+        matchAction(first, it);
     }
 }
 
@@ -52,7 +53,7 @@ inline void splitNoAllowEmpty(InputIterator first,
                               MatchAction matchAction)
 {
     InputIterator it;
-    for (;; (matchAction(first, it), first = ++it)) {
+    for (;; first = ++it) {
         for (;; ++first) { // Skip delimeters
             if (first == last)
                 return;
@@ -66,6 +67,7 @@ inline void splitNoAllowEmpty(InputIterator first,
                 return;
             }
         } while (!delimPredicate(*it));
+        matchAction(first, it);
     }
 }
 
