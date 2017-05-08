@@ -33,7 +33,7 @@ inline void split(InputIterator first,
                   DelimPredicate delimPredicate,
                   MatchAction matchAction)
         noexcept(
-            std::is_nothrow_copy_constructible<InputIterator>::value
+            std::is_nothrow_constructible<InputIterator, InputIterator &>::value
             && std::is_nothrow_destructible<InputIterator>::value
             && noexcept(static_cast<bool>(first != last))
             && noexcept(first = ++last)
@@ -63,7 +63,7 @@ inline void splitNoAllowEmpty(InputIterator first,
                               DelimPredicate delimPredicate,
                               MatchAction matchAction)
         noexcept(
-            std::is_nothrow_copy_constructible<InputIterator>::value
+            std::is_nothrow_constructible<InputIterator, InputIterator &>::value
             && std::is_nothrow_destructible<InputIterator>::value
             && noexcept(first = ++last)
             && noexcept(static_cast<bool>(first == last))
