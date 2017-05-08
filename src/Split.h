@@ -33,7 +33,7 @@ inline void split(InputIterator first,
                   DelimPredicate delimPredicate,
                   MatchAction matchAction)
         noexcept(
-            std::is_nothrow_default_constructible<InputIterator>::value
+            std::is_nothrow_copy_constructible<InputIterator>::value
             && std::is_nothrow_destructible<InputIterator>::value
             && noexcept(static_cast<bool>(first != last))
             && noexcept(first = ++last)
@@ -42,9 +42,8 @@ inline void split(InputIterator first,
             && noexcept(static_cast<bool>(++first == last))
             && noexcept(matchAction(first, last)))
 {
-    InputIterator it;
-    for (; first != last; first = ++it) {
-        it = first;
+    while (first != last) {
+        InputIterator it(first);
         while (!delimPredicate(*it)) {
             if (++it == last) {
                 matchAction(first, it);
@@ -52,6 +51,7 @@ inline void split(InputIterator first,
             }
         }
         matchAction(first, it);
+        first = ++it;
     }
 }
 
@@ -63,7 +63,7 @@ inline void splitNoAllowEmpty(InputIterator first,
                               DelimPredicate delimPredicate,
                               MatchAction matchAction)
         noexcept(
-            std::is_nothrow_default_constructible<InputIterator>::value
+            std::is_nothrow_copy_constructible<InputIterator>::value
             && std::is_nothrow_destructible<InputIterator>::value
             && noexcept(first = ++last)
             && noexcept(static_cast<bool>(first == last))
@@ -72,15 +72,14 @@ inline void splitNoAllowEmpty(InputIterator first,
             && noexcept(static_cast<bool>(++first == last))
             && noexcept(matchAction(first, last)))
 {
-    InputIterator it;
-    for (;; first = ++it) {
+    for (;;) {
         for (;; ++first) { // Skip delimeters
             if (first == last)
                 return;
             if (!delimPredicate(*first))
                 break;
         }; // first now points to the first non-delimeter in a sequence
-        it = first;
+        InputIterator it(first);
         do {
             if (++it == last) {
                 matchAction(first, it);
@@ -88,6 +87,7 @@ inline void splitNoAllowEmpty(InputIterator first,
             }
         } while (!delimPredicate(*it));
         matchAction(first, it);
+        first = ++it;
     }
 }
 
