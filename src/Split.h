@@ -60,7 +60,7 @@ inline void splitNoAllowEmpty(InputIterator first,
                 return;
             if (!delimPredicate(*lastIt))
                 break;
-        }; // last now points to first non-delimeter
+        }; // lastIt now points to first non-delimeter
         it = lastIt;
         do {
             if (++it == last) {
