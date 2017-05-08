@@ -20,6 +20,8 @@
 #ifndef SHAREMIND_SPLIT_H
 #define SHAREMIND_SPLIT_H
 
+#include <type_traits>
+
 
 namespace sharemind {
 
@@ -30,6 +32,14 @@ inline void split(InputIterator first,
                   InputIterator last,
                   DelimPredicate delimPredicate,
                   MatchAction matchAction)
+        noexcept(
+            std::is_nothrow_default_constructible<InputIterator>::value
+            && noexcept(static_cast<bool>(first != last))
+            && noexcept(first = ++last)
+            && noexcept(first = last)
+            && noexcept(static_cast<bool>(!delimPredicate(*first)))
+            && noexcept(static_cast<bool>(++first == last))
+            && noexcept(matchAction(first, last)))
 {
     InputIterator it;
     for (; first != last; first = ++it) {
@@ -51,6 +61,14 @@ inline void splitNoAllowEmpty(InputIterator first,
                               InputIterator last,
                               DelimPredicate delimPredicate,
                               MatchAction matchAction)
+        noexcept(
+            std::is_nothrow_default_constructible<InputIterator>::value
+            && noexcept(first = ++last)
+            && noexcept(static_cast<bool>(first == last))
+            && noexcept(static_cast<bool>(!delimPredicate(*first)))
+            && noexcept(first = last)
+            && noexcept(static_cast<bool>(++first == last))
+            && noexcept(matchAction(first, last)))
 {
     InputIterator it;
     for (;; first = ++it) {
