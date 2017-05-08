@@ -20,48 +20,51 @@
 #ifndef SHAREMIND_SPLIT_H
 #define SHAREMIND_SPLIT_H
 
+
 namespace sharemind {
 
-template <typename InputContainer,
+template <typename InputIterator,
           typename DelimPredicate,
           typename MatchAction>
-inline void split(InputContainer const & s,
+inline void split(InputIterator first,
+                  InputIterator last,
                   DelimPredicate delimPredicate,
                   MatchAction matchAction)
 {
-    auto last = s.cbegin();
-    decltype(last) it;
-    for (; last != s.cend(); (matchAction(last, it), last = ++it)) {
-        it = last;
+    auto lastIt = first;
+    decltype(lastIt) it;
+    for (; lastIt != last; (matchAction(lastIt, it), lastIt = ++it)) {
+        it = lastIt;
         while (!delimPredicate(*it)) {
-            if (++it == s.cend()) {
-                matchAction(last, it);
+            if (++it == last) {
+                matchAction(lastIt, it);
                 return;
             }
         }
     }
 }
 
-template <typename InputContainer,
+template <typename InputIterator,
           typename DelimPredicate,
           typename MatchAction>
-inline void splitNoAllowEmpty(InputContainer const & s,
+inline void splitNoAllowEmpty(InputIterator first,
+                              InputIterator last,
                               DelimPredicate delimPredicate,
                               MatchAction matchAction)
 {
-    auto last = s.cbegin();
-    decltype(last) it;
-    for (;; (matchAction(last, it), last = ++it)) {
-        for (;; ++last) { // Skip delimeters
-            if (last == s.cend())
+    auto lastIt = first;
+    decltype(lastIt) it;
+    for (;; (matchAction(lastIt, it), lastIt = ++it)) {
+        for (;; ++lastIt) { // Skip delimeters
+            if (lastIt == last)
                 return;
-            if (!delimPredicate(*last))
+            if (!delimPredicate(*lastIt))
                 break;
         }; // last now points to first non-delimeter
-        it = last;
+        it = lastIt;
         do {
-            if (++it == s.cend()) {
-                matchAction(last, it);
+            if (++it == last) {
+                matchAction(lastIt, it);
                 return;
             }
         } while (!delimPredicate(*it));
