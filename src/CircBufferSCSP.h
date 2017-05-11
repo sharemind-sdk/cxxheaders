@@ -30,6 +30,7 @@
 #include <utility>
 #include "compiler-support/GccInheritConstructor.h"
 #include "FunctionTraits.h"
+#include "MakeUnique.h"
 #include "PotentiallyVoidTypeInfo.h"
 
 
@@ -172,20 +173,17 @@ public: /* Methods: */
     Self & operator=(Self const &) = delete;
 
     inline CircBufferBase(std::size_t const bufferSize = 1024u * 1024u)
-        : m_buffer(new ValueAllocType[bufferSize])
+        : m_buffer(makeUnique<ValueAllocType[]>(bufferSize))
         , m_bufferSize(bufferSize)
         , m_readOffset(0u)
         , m_writeOffset(0u)
     {}
 
-    inline ~CircBufferBase() noexcept
-    { delete[] static_cast<ValueAllocType *>(m_buffer); }
-
     /** \returns the buffer size. */
     std::size_t bufferSize() const noexcept { return m_bufferSize; }
 
     /** \returns a pointer to the circular FIFO storage array. */
-    inline ValueType * arrayStart() const noexcept { return m_buffer; }
+    inline ValueType * arrayStart() const noexcept { return m_buffer.get(); }
 
 
     /***************************************************************************
@@ -556,7 +554,7 @@ public: /* Methods */
 
 private: /* Fields :*/
 
-    ValueType * const m_buffer;
+    std::unique_ptr<ValueType[]> const m_buffer;
     std::size_t const m_bufferSize;
     std::size_t m_readOffset;
     std::size_t m_writeOffset;
