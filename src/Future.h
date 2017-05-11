@@ -402,7 +402,10 @@ template <typename T> class PackagedTask;
     public: /* Methods: */ \
         Promise(Promise const &) = delete; \
         Promise & operator=(Promise const &) = delete; \
-        Promise() {} \
+        Promise() \
+            : m_state(std::make_shared<Detail::Future::SharedState<T> >()) \
+            , m_futureState(m_state) \
+        {} \
         Promise(Promise &&) noexcept = default; \
         Promise & operator=(Promise &&) noexcept = default; \
         ~Promise() noexcept { \
@@ -444,9 +447,8 @@ template <typename T> class PackagedTask;
             , m_futureState(nullptr) \
         {} \
     private: /* Fields: */ \
-        SharedStatePtr m_state{ \
-                std::make_shared<Detail::Future::SharedState<T> >()}; \
-        SharedStatePtr m_futureState{m_state};
+        SharedStatePtr m_state; \
+        SharedStatePtr m_futureState;
 
 template <typename T>
 class Promise {
