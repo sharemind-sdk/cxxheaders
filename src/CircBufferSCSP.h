@@ -554,7 +554,7 @@ public: /* Methods */
 
 private: /* Fields :*/
 
-    std::unique_ptr<ValueType[]> const m_buffer;
+    std::unique_ptr<ValueAllocType[]> const m_buffer;
     std::size_t const m_bufferSize;
     std::size_t m_readOffset;
     std::size_t m_writeOffset;
