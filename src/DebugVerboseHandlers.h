@@ -44,7 +44,7 @@ inline void verbosePrintException(std::exception_ptr e,
         try {
             std::rethrow_exception(e);
         } catch (const std::exception & se) {
-            oss << ++n << ": [" SHAREMIND_T "] " << se.what() << std::endl;
+            oss << n << ": [" SHAREMIND_T "] " << se.what() << std::endl;
             std::nested_exception const * const ne =
                     dynamic_cast<std::nested_exception const *>(&se);
             if (!ne)
@@ -52,7 +52,7 @@ inline void verbosePrintException(std::exception_ptr e,
             e = ne->nested_ptr();
             assert(e);
         } catch (...) {
-            oss << ++n << ": [" SHAREMIND_T "]" << std::endl
+            oss << n << ": [" SHAREMIND_T "]" << std::endl
                 << "... unable to continue printing nested exceptions, if any "
                    "..." << std::endl;
             return;
