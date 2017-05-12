@@ -53,7 +53,7 @@ typename Detail::MakeUnique<T>::regular makeUnique(Args && ... args)
 template <typename T>
 SHAREMIND_MAKE_UNIQUE_DEPRECATED_NOTICE
 typename Detail::MakeUnique<T>::array makeUnique(std::size_t n)
-{ return std::unique_ptr<T>(new typename std::remove_extent<T>::type[n]()); }
+{ return std::unique_ptr<T>(new typename std::remove_extent<T>::type[n]); }
 
 template <typename T, typename ... Args>
 SHAREMIND_MAKE_UNIQUE_DEPRECATED_NOTICE
