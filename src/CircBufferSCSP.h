@@ -166,7 +166,6 @@ public: /* Types: */
 
     using ValueType = T;
     using ValueAllocType = AllocType<T>;
-    static_assert(sizeof(ValueType) == sizeof(ValueAllocType), "");
 
 public: /* Methods: */
 
