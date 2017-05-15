@@ -173,7 +173,8 @@ public: /* Methods: */
     Self & operator=(Self const &) = delete;
 
     inline CircBufferBase(std::size_t const bufferSize = 1024u * 1024u)
-        : m_buffer(makeUnique<ValueAllocType[]>(bufferSize))
+        // Don't use makeUnique to avoid unnecessary zero-initialization:
+        : m_buffer(new ValueAllocType[bufferSize])
         , m_bufferSize(bufferSize)
         , m_readOffset(0u)
         , m_writeOffset(0u)
