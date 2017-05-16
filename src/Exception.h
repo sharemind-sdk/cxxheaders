@@ -28,6 +28,7 @@
 #if ! (defined(__APPLE__) || defined(__FreeBSD__))
 #include <features.h>
 #endif
+#include <memory>
 #include <string>
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #include <sys/cdefs.h>
@@ -92,6 +93,22 @@ namespace sharemind {
         inline name(Args && ... args) : base(std::forward<Args>(args)...) {} \
         inline const char * what() const noexcept final override \
         { return (msg); } \
+    }
+
+#define SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING(base,name) \
+    class name: public base { \
+    public: /* Methods: */ \
+        template <typename ... Args> \
+        inline name(Args && ... args) \
+            : m_message( \
+                std::make_shared<std::string>(std::forward<Args>(args)...)) \
+        {} \
+        inline const char * what() const noexcept final override { \
+            assert(m_message); \
+            return m_message->c_str(); \
+        } \
+    private: /* Methods: */ \
+        std::shared_ptr<std::string const> m_message; \
     }
 
 #define SHAREMIND_DEFINE_EXCEPTION_CONCAT(base,name) \
