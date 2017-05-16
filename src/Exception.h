@@ -98,10 +98,8 @@ namespace sharemind {
 #define SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING(base,name) \
     class name: public base { \
     public: /* Methods: */ \
-        template <typename ... Args> \
-        inline name(Args && ... args) \
-            : m_message( \
-                std::make_shared<std::string>(std::forward<Args>(args)...)) \
+        inline name(std::string message) \
+            : m_message(std::make_shared<std::string>(std::move(message))) \
         {} \
         inline const char * what() const noexcept final override { \
             assert(m_message); \
