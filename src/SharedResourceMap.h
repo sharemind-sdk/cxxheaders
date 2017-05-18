@@ -36,8 +36,10 @@ class SharedResourceMap {
 
 private: /* Types: */
 
-    struct DefaultConstructor_
-    { Value * operator()(Key const &) const { return new Value; } };
+    struct DefaultConstructor_ {
+        std::shared_ptr<Value> operator()(Key const &) const
+        { return std::make_shared<Value>(); }
+    };
 
     struct InnerBase {
         virtual ~InnerBase() noexcept {}
