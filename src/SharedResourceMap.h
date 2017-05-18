@@ -63,12 +63,7 @@ private: /* Types: */
         std::weak_ptr<InnerBase> container;
         std::weak_ptr<Value> weakPtr;
         Key key;
-        #if SHAREMIND_GCCPR44436
-        std::shared_ptr<Value>
-        #else
-        std::unique_ptr<Value>
-        #endif
-                realPtr;
+        std::shared_ptr<Value> realPtr;
 
     };
 
