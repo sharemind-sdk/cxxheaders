@@ -62,7 +62,7 @@ inline std::string getHomeDirectory() {
             std::size_t const newSize = bufferSize + 1024u;
             if (newSize < bufferSize) {
                 if (bufferSize == std::numeric_limits<std::size_t>::max())
-                    #if !defined(__GLIBCXX__) || (__GLIBCXX__ >= 20150623) \
+                    #if !defined(__GLIBCXX__) || (__GLIBCXX__ > 20150623) \
                         || (defined(SHAREMIND_GCC_VERSION) \
                             && (SHAREMIND_GCC_VERSION >= 40900))
                     throw std::bad_array_new_length();
