@@ -31,6 +31,10 @@
 
 namespace sharemind {
 
+/**
+    \warning don't use resources (template parameter Value) which inherit from
+             std::enable_shared_from_this unless you know what you are doing.
+*/
 template <typename Key, typename Value>
 class SharedResourceMap {
 
@@ -145,6 +149,12 @@ public: /* Methods: */
     std::shared_ptr<Value> getResource(K && key)
     { return getResource(std::forward<K>(key), DefaultConstructor_()); }
 
+    /**
+        \warning from the passed constructor, do not return std::shared_ptr
+                 pointers pointing to dynamic objects which inherit from
+                 std::enable_shared_from_this, unless you know what you are
+                 doing.
+    */
     template <typename K,
               typename Constructor,
               typename ... Args>
