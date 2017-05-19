@@ -62,7 +62,11 @@ inline std::string getHomeDirectory() {
             std::size_t const newSize = bufferSize + 1024u;
             if (newSize < bufferSize) {
                 if (bufferSize == std::numeric_limits<std::size_t>::max())
-                    throw std::bad_alloc{};
+                    #if !defined(__GLIBCXX__) || (__GLIBCXX__ >= 20140422)
+                    throw std::bad_array_new_length();
+                    #else
+                    throw std::bad_alloc();
+                    #endif
                 bufferSize = std::numeric_limits<std::size_t>::max();
             }
             Buffer newBuffer{static_cast<char *>(::realloc(buffer.get(), newSize))};
