@@ -248,13 +248,6 @@ public: /* Methods: */
     ThreadPool(ThreadPool const &) = delete;
     ThreadPool & operator=(ThreadPool const &) = delete;
 
-    inline ThreadPool()
-        : ThreadPool([]{
-                unsigned const n = std::thread::hardware_concurrency();
-                return (n == 0u) ? 3u : n;
-            }())
-    {}
-
     inline ThreadPool(Pool::size_type const numThreads)
         : ThreadPool(((void) assert(numThreads > 0u), numThreads),
                      new TaskWrapper(nullptr))
