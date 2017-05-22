@@ -72,8 +72,7 @@ public: /* Methods: */
                 throw UnknownVariableException();
 
             if (match[0].first != s.cbegin()) {
-                unsigned nBytes = match[0].first + 1 - sIt;
-                ss.write(&*sIt, nBytes);
+                ss.write(&*sIt, match[0].first + 1 - sIt);
             }
 
             ss << *it;
