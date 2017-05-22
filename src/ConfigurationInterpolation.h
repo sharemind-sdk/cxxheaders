@@ -27,6 +27,8 @@
 #include <unordered_map>
 
 
+namespace sharemind {
+
 class ConfigurationInterpolation {
 
 public: /* Types: */
@@ -102,5 +104,7 @@ private: /* Fields: */
 
     const Map m_map;
 };
+
+} /* namespace sharemind { */
 
 #endif /* SHAREMIND_CONFIGURATIONINTERPOLATION_H */
