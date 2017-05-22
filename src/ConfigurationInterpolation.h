@@ -22,9 +22,9 @@
 
 #include <boost/xpressive/xpressive_static.hpp>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include "Exception.h"
 
 
 namespace sharemind {
@@ -35,24 +35,10 @@ public: /* Types: */
 
     using Map = std::unordered_map<std::string, std::string>;
 
-    class Exception: public std::runtime_error {
-
-    public: /* Methods: */
-
-        Exception(Exception &&) = default;
-        Exception(Exception const &) = default;
-        Exception & operator=(Exception &&) = default;
-        Exception & operator=(Exception const &) = default;
-
-        Exception(Exception & e)
-            : Exception(const_cast<Exception const &>(e))
-            {}
-
-        Exception()
-            : std::runtime_error("Unknown configuration interpolation variable.")
-            {}
-
-    };
+    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
+            sharemind::Exception,
+            Exception,
+            "Unknown configuration interpolation variable!");
 
 public: /* Methods: */
 
