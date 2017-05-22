@@ -24,7 +24,6 @@
 #include <atomic>
 #include <cassert>
 #include <condition_variable>
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <sharemind/compiler-support/ClangVersion.h>
