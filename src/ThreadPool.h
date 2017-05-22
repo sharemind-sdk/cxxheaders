@@ -239,8 +239,8 @@ private: /* Types: */
 
         std::unique_ptr<TaskBase> m_value;
         Task m_next;
-    }
-    ;
+    };
+    
     using Pool = std::vector<std::thread>;
 
 public: /* Methods: */
