@@ -20,7 +20,6 @@
 #ifndef SHAREMIND_THREADPOOL_H
 #define SHAREMIND_THREADPOOL_H
 
-#include <algorithm>
 #include <atomic>
 #include <cassert>
 #include <condition_variable>
@@ -28,7 +27,6 @@
 #include <mutex>
 #include <sharemind/compiler-support/ClangVersion.h>
 #include <thread>
-#include <vector>
 #include <type_traits>
 #include <utility>
 #include "TicketSpinLock.h"
@@ -240,53 +238,10 @@ private: /* Types: */
         std::unique_ptr<TaskBase> m_value;
         Task m_next;
     };
-    
-    using Pool = std::vector<std::thread>;
 
 public: /* Methods: */
 
-    ThreadPool(ThreadPool const &) = delete;
-    ThreadPool & operator=(ThreadPool const &) = delete;
-
-    inline ThreadPool(Pool::size_type const numThreads)
-        : ThreadPool(((void) assert(numThreads > 0u), numThreads),
-                     new TaskWrapper(nullptr))
-    {}
-
-    virtual inline ~ThreadPool() noexcept {
-        assert((std::find_if(
-                    m_threads.begin(),
-                    m_threads.end(),
-                    [](std::thread const & t)
-                    { return t.get_id() == std::this_thread::get_id(); })
-                == m_threads.end()) && "Can't destroy pool from pool thread!");
-        stopAndJoin();
-    }
-
-    /// \returns whether notifyStop() had already been called.
-    bool notifyStop() noexcept {
-        if (m_stopStarted.test_and_set())
-            return true;
-        std::lock_guard<decltype(m_tailMutex)> const tailGuard(m_tailMutex);
-        m_stop = true;
-        m_dataCond.notify_all();
-        return false;
-    }
-
-    inline void join() noexcept {
-        #ifndef NDEBUG
-        std::thread::id const myId(std::this_thread::get_id());
-        #endif
-        std::lock_guard<std::mutex> const guard(m_threadsMutex);
-        for (std::thread & thread : m_threads)
-            if (((void) assert(thread.get_id() != myId), thread.joinable()))
-                thread.join();
-    }
-
-    inline void stopAndJoin() noexcept {
-        notifyStop();
-        join();
-    }
+    virtual ~ThreadPool() noexcept {}
 
     template <typename F>
     static inline Task createTask(F && f) {
@@ -309,7 +264,7 @@ public: /* Methods: */
         return createTask_(new CustomSimpleTask(std::forward<F>(f)));
     }
 
-    inline void submit(Task task) noexcept {
+    void submit(Task task) noexcept {
         assert(task);
         assert(task->m_value);
         assert(!task->m_next);
@@ -322,30 +277,38 @@ public: /* Methods: */
         m_dataCond.notify_one();
     }
 
-private: /* Methods: */
-
-    template <typename TaskSubclass>
-    static inline Task createTask_(TaskSubclass * const task) {
-        assert(task);
-        return Task(new TaskWrapper(std::unique_ptr<TaskBase>(task)));
+    /// \returns whether notifyStop() had already been called.
+    bool notifyStop() noexcept {
+        if (m_stopStarted.test_and_set())
+            return true;
+        std::lock_guard<decltype(m_tailMutex)> const tailGuard(m_tailMutex);
+        m_stop = true;
+        m_dataCond.notify_all();
+        return false;
     }
 
-    inline ThreadPool(Pool::size_type const numThreads,
-                      TaskWrapper * const emptyTaskWrapper)
-        : m_tail(emptyTaskWrapper)
-        , m_head(emptyTaskWrapper)
-    {
-        m_threads.reserve(numThreads);
-        try {
-            for (unsigned i = 0u; i < numThreads; i++)
-                m_threads.emplace_back(&ThreadPool::workerThread, this);
-        } catch (...) {
-            stopAndJoin();
-            throw;
+protected: /* Methods: */
+
+    ThreadPool() : ThreadPool(new TaskWrapper(nullptr)) {}
+
+    void workerThread() noexcept {
+        while (Task task = waitAndPop()) {
+            // this->m_value(std::move(*this)); // would segfault.
+            TaskWrapper * const taskPtr = task.get();
+            assert(taskPtr);
+            assert(taskPtr->m_value);
+            taskPtr->m_value->operator()(std::move(task));
         }
     }
 
-    inline Task waitAndPop() noexcept {
+private: /* Methods: */
+
+    ThreadPool(TaskWrapper * const emptyTaskWrapper)
+        : m_tail(emptyTaskWrapper)
+        , m_head(emptyTaskWrapper)
+    {}
+
+    Task waitAndPop() noexcept {
         std::lock_guard<std::mutex> const headGuard(m_headMutex);
         assert(m_head);
         {
@@ -369,14 +332,10 @@ private: /* Methods: */
         return oldHead;
     }
 
-    inline void workerThread() noexcept {
-        while (Task task = waitAndPop()) {
-            // this->m_value(std::move(*this)); // would segfault.
-            TaskWrapper * const taskPtr = task.get();
-            assert(taskPtr);
-            assert(taskPtr->m_value);
-            taskPtr->m_value->operator()(std::move(task));
-        }
+    template <typename TaskSubclass>
+    static inline Task createTask_(TaskSubclass * const task) {
+        assert(task);
+        return Task(new TaskWrapper(std::unique_ptr<TaskBase>(task)));
     }
 
 private: /* Fields: */
@@ -387,9 +346,6 @@ private: /* Fields: */
     TaskWrapper * m_tail;
     Task m_head;
     bool m_stop = false;
-
-    std::mutex m_threadsMutex;
-    Pool m_threads;
 
     std::atomic_flag m_stopStarted = ATOMIC_FLAG_INIT;
 
