@@ -66,7 +66,7 @@ public: /* Methods: */
         xp::sregex_iterator const reEnd;
         for (xp::sregex_iterator reIt(s.cbegin(), s.cend(), re);
              reIt != reEnd;
-             (++reIt), (sIt = match[0].second))
+             ++reIt)
         {
             auto const & match = *reIt;
 
@@ -78,6 +78,7 @@ public: /* Methods: */
                 ss.write(&*sIt, match[0].first + 1 - sIt);
 
             ss << it->second;
+            sIt = match[0].second;
         }
         if (sIt != s.end())
             ss.write(&*sIt, s.end() - sIt);
