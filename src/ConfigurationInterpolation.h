@@ -71,7 +71,7 @@ public: /* Methods: */
             auto const & match = *reIt;
 
             auto const it(m_map.find(match[1].str()));
-            if (it != m_map.cend())
+            if (it == m_map.cend())
                 throw UnknownVariableException();
 
             if (match[0].first != s.cbegin())
