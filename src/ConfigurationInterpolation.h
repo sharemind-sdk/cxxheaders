@@ -35,9 +35,10 @@ public: /* Types: */
 
     using Map = std::unordered_map<std::string, std::string>;
 
+    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
     SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
-            sharemind::Exception,
             Exception,
+            UnknownVariableException,
             "Unknown configuration interpolation variable!");
 
 public: /* Methods: */
@@ -67,7 +68,7 @@ public: /* Methods: */
             xp::smatch const & match = *reIt;
 
             if (m_map.count(match[1].str()) == 0)
-                throw Exception();
+                throw UnknownVariableException();
 
             if (match[0].first != s.cbegin()) {
                 unsigned nBytes = match[0].first + 1 - sIt;
