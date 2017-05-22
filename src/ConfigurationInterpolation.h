@@ -67,7 +67,8 @@ public: /* Methods: */
         while (reIt != reEnd) {
             xp::smatch const & match = *reIt;
 
-            if (m_map.count(match[1].str()) == 0)
+            auto const it(m_map.find(match[1].str()));
+            if (it != m_map.cend())
                 throw UnknownVariableException();
 
             if (match[0].first != s.cbegin()) {
@@ -75,7 +76,7 @@ public: /* Methods: */
                 ss.write(&*sIt, nBytes);
             }
 
-            ss << m_map.at(match[1].str());
+            ss << *it;
             sIt = match[0].second;
             ++reIt;
         }
