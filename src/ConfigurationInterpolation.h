@@ -45,12 +45,12 @@ public: /* Methods: */
 
     ConfigurationInterpolation(Map const & m)
         : m_map(m)
-        {}
+    {}
 
     std::string operator()(std::string const & s) const {
         namespace xp = boost::xpressive;
 
-        // "([^%]|^)%\{([a-zA-Z\.]+)\}"
+        /* "([^%]|^)%\{([a-zA-Z\.]+)\}" */
         static xp::sregex const re =
             xp::imbue(std::locale("POSIX"))(
                 (xp::bos | ~(xp::set= '%')) >>
@@ -60,36 +60,35 @@ public: /* Methods: */
                                     '.' ]) >>
                 '}');
 
-        xp::sregex_iterator reIt(s.cbegin(), s.cend(), re), reEnd;
-        std::string::const_iterator sIt(s.cbegin());
+        auto sIt(s.cbegin());
         std::stringstream ss;
 
-        while (reIt != reEnd) {
-            xp::smatch const & match = *reIt;
+        xp::sregex_iterator const reEnd;
+        for (xp::sregex_iterator reIt(s.cbegin(), s.cend(), re);
+             reIt != reEnd;
+             (++reIt), (sIt = match[0].second))
+        {
+            auto const & match = *reIt;
 
             auto const it(m_map.find(match[1].str()));
             if (it != m_map.cend())
                 throw UnknownVariableException();
 
-            if (match[0].first != s.cbegin()) {
+            if (match[0].first != s.cbegin())
                 ss.write(&*sIt, match[0].first + 1 - sIt);
-            }
 
             ss << it->second;
-            sIt = match[0].second;
-            ++reIt;
         }
-
-        if (sIt != s.end()) {
+        if (sIt != s.end())
             ss.write(&*sIt, s.end() - sIt);
-        }
 
         return ss.str();
     }
 
 private: /* Fields: */
 
-    const Map m_map;
+    Map const m_map;
+
 };
 
 } /* namespace sharemind { */
