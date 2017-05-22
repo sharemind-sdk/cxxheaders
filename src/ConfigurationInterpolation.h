@@ -75,7 +75,7 @@ public: /* Methods: */
                 ss.write(&*sIt, match[0].first + 1 - sIt);
             }
 
-            ss << *it;
+            ss << it->second;
             sIt = match[0].second;
             ++reIt;
         }
