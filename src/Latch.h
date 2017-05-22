@@ -59,7 +59,7 @@ public: /* Methods: */
         }
     }
 
-    void isReady() const noexcept {
+    bool isReady() const noexcept {
         std::unique_lock<std::mutex> lock(m_mutex);
         return !m_counter;
     }
