@@ -42,11 +42,14 @@ public: /* Methods: */
 
     Latch(Counter n) : m_counter((assert(n > 0), std::move(n))) {}
 
-    void countDown() noexcept {
+    /** \returns whether this was counted to be the last countdown. */
+    bool countDown() noexcept {
         std::lock_guard<std::mutex> const guard(m_mutex);
         assert(m_counter > 0u);
-        if (!--m_counter)
+        bool const r = !--m_counter;
+        if (r)
             m_cond.notify_all();
+        return r;
     }
 
     void countDownAndWait() noexcept {
