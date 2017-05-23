@@ -43,6 +43,8 @@ public: /* Types: */
 
 public: /* Methods: */
 
+    ConfigurationInterpolation() {}
+
     ConfigurationInterpolation(Map const & m)
         : m_map(m)
     {}
@@ -86,9 +88,13 @@ public: /* Methods: */
         return ss.str();
     }
 
+    void addVar(std::string const & var, std::string const & value) {
+        m_map.insert(std::make_pair(var, value));
+    }
+
 private: /* Fields: */
 
-    Map const m_map;
+    Map m_map;
 
 };
 
