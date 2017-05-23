@@ -88,9 +88,8 @@ public: /* Methods: */
         return ss.str();
     }
 
-    void addVar(std::string const & var, std::string const & value) {
-        m_map.insert(std::make_pair(var, value));
-    }
+    void addVar(std::string var, std::string value)
+    { m_map.emplace(std::move(var), std::move(value)); }
 
 private: /* Fields: */
 
