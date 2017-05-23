@@ -241,6 +241,11 @@ private: /* Types: */
 
 public: /* Methods: */
 
+    ThreadPool(ThreadPool &&) = delete;
+    ThreadPool(ThreadPool const &) = delete;
+    ThreadPool & operator=(ThreadPool &&) = delete;
+    ThreadPool & operator=(ThreadPool const &) = delete;
+
     virtual ~ThreadPool() noexcept {}
 
     template <typename F>

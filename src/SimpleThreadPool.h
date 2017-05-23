@@ -36,7 +36,9 @@ class SimpleThreadPool: public ThreadPool {
 
 public: /* Methods: */
 
+    SimpleThreadPool(SimpleThreadPool &&) = delete;
     SimpleThreadPool(SimpleThreadPool const &) = delete;
+    SimpleThreadPool & operator=(SimpleThreadPool &&) = delete;
     SimpleThreadPool & operator=(SimpleThreadPool const &) = delete;
 
     SimpleThreadPool(std::size_t const numThreads) {
