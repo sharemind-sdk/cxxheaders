@@ -26,11 +26,11 @@
 
 using namespace sharemind;
 
-static_assert(DynamicPackedStruct<>::minSizeInBytes == 0u, "");
-static_assert(DynamicPackedStruct<>::maxSizeInBytes == 0u, "");
-static_assert(DynamicPackedStruct<>::numFields == 0u, "");
-static_assert(DynamicPackedStruct<>::numDynamicFields == 0u, "");
-static_assert(DynamicPackedStruct<>::hasDynamicFields == false, "");
+static_assert(DynamicPackedStruct<>::minSizeInBytes() == 0u, "");
+static_assert(DynamicPackedStruct<>::maxSizeInBytes() == 0u, "");
+static_assert(DynamicPackedStruct<>::numFields() == 0u, "");
+static_assert(DynamicPackedStruct<>::numDynamicFields() == 0u, "");
+static_assert(DynamicPackedStruct<>::hasDynamicFields() == false, "");
 
 using R = DynamicFieldPlaceholder<>;
 template <typename T> using A = DynamicVectorFieldPlaceholder<T>;

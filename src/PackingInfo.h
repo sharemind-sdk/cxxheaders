@@ -39,20 +39,6 @@ namespace sharemind {
 template <typename ... Ts>
 struct PackingInfo {
 
-/* Constants: */
-
-    constexpr static std::size_t size = sizeOfTypes<Ts...>();
-
-    constexpr static std::size_t minSizeInBytes = size;
-
-    constexpr static std::size_t maxSizeInBytes = size;
-
-    constexpr static std::size_t numFields = sizeof...(Ts);
-
-    constexpr static std::size_t numDynamicFields = 0u;
-
-    constexpr static bool hasDynamicFields = false;
-
 /* Types: */
 
     using type = PackingInfo<Ts...>;
@@ -97,7 +83,19 @@ struct PackingInfo {
 
 /* Methods: */
 
-    constexpr static std::size_t sizeInBytes() noexcept { return size; }
+    constexpr static std::size_t size() { return sizeOfTypes<Ts...>(); }
+
+    constexpr static std::size_t minSizeInBytes() { return size(); }
+
+    constexpr static std::size_t maxSizeInBytes() { return size(); }
+
+    constexpr static std::size_t numFields() { return sizeof...(Ts); }
+
+    constexpr static std::size_t numDynamicFields() { return 0u; }
+
+    constexpr static bool hasDynamicFields() { return false; }
+
+    constexpr static std::size_t sizeInBytes() noexcept { return size(); }
 
     template <std::size_t I>
     static void * voidPtr(void * const data) noexcept
@@ -108,13 +106,13 @@ struct PackingInfo {
     { return ptrAdd(data, ElemOffset<I>::value); }
 
     static void * endVoidPtr(void * const data) noexcept
-    { return ptrAdd(data, size); }
+    { return ptrAdd(data, size()); }
 
     static void const * endVoidPtr(void const * const data) noexcept
-    { return ptrAdd(data, size); }
+    { return ptrAdd(data, size()); }
 
     static void const * endConstVoidPtr(void const * const data) noexcept
-    { return ptrAdd(data, size); }
+    { return ptrAdd(data, size()); }
 
     template <std::size_t I>
     static PointerType<I> ptr(void * const data) noexcept
@@ -144,19 +142,6 @@ struct PackingInfo {
 
 }; /* struct PackingInfo */
 
-#define SHAREMIND_PACKINGINFO_DECLARE_MEMBER_CONSTANTS(...) \
-    constexpr static std::size_t staticSize =  PackingInfo<__VA_ARGS__>::size; \
-    constexpr static std::size_t minSizeInBytes = \
-            PackingInfo<__VA_ARGS__>::minSizeInBytes; \
-    constexpr static std::size_t maxSizeInBytes = \
-            PackingInfo<__VA_ARGS__>::maxSizeInBytes; \
-    constexpr static std::size_t numFields = \
-            PackingInfo<__VA_ARGS__>::numFields; \
-    constexpr static std::size_t numDynamicFields = \
-            PackingInfo<__VA_ARGS__>::numDynamicFields; \
-    constexpr static bool hasDynamicFields = \
-            PackingInfo<__VA_ARGS__>::hasDynamicFields;
-
 #define SHAREMIND_PACKINGINFO_DECLARE_MEMBER_TYPES(...) \
     template <std::size_t I> using ElemType = \
             typename PackingInfo<__VA_ARGS__>::template ElemType<I>; \
@@ -173,7 +158,19 @@ struct PackingInfo {
 
 #define SHAREMIND_PACKINGINFO_DEFINE_READ_METHODS(...) \
     constexpr static std::size_t size() noexcept \
-    { return PackingInfo<__VA_ARGS__>::size; } \
+    { return PackingInfo<__VA_ARGS__>::size(); } \
+    constexpr static std::size_t staticSize() \
+    { return PackingInfo<__VA_ARGS__>::size(); } \
+    constexpr static std::size_t minSizeInBytes() \
+    { return PackingInfo<__VA_ARGS__>::minSizeInBytes; } \
+    constexpr static std::size_t maxSizeInBytes() \
+    { return PackingInfo<__VA_ARGS__>::maxSizeInBytes(); } \
+    constexpr static std::size_t numFields() \
+    { return PackingInfo<__VA_ARGS__>::numFields(); } \
+    constexpr static std::size_t numDynamicFields() \
+    { return PackingInfo<__VA_ARGS__>::numDynamicFields(); } \
+    constexpr static bool hasDynamicFields() \
+    { return PackingInfo<__VA_ARGS__>::hasDynamicFields(); } \
     template <std::size_t I> \
     void const * voidPtr() const noexcept \
     { return PackingInfo<__VA_ARGS__>::template constVoidPtr<I>(data()); } \
@@ -200,9 +197,9 @@ struct PackingInfo {
     ElemType<I> get() const noexcept \
     { return PackingInfo<__VA_ARGS__>::template get<I>(data()); } \
     bool operator==(type const & rhs) const noexcept \
-    { return std::memcmp(data(), rhs.data(), staticSize) == 0; } \
+    { return std::memcmp(data(), rhs.data(), staticSize()) == 0; } \
     bool operator!=(type const & rhs) const noexcept \
-    { return std::memcmp(data(), rhs.data(), staticSize) != 0; }
+    { return std::memcmp(data(), rhs.data(), staticSize()) != 0; }
 
 #define SHAREMIND_PACKINGINFO_DEFINE_WRITE_METHODS(maybeConst,...) \
     template <std::size_t I> \

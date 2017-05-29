@@ -48,7 +48,7 @@ static_assert(
             PackedStruct<int, char, float, double>
         >::value, "");
 
-template <typename Msg, std::size_t N = Msg::numFields>
+template <typename Msg, std::size_t N = Msg::numFields()>
 struct PackedStructEqualityChecker;
 
 template <typename Msg>
@@ -74,7 +74,7 @@ void checkPackedStruct(Msg & m) noexcept {
     Msg const & cm = m;
     SHAREMIND_TESTASSERT(m.size() == cm.size());
     static_assert(std::is_pod<Msg>::value, "");
-    static_assert(sizeof(Msg) == Msg::staticSize, "");
+    static_assert(sizeof(Msg) == Msg::staticSize(), "");
 
     static_assert(std::is_same<decltype(m.endVoidPtr()), void *>::value, "");
     static_assert(
@@ -88,7 +88,7 @@ void checkPackedStruct(Msg & m) noexcept {
     SHAREMIND_TESTASSERT(m.endVoidPtr() == cm.endConstVoidPtr());
     SHAREMIND_TESTASSERT(m.endVoidPtr() == ptrAdd(m.data(), m.size()));
 
-    SHAREMIND_TESTASSERT(cm.size() == Msg::staticSize);
+    SHAREMIND_TESTASSERT(cm.size() == Msg::staticSize());
     Msg m2;
     std::memcpy(&m2, &cm, sizeof(Msg));
     PackedStructEqualityChecker<Msg>::check(cm, m2);

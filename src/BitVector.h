@@ -56,20 +56,24 @@ private: /* Types: */
     using block_type = Block;
     using store_type = BlockStore;
 
-    static constexpr std::size_t bytes_per_block = sizeof (block_type);
-    static constexpr std::size_t bits_per_block = 8u * bytes_per_block;
+    static constexpr std::size_t bytes_per_block()
+    { return sizeof(block_type); }
+
+    static constexpr std::size_t bits_per_block()
+    { return 8u * bytes_per_block(); }
 
     /* The following is to reduce the use of magic constant 64.
      * We assume that the serialization block width is bigger than the bit vectors block width.
      */
     struct Serialization {
         using block_type = std::uint64_t;
-        static constexpr std::size_t block_width = 8u * sizeof (block_type);
+        static constexpr std::size_t block_width()
+        { return 8u * sizeof(block_type); }
     };
 
     static_assert(sizeof(block_type) <= sizeof(typename Serialization::block_type),
                   "Serialization block must be at least as big as the integers block.");
-    static_assert(Serialization::block_width % bits_per_block == 0,
+    static_assert(Serialization::block_width() % bits_per_block() == 0,
                   "Serialization block size must be divisible by the number of bits in the integers block.");
 
 public:
@@ -221,7 +225,7 @@ public: /* Methods: */
     }
 
     void push_back (bool val) {
-        if (m_num_bits % bits_per_block == 0) {
+        if (m_num_bits % bits_per_block() == 0) {
             m_blocks.push_back (0);
         }
 
@@ -234,7 +238,7 @@ public: /* Methods: */
     void pop_back () {
         assert (! empty ());
         -- m_num_bits;
-        if (m_num_bits % bits_per_block == 0) {
+        if (m_num_bits % bits_per_block() == 0) {
             m_blocks.pop_back ();
         }
     }
@@ -270,7 +274,7 @@ public: /* Methods: */
 
     void append (const BitVec& other) {
         using const_iter = typename store_type::const_iterator;
-        block_type r = m_num_bits % bits_per_block;
+        block_type r = m_num_bits % bits_per_block();
         const_iter i = other.m_blocks.begin ();
         const const_iter e = other.m_blocks.end ();
         if (r == 0) {
@@ -283,7 +287,7 @@ public: /* Methods: */
             assert (! m_blocks.empty ());
             m_blocks.back () |= (*i << r);
             do {
-                const block_type b = *i >> (bits_per_block - r);
+                const block_type b = *i >> (bits_per_block() - r);
                 ++ i;
                 m_blocks.push_back (b | (i == e ? 0 : *i << r));
             } while (i != e);
@@ -365,16 +369,16 @@ public: /* Methods: */
 
 private: /* Methods: */
 
-    static size_type block_index (size_type pos) { return pos / bits_per_block; }
-    static block_type bit_index (size_type pos) { return static_cast<block_type>(pos % bits_per_block); }
+    static size_type block_index (size_type pos) { return pos / bits_per_block(); }
+    static block_type bit_index (size_type pos) { return static_cast<block_type>(pos % bits_per_block()); }
     static block_type bit_mask (size_type pos) { return block_type (1) << bit_index (pos); }
     static size_type compute_block_count (size_type num_bits) {
-        return (num_bits / bits_per_block) + static_cast<size_type>(num_bits % bits_per_block != 0);
+        return (num_bits / bits_per_block()) + static_cast<size_type>(num_bits % bits_per_block() != 0);
     }
 
     static size_type serialization_block_count (size_type num_bits) {
-        return (num_bits / Serialization::block_width)
-               + static_cast<size_type>(num_bits % Serialization::block_width != 0);
+        return (num_bits / Serialization::block_width())
+               + static_cast<size_type>(num_bits % Serialization::block_width() != 0);
     }
 
 
@@ -481,7 +485,7 @@ bool BitVec<B, A, S>::deserialize (InMessage &msg) {
         if (! msg.read (block))
             return false;
 
-        for (size_type b = 0; b < Serialization::block_width; b += bits_per_block) {
+        for (size_type b = 0; b < Serialization::block_width(); b += bits_per_block()) {
             if (block_index == num_blocks_ ())
                 break;
 
@@ -503,7 +507,7 @@ void BitVec<B, A, S>::serialize (OutMessage & msg) const {
     const size_type msg_blocks = serialization_block_count (num_bits);
     for (size_type i = 0; i < msg_blocks; ++ i) {
         typename Serialization::block_type block = 0;
-        for (size_type b = 0; b < Serialization::block_width; b += bits_per_block) {
+        for (size_type b = 0; b < Serialization::block_width(); b += bits_per_block()) {
             if (block_index == num_blocks_ ())
                 break;
 

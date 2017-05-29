@@ -27,7 +27,7 @@ namespace sharemind {
 
 template <typename ... Ts> struct TemplateTypeList {
     using AsTuple = std::tuple<Ts...>;
-    static constexpr auto size = sizeof...(Ts);
+    static constexpr decltype(sizeof...(Ts)) size() { return sizeof...(Ts); }
 
     template <std::size_t N>
     using type = typename std::tuple_element<N, AsTuple>::type;

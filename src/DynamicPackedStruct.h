@@ -41,20 +41,20 @@ class DynamicPackedStruct {
 
 public: /* Constants: */
 
-    constexpr static std::size_t minSizeInBytes =
-            DynamicPackingInfo<Ts...>::minSizeInBytes;
+    constexpr static std::size_t minSizeInBytes()
+    { return DynamicPackingInfo<Ts...>::minSizeInBytes(); }
 
-    constexpr static std::size_t maxSizeInBytes =
-            DynamicPackingInfo<Ts...>::maxSizeInBytes;
+    constexpr static std::size_t maxSizeInBytes()
+    { return DynamicPackingInfo<Ts...>::maxSizeInBytes(); }
 
-    constexpr static std::size_t numFields =
-            DynamicPackingInfo<Ts...>::numFields;
+    constexpr static std::size_t numFields()
+    { return DynamicPackingInfo<Ts...>::numFields(); }
 
-    constexpr static std::size_t numDynamicFields =
-            DynamicPackingInfo<Ts...>::numDynamicFields;
+    constexpr static std::size_t numDynamicFields()
+    { return DynamicPackingInfo<Ts...>::numDynamicFields(); }
 
-    constexpr static std::size_t hasDynamicFields =
-            DynamicPackingInfo<Ts...>::hasDynamicFields;
+    constexpr static std::size_t hasDynamicFields()
+    { return DynamicPackingInfo<Ts...>::hasDynamicFields(); }
 
 public: /* Types: */
 
@@ -145,7 +145,7 @@ public: /* Methods: */
     }
 
     DynamicPackedStruct & operator=(type const & copy) {
-        constexpr static auto lastSizesIndex = numDynamicFields - 1u;
+        constexpr static auto lastSizesIndex = numDynamicFields() - 1u;
         if (copy.m_data) {
             if (m_data) {
                 if (m_sizes[lastSizesIndex] != copy.m_sizes[lastSizesIndex]) {

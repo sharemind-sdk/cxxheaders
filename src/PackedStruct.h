@@ -37,10 +37,6 @@ namespace sharemind {
 template <typename ... Ts>
 class __attribute__((packed)) PackedStruct {
 
-public: /* Constants: */
-
-    SHAREMIND_PACKINGINFO_DECLARE_MEMBER_CONSTANTS(Ts...)
-
 public: /* Types: */
 
     using type = PackedStruct<Ts...>;
@@ -92,7 +88,7 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    PackedRawData<type::staticSize> m_data;
+    PackedRawData<type::staticSize()> m_data;
 
 }; /* class PackedStruct */
 

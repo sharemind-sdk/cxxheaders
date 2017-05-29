@@ -116,7 +116,7 @@ struct Test_3
 {};
 
 template <typename Result, typename ... Ts>
-using Test = Test_3<Result::size, Result, Ts...>;
+using Test = Test_3<Result::size(), Result, Ts...>;
 
 template <typename ... Ts> using EmptyTest =
         std::integral_constant<

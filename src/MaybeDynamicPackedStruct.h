@@ -31,7 +31,7 @@ namespace sharemind {
 template <typename ... Ts>
 using MaybeDynamicPackedStruct =
         typename std::conditional<
-            DynamicPackingInfo<Ts...>::hasDynamicFields,
+            DynamicPackingInfo<Ts...>::hasDynamicFields(),
             DynamicPackedStruct<Ts...>,
             PackedStruct<Ts...>
         >::type;

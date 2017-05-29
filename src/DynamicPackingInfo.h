@@ -45,10 +45,10 @@ template <std::size_t min_ = std::numeric_limits<std::size_t>::min(),
           std::size_t max_ = std::numeric_limits<std::size_t>::max()>
 struct DynamicFieldPlaceholder {
     using type = DynamicFieldPlaceholder;
-    constexpr static std::size_t min = min_;
-    constexpr static std::size_t max = max_;
-    constexpr static std::size_t minBytes = min;
-    constexpr static std::size_t maxBytes = max;
+    constexpr static std::size_t min() { return min_; }
+    constexpr static std::size_t max() { return max_; }
+    constexpr static std::size_t minBytes() { return min_; }
+    constexpr static std::size_t maxBytes() { return max_; }
 };
 
 template <typename T,
@@ -57,10 +57,10 @@ template <typename T,
 struct DynamicVectorFieldPlaceholder {
     using type = DynamicVectorFieldPlaceholder<T>;
     using valueType = T;
-    constexpr static std::size_t min = min_;
-    constexpr static std::size_t max = max_;
-    constexpr static std::size_t minBytes = min * sizeof(valueType);
-    constexpr static std::size_t maxBytes = max * sizeof(valueType);
+    constexpr static std::size_t min() { return min_; }
+    constexpr static std::size_t max() { return max_; }
+    constexpr static std::size_t minBytes() { return min_ * sizeof(valueType); }
+    constexpr static std::size_t maxBytes() { return max_ * sizeof(valueType); }
 };
 
 namespace Detail {
@@ -84,12 +84,14 @@ struct FieldTraits<DynamicFieldPlaceholder<min_, max_> > {
     using PointerType = void *;
     using ConstPointerType = void const *;
     constexpr static bool isStatic = false;
-    constexpr static std::size_t min = DynamicFieldPlaceholder<min_, max_>::min;
-    constexpr static std::size_t max = DynamicFieldPlaceholder<min_, max_>::max;
+    constexpr static std::size_t min =
+            DynamicFieldPlaceholder<min_, max_>::min();
+    constexpr static std::size_t max =
+            DynamicFieldPlaceholder<min_, max_>::max();
     constexpr static std::size_t minBytes =
-            DynamicFieldPlaceholder<min_, max_>::minBytes;
+            DynamicFieldPlaceholder<min_, max_>::minBytes();
     constexpr static std::size_t maxBytes =
-            DynamicFieldPlaceholder<min_, max_>::maxBytes;
+            DynamicFieldPlaceholder<min_, max_>::maxBytes();
 };
 
 template <typename T, std::size_t min_, std::size_t max_>
@@ -100,13 +102,13 @@ struct FieldTraits<DynamicVectorFieldPlaceholder<T, min_, max_> > {
     using ConstPointerType = UnalignedPointer<T const>;
     constexpr static bool isStatic = false;
     constexpr static std::size_t min =
-            DynamicVectorFieldPlaceholder<T, min_, max_>::min;
+            DynamicVectorFieldPlaceholder<T, min_, max_>::min();
     constexpr static std::size_t max =
-            DynamicVectorFieldPlaceholder<T, min_, max_>::max;
+            DynamicVectorFieldPlaceholder<T, min_, max_>::max();
     constexpr static std::size_t minBytes =
-            DynamicVectorFieldPlaceholder<T, min_, max_>::minBytes;
+            DynamicVectorFieldPlaceholder<T, min_, max_>::minBytes();
     constexpr static std::size_t maxBytes =
-            DynamicVectorFieldPlaceholder<T, min_, max_>::maxBytes;
+            DynamicVectorFieldPlaceholder<T, min_, max_>::maxBytes();
 };
 
 template <typename ... Ts> struct FieldsTraits;
@@ -207,7 +209,7 @@ struct StaticTailSize<>: std::integral_constant<std::size_t, 0u> {};
 template <typename T, typename ... Ts>
 struct StaticTailSize<T, Ts...>
         : std::conditional<
-            DynamicFieldFilter<Ts...>::size <= 0u,
+            DynamicFieldFilter<Ts...>::size() <= 0u,
             std::integral_constant<std::size_t, sizeOfTypes<Ts...>()>,
             StaticTailSize<Ts...>
         >::type
@@ -277,18 +279,18 @@ struct DynamicPackingInfo {
 
 /* Constants: */
 
-    constexpr static std::size_t minSizeInBytes =
-            Detail::DynamicPacking::FieldsTraits<Ts...>::minBytes;
+    constexpr static std::size_t minSizeInBytes()
+    { return Detail::DynamicPacking::FieldsTraits<Ts...>::minBytes; }
 
-    constexpr static std::size_t maxSizeInBytes =
-            Detail::DynamicPacking::FieldsTraits<Ts...>::maxBytes;
+    constexpr static std::size_t maxSizeInBytes()
+    { return Detail::DynamicPacking::FieldsTraits<Ts...>::maxBytes; }
 
-    constexpr static std::size_t numFields = sizeof...(Ts);
+    constexpr static std::size_t numFields() { return sizeof...(Ts); }
 
-    constexpr static std::size_t numDynamicFields =
-            Detail::DynamicPacking::DynamicFieldFilter<Ts...>::size;
+    constexpr static std::size_t numDynamicFields()
+    { return Detail::DynamicPacking::DynamicFieldFilter<Ts...>::size(); }
 
-    constexpr static bool hasDynamicFields = numDynamicFields > 0u;
+    constexpr static bool hasDynamicFields() { return numDynamicFields() > 0u; }
 
 /* Types: */
 
@@ -358,7 +360,7 @@ struct DynamicPackingInfo {
     static void populateAccumArray(std::size_t * const accumSizes,
                                    Args && ... args) noexcept
     {
-        static_assert(sizeof...(Args) == numDynamicFields,
+        static_assert(sizeof...(Args) == numDynamicFields(),
                       "The number of arguments must match the number of "
                       "dynamic fields.");
         using P = Detail::DynamicPacking::AccumVecPopulator<Ts...>;
@@ -370,7 +372,7 @@ struct DynamicPackingInfo {
             noexcept
     {
         return Detail::DynamicPacking::StaticTailSize<Ts...>::value
-               + accumSizes[numDynamicFields - 1u];
+               + accumSizes[numDynamicFields() - 1u];
     }
 
     template <std::size_t I, typename AccumSizes>
@@ -379,7 +381,7 @@ struct DynamicPackingInfo {
         (TemplateInstantiateWithTypeParams_t<
             Detail::DynamicPacking::DynamicFieldFilter,
             TemplatePrefixTypes_t<I, Ts...>
-        >::size > 0u) ? true : false,
+        >::size() > 0u) ? true : false,
         std::size_t
     >::type
     elemOffset(AccumSizes const & accumSizes) noexcept
@@ -388,7 +390,7 @@ struct DynamicPackingInfo {
                 TemplateInstantiateWithTypeParams_t<
                     Detail::DynamicPacking::DynamicFieldFilter,
                     TemplatePrefixTypes_t<I, Ts...>
-                >::size - 1u]
+                >::size() - 1u]
                + TemplateInstantiateWithTypeParams_t<
                     Detail::DynamicPacking::StaticTailSize,
                     TemplatePrefixTypes_t<I, Ts...>
@@ -401,7 +403,7 @@ struct DynamicPackingInfo {
         (TemplateInstantiateWithTypeParams_t<
             Detail::DynamicPacking::DynamicFieldFilter,
             TemplatePrefixTypes_t<I, Ts...>
-        >::size > 0u) ? false : true,
+        >::size() > 0u) ? false : true,
         std::size_t
     >::type
     elemOffset(AccumSizes const &) noexcept {
@@ -485,14 +487,14 @@ struct DynamicPackingInfo {
 
 template <typename ... Ts>
 struct DynamicPackingInfo<Ts...>::AccumArrayType
-        : std::array<std::size_t, numDynamicFields>
+        : std::array<std::size_t, numDynamicFields()>
 {
 
 /* Types: */
 
     using type = AccumArrayType;
 
-    using base = std::array<std::size_t, numDynamicFields>;
+    using base = std::array<std::size_t, numDynamicFields()>;
 
     template <std::size_t I> using ElemType =
             typename DynamicPackingInfo<Ts...>::template ElemType<I>;

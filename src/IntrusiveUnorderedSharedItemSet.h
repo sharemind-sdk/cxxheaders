@@ -117,7 +117,7 @@ class IntrusiveUnorderedSharedItemSet {
 
 public: /* Constants: */
 
-    constexpr static std::size_t defaultNumberOfBuckets = 200u;
+    constexpr static std::size_t defaultNumberOfBuckets() { return 200u; }
 
 private: /* Types: */
 
@@ -139,7 +139,7 @@ public: /* Types: */
 public: /* Methods: */
 
     inline IntrusiveUnorderedSharedItemSet(
-            std::size_t const numBuckets = defaultNumberOfBuckets)
+            std::size_t const numBuckets = defaultNumberOfBuckets())
         : m_numBuckets(numBuckets)
     {}
 

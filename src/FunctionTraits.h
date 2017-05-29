@@ -34,7 +34,7 @@ template <typename R, typename ... Args>
 struct FunctionTraits<R(Args...)> {
   using return_type = R;
   using arguments = TemplateTypeList<Args...>;
-  static constexpr std::size_t arity = arguments::size;
+  static constexpr std::size_t arity() { return arguments::size(); }
 
   template <std::size_t N>
   using argument = typename arguments::template type<N>;
