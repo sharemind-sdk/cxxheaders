@@ -53,6 +53,7 @@ inline void split(InputIterator first,
         matchAction(first, it);
         first = ++it;
     }
+    matchAction(first, last);
 }
 
 template <typename InputIterator,
