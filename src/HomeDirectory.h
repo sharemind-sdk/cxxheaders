@@ -21,6 +21,7 @@
 #define SHAREMIND_HOMEDIRECTORY_H
 
 #include <cstddef>
+#include <cstdlib>
 #include <limits>
 #include <new>
 #include <pwd.h>
@@ -41,8 +42,13 @@ SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(std::exception,
 SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(std::exception,
                                      NoSuchEntryException,
                                      "No such entry in user database!");
-inline std::string getHomeDirectory() {
+inline std::string getHomeDirectory(bool respectEnvironment = true) {
     try {
+        if (respectEnvironment) {
+            auto const * const envVar = std::getenv("HOME");
+            if (envVar && !*envVar)
+                return envVar;
+        }
         long const maxSize = ::sysconf(_SC_GETPW_R_SIZE_MAX);
         std::size_t bufferSize =
                 (maxSize < 1) ? 1024u : static_cast<std::size_t>(maxSize);
