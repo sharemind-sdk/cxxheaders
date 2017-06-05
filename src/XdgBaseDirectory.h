@@ -108,6 +108,45 @@ inline std::vector<std::string> getXdgConfigDirs()
 inline std::string getXdgCacheHome()
 { return Detail::Xdg::getDir("XDG_CACHE_HOME", &getDefaultXdgCacheHome); }
 
+/**
+    \brief Shorthand to retrieve all configuration paths combined with the given
+           suffix.
+    \arg[in] suffix Suffix to append to each path. Should be either empty or
+                    begin with a directory separator.
+    \returns a vector of configuration paths containing the value of
+             getXdgConfigHome() and all values from getXdgConfigDirs() in order,
+             with the given suffix appended to each element.
+*/
+inline std::vector<std::string> getXdgConfigPaths(
+        std::string const & suffix = std::string())
+{
+    assert(suffix.empty() || suffix[0u] == '/');
+    std::vector<std::string> r;
+    r.emplace_back(getXdgConfigHome() + suffix);
+    for (auto & path : getXdgConfigDirs())
+        r.emplace_back(std::move(path) + suffix);
+    return r;
+}
+
+/**
+    \brief Shorthand to retrieve all data paths combined with the given suffix.
+    \arg[in] suffix Suffix to append to each path. Should be either empty or
+                    begin with a directory separator.
+    \returns a vector of data paths containing the value of getXdgDataHome() and
+             all values from getXdgDataDirs() in order, with the given suffix
+             appended to each element.
+*/
+inline std::vector<std::string> getXdgDataPaths(
+        std::string const & suffix = std::string())
+{
+    assert(suffix.empty() || suffix[0u] == '/');
+    std::vector<std::string> r;
+    r.emplace_back(getXdgDataHome() + suffix);
+    for (auto & path : getXdgDataDirs())
+        r.emplace_back(std::move(path) + suffix);
+    return r;
+}
+
 } /* namespace Sharemind { */
 
 #endif /* SHAREMIND_XDGBASEDIRECTORY_H */
