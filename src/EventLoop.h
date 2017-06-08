@@ -307,7 +307,7 @@ public: /* Methods: */
                                                 events,
                                                 DEFAULT_MAX_EVENTS,
                                                 DEFAULT_EPOLL_TIMEOUT_MS);
-            assert(numEvents <= numEvents);
+            assert(numEvents <= DEFAULT_MAX_EVENTS);
             if (numEvents < 0) {
                 assert(numEvents == -1);
                 if (errno == EINTR || errno == EAGAIN)
