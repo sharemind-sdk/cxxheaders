@@ -33,6 +33,7 @@ class EventLoop {
 public: /* Constants: */
 
     static constexpr std::size_t DEFAULT_MAX_EVENTS = 128u;
+    static_assert(DEFAULT_MAX_EVENTS <= std::numeric_limits<int>::max(), "");
     static constexpr int DEFAULT_EPOLL_TIMEOUT_MS = 50;
 
     #if defined(__linux__)
@@ -303,17 +304,18 @@ public: /* Methods: */
 
         SHAREMIND_SCOPE_EXIT(loopIterationFinish());
         for (;;) {
-            auto const numEvents = ::epoll_wait(m_epoll.fd,
-                                                events,
-                                                DEFAULT_MAX_EVENTS,
-                                                DEFAULT_EPOLL_TIMEOUT_MS);
-            assert(numEvents <= DEFAULT_MAX_EVENTS);
+            auto const numEvents =
+                    ::epoll_wait(m_epoll.fd,
+                                 events,
+                                 static_cast<int>(DEFAULT_MAX_EVENTS),
+                                 DEFAULT_EPOLL_TIMEOUT_MS);
             if (numEvents < 0) {
                 assert(numEvents == -1);
                 if (errno == EINTR || errno == EAGAIN)
                     continue;
                 ErrnoException::throwAsNestedOf<EpollWaitException>();
             }
+            assert(numEvents <= static_cast<int>(DEFAULT_MAX_EVENTS));
 
             auto const eventsEnd = events + numEvents;
             for (auto const * it = events; it < eventsEnd; ++it) {
