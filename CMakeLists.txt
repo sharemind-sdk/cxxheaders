@@ -143,7 +143,7 @@ SET(CPACK_DEBIAN_COMPRESSION_TYPE "xz")
 SET(CPACK_DEB_COMPONENT_INSTALL "ON")
 SET(CPACK_COMPONENT_dev_DESCRIPTION "C++ development headers for Sharemind")
 SET(CPACK_DEBIAN_dev_PACKAGE_DEPENDS
-    "sharemind-cheaders (>= 0.1.0), libboost-dev (>= 1.5.5), libc6-dev (>= 2.19), libstdc++-4.8-dev | libstdc++-4.9-dev | libstdc++-5-dev | libstdc++-6-dev | libstdc++-7-dev")
+    "libsharemind-cheaders-dev (>= 0.1.0), libboost-dev (>= 1.5.5), libc6-dev (>= 2.19), libstdc++-4.8-dev | libstdc++-4.9-dev | libstdc++-5-dev | libstdc++-6-dev | libstdc++-7-dev")
 SET(CPACK_DEBIAN_dev_PACKAGE_SECTION "libdevel")
 SET(CPACK_DEBIAN_dev_PACKAGE_ARCHITECTURE "any")
 SET(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
