@@ -63,8 +63,7 @@ ADD_CUSTOM_TARGET("include_SHAREMIND_CXXHEADERS_HEADERS_in_IDE"
                   SOURCES ${SHAREMIND_CXXHEADERS_HEADERS})
 
 INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/"
-        DESTINATION "include/sharemind"
-        COMPONENT dev)
+        DESTINATION "include/sharemind")
 
 FILE(GLOB_RECURSE SHAREMIND_CXXHEADERS_INFILES
      "${CMAKE_CURRENT_SOURCE_DIR}/*.in")
@@ -121,30 +120,27 @@ CONFIGURE_FILE(
   @ONLY)
 INSTALL(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/SharemindCxxHeadersConfig.cmake"
-  DESTINATION "lib/SharemindCxxHeaders"
-  COMPONENT dev)
+  DESTINATION "lib/SharemindCxxHeaders")
 CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/SharemindCxxHeadersConfigVersion.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/SharemindCxxHeadersConfigVersion.cmake"
   @ONLY)
 INSTALL(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/SharemindCxxHeadersConfigVersion.cmake"
-  DESTINATION "lib/SharemindCxxHeaders"
-  COMPONENT dev)
+  DESTINATION "lib/SharemindCxxHeaders")
 
 
 # Packaging:
 SET(CPACK_PACKAGE_VENDOR "Cybernetica AS")
 SET(CPACK_PACKAGE_CONTACT "Sharemind packaging <sharemind-packaging@cyber.ee>")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "C++ development headers for Sharemind")
 SET(CPACK_GENERATOR "DEB")
 SET(CPACK_DEBIAN_PACKAGE_NAME "libsharemind-cxxheaders-dev")
 SET(CPACK_DEBIAN_PACKAGE_RELEASE "cyber1")
 SET(CPACK_DEBIAN_COMPRESSION_TYPE "xz")
-SET(CPACK_DEB_COMPONENT_INSTALL "ON")
-SET(CPACK_COMPONENT_dev_DESCRIPTION "C++ development headers for Sharemind")
-SET(CPACK_DEBIAN_dev_PACKAGE_DEPENDS
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS
     "libsharemind-cheaders-dev (>= 0.1.0), libboost-dev (>= 1.5.5), libc6-dev (>= 2.19), libstdc++-4.8-dev | libstdc++-4.9-dev | libstdc++-5-dev | libstdc++-6-dev | libstdc++-7-dev")
-SET(CPACK_DEBIAN_dev_PACKAGE_SECTION "libdevel")
-SET(CPACK_DEBIAN_dev_PACKAGE_ARCHITECTURE "any")
+SET(CPACK_DEBIAN_PACKAGE_SECTION "libdevel")
+SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "any")
 SET(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
 INCLUDE(CPack)
