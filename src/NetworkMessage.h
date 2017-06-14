@@ -19,11 +19,11 @@
 #include <limits>
 #include <new>
 #include <sharemind/EndianMacros.h>
-#include <sharemind/Exception.h>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <vector>
+#include "Exception.h"
 
 
 namespace sharemind {
