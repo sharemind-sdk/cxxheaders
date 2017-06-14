@@ -33,6 +33,7 @@
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #include <sys/cdefs.h>
 #endif
+#include <type_traits>
 #include <utility>
 #include "compiler-support/GccNoreturn.h"
 
@@ -75,6 +76,14 @@ namespace sharemind {
 #define SHAREMIND_DEFINE_EXCEPTION(base,name) \
     class name: public base {}
 
+#define SHAREMIND_DECLARE_EXCEPTION_NOINLINE(base,name) \
+    class name: public base { \
+    public: /* Methods: */ \
+        ~name() noexcept; \
+    }
+#define SHAREMIND_DEFINE_EXCEPTION_NOINLINE(base,ns,name) \
+    ns name::~name() noexcept {}
+
 #define SHAREMIND_DEFINE_EXCEPTION_UNUSED(base,name) \
     class name: public base { \
     private: /* Methods: */ \
@@ -94,6 +103,23 @@ namespace sharemind {
         inline const char * what() const noexcept final override \
         { return (msg); } \
     }
+#define SHAREMIND_DECLARE_EXCEPTION_CONST_MSG_NOINLINE(base,name) \
+    class name: public base { \
+    public: /* Methods: */ \
+        name() noexcept(std::is_nothrow_default_constructible<base>::value); \
+        ~name() noexcept; \
+        template <typename ... Args> \
+        name(Args && ... args) \
+                noexcept(std::is_nothrow_constructible<base, Args...>::value) \
+            : base(std::forward<Args>(args)...) {} \
+        const char * what() const noexcept final override; \
+    }
+#define SHAREMIND_DEFINE_EXCEPTION_CONST_MSG_NOINLINE(base,ns,name,msg) \
+    ns name::name() \
+            noexcept(std::is_nothrow_default_constructible<base>::value) \
+    {} \
+    ns name::~name() noexcept {} \
+    const char * ns name::what() const noexcept { return (msg); }
 
 #define SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING(base,name) \
     class name: public base { \
