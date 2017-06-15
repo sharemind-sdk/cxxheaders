@@ -28,18 +28,19 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "Exception.h"
+#include "ExceptionMacros.h"
 
 
 namespace sharemind {
 
 SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
-            std::exception,
+            Exception,
             GetHomeDirectoryException,
             "Failed to determine real user directory!");
-SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(std::exception,
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
                                      GetPwUidRException,
                                      "getpwuid_r() failed!");
-SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(std::exception,
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
                                      NoSuchEntryException,
                                      "No such entry in user database!");
 inline std::string getHomeDirectory(bool respectEnvironment = true) {
