@@ -24,6 +24,7 @@
 #include <type_traits>
 #include <vector>
 #include "Exception.h"
+#include "ExceptionMacros.h"
 
 
 namespace sharemind {
@@ -37,7 +38,7 @@ class NetworkMessage: public NetworkMessagePayload {
 
 public: /* Types: */
 
-    SHAREMIND_DEFINE_EXCEPTION(std::exception, Exception);
+    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
     SHAREMIND_DEFINE_EXCEPTION(Exception, LengthError);
     SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
             LengthError,
