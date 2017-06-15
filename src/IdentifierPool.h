@@ -27,6 +27,7 @@
 #include <set>
 #include <type_traits>
 #include "Exception.h"
+#include "ExceptionMacros.h"
 
 
 namespace sharemind {
