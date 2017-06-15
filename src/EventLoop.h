@@ -15,6 +15,7 @@
 #include <mutex>
 #include <thread>
 #include "Exception.h"
+#include "ExceptionMacros.h"
 #include "Posix.h"
 #include "ScopeExit.h"
 #include "Spinwait.h"
@@ -77,7 +78,7 @@ public: /* Constants: */
 
 public: /* Types: */
 
-    SHAREMIND_DEFINE_EXCEPTION(std::exception, Exception);
+    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
 
     #if defined(__linux__) || defined(__NetBSD__) \
         || defined(__OpenBSD__) || defined(__FreeBSD__)
