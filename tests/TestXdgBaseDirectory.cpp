@@ -44,16 +44,15 @@ TEST_RETURNS_STRING_VECTOR(sharemind::getXdgDataDirs());
 TEST_RETURNS_STRING_VECTOR(sharemind::getXdgConfigDirs());
 TEST_RETURNS_STRING(sharemind::getXdgCacheHome());
 
-void resetXdgEnvironment() {
-    ::unsetenv("XDG_DATA_HOME");
-    ::unsetenv("XDG_CONFIG_HOME");
-    ::unsetenv("XDG_DATA_DIRS");
-    ::unsetenv("XDG_CONFIG_DIRS");
-    ::unsetenv("XDG_CACHE_HOME");
-}
-
 int main() {
-    resetXdgEnvironment();
+    static auto const resetXdgEnvironment =
+            [] {
+                ::unsetenv("XDG_DATA_HOME");
+                ::unsetenv("XDG_CONFIG_HOME");
+                ::unsetenv("XDG_DATA_DIRS");
+                ::unsetenv("XDG_CONFIG_DIRS");
+                ::unsetenv("XDG_CACHE_HOME");
+            };
 
     static auto const testDefaults =
             []() {

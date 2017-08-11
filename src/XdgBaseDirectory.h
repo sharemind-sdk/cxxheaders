@@ -80,8 +80,8 @@ inline std::vector<std::string> getDirs(char const * const envVarName,
     split(e,
           end,
           [](char const & c) noexcept { return c == ':'; },
-          [&r](char const * const begin, char const * const end) noexcept
-          { r.emplace_back(begin, end); });
+          [&r](char const * const begin_, char const * const end_) noexcept
+          { r.emplace_back(begin_, end_); });
     return r;
 }
 
