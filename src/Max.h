@@ -20,21 +20,33 @@
 #ifndef SHAREMIND_MAX_H
 #define SHAREMIND_MAX_H
 
+#include <type_traits>
+#include "TemplateAll.h"
+
 
 namespace sharemind {
+namespace Detail {
 
 template <typename T>
-constexpr T const & max(T const & a) noexcept { return a; }
+constexpr T max(T v) noexcept { return v; }
 
-template <typename T>
-constexpr T const & max(T const & a, T const & b) noexcept
-{ return a > b ? a : b; }
+template <typename T, typename ... Ts>
+constexpr T max(T a, T b, Ts ... vs) noexcept
+{ return (a > b) ? max(a, vs...) : max(b, vs...); }
 
-template <typename T, typename ... Args>
-constexpr T const & max(T const & a,
-                        T const & b,
-                        Args const & ... args) noexcept
-{ return max(a, max(b, args...)); }
+} /* namespace Detail { */
+
+template <typename ... Ts>
+constexpr auto max(Ts && ... vs) ->
+    typename std::enable_if<
+        TemplateAll<
+            std::is_arithmetic<
+                typename std::decay<Ts>::type
+            >::value...
+        >::value,
+        typename std::common_type<Ts...>::type
+    >::type
+{ return Detail::max(vs...); }
 
 } /* namespace Sharemind { */
 
