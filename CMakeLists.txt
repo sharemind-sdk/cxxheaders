@@ -62,25 +62,17 @@ INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/"
 
 
 # Tests:
-ENABLE_TESTING()
-ADD_CUSTOM_TARGET(check COMMAND "${CMAKE_CTEST_COMMAND}")
 SharemindSetCxx11CompileOptions()
-ADD_DEFINITIONS(${SharemindCxxHeaders_EXTERNAL_DEFINITIONS})
-INCLUDE_DIRECTORIES(${SharemindCxxHeaders_EXTERNAL_INCLUDE_DIRS})
+SharemindAddSimpleTests("${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp"
+    LEGACY_DEFINITIONS
+        ${SharemindCxxHeaders_EXTERNAL_DEFINITIONS}
+    INCLUDE_DIRECTORIES
+        ${SharemindCxxHeaders_EXTERNAL_INCLUDE_DIRS}
+    LINK_LIBRARIES
+        "pthread"
+)
 
-FILE(GLOB_RECURSE SharemindCxxHeaders_TESTS
-     "${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp")
-LIST(SORT SharemindCxxHeaders_TESTS)
-ADD_CUSTOM_TARGET("include_SharemindCxxHeaders_TESTS_in_IDE"
-                  SOURCES ${SharemindCxxHeaders_TESTS})
-FOREACH(test IN LISTS SharemindCxxHeaders_TESTS)
-    GET_FILENAME_COMPONENT(testName "${test}" NAME_WE)
-    ADD_EXECUTABLE("testImpl_${testName}" EXCLUDE_FROM_ALL "${test}")
-    TARGET_LINK_LIBRARIES("testImpl_${testName}" "pthread")
-    ADD_DEPENDENCIES(check "testImpl_${testName}")
-    ADD_TEST(NAME "test_${testName}" COMMAND "testImpl_${testName}")
-ENDFOREACH()
-
+# Install CMake files:
 SharemindUseCMakeFindFiles()
 
 
