@@ -67,7 +67,7 @@ template <typename T, typename U>
 inline T demote_integer (const U x, void*) __attribute__ ((visibility("internal")));
 
 template <typename T, typename U>
-inline T demote_integer (const U x, typename std::enable_if<impl::can_demote<T, U>::value >::type* = 0) {
+inline T demote_integer (const U x, typename std::enable_if<impl::can_demote<T, U>::value >::type * = nullptr) {
     return impl::demote_integer_impl<T, U>::demote (x);
 }
 
