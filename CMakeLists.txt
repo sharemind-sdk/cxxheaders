@@ -32,24 +32,16 @@ FIND_PACKAGE(Boost REQUIRED)
 FIND_PACKAGE(SharemindCHeaders REQUIRED)
 
 
-SharemindNewList(SharemindCxxHeaders_EXTERNAL_LINK_LIBRARIES)
-SharemindNewList(SharemindCxxHeaders_EXTERNAL_INCLUDE_DIRS
+SharemindNewUniqueList(SharemindCxxHeaders_INCLUDE_DIRS
     ${Boost_INCLUDE_DIRS}
-    ${SharemindCHeaders_INCLUDE_DIRS})
-SharemindNewList(SharemindCxxHeaders_EXTERNAL_DEFINITIONS
-    ${SharemindCHeaders_DEFINITIONS})
-LIST(REMOVE_DUPLICATES SharemindCxxHeaders_EXTERNAL_LINK_LIBRARIES)
-LIST(REMOVE_DUPLICATES SharemindCxxHeaders_EXTERNAL_INCLUDE_DIRS)
-LIST(REMOVE_DUPLICATES SharemindCxxHeaders_EXTERNAL_DEFINITIONS)
-
-SharemindNewList(SharemindCxxHeaders_INSTALL_LINK_LIBRARIES
-        ${SharemindCxxHeaders_EXTERNAL_LINK_LIBRARIES})
-SET(SharemindCxxHeaders_INSTALL_INCLUDE_DIRS
-    "${CMAKE_INSTALL_PREFIX}/include"
-    ${SharemindCxxHeaders_EXTERNAL_INCLUDE_DIRS})
-SharemindNewList(SharemindCxxHeaders_INSTALL_DEFINITIONS
-        ${SharemindCxxHeaders_EXTERNAL_DEFINITIONS})
-LIST(REMOVE_DUPLICATES SharemindCxxHeaders_INSTALL_INCLUDE_DIRS)
+    ${SharemindCHeaders_INCLUDE_DIRS}
+)
+SharemindNewUniqueList(SharemindCxxHeaders_DEFINITIONS
+    ${SharemindCHeaders_DEFINITIONS}
+)
+SharemindNewUniqueList(SharemindCxxHeaders_LINK_LIBRARIES
+    ${SharemindCHeaders_LIBRARIES}
+)
 
 FILE(GLOB_RECURSE SharemindCxxHeaders_HEADERS
      "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
@@ -65,15 +57,23 @@ INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/"
 SharemindSetCxx11CompileOptions()
 SharemindAddSimpleTests("${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp"
     LEGACY_DEFINITIONS
-        ${SharemindCxxHeaders_EXTERNAL_DEFINITIONS}
+        ${SharemindCxxHeaders_DEFINITIONS}
     INCLUDE_DIRECTORIES
-        ${SharemindCxxHeaders_EXTERNAL_INCLUDE_DIRS}
+        ${SharemindCxxHeaders_INCLUDE_DIRS}
     LINK_LIBRARIES
-        "pthread"
+        ${SharemindCxxHeaders_LINK_LIBRARIES}
 )
 
 # Install CMake files:
-SharemindUseCMakeFindFiles()
+SharemindCreateCMakeFindFiles(
+    INCLUDE_DIRS
+        "${CMAKE_INSTALL_PREFIX}/include"
+        ${SharemindCxxHeaders_INCLUDE_DIRS}
+    DEFINITIONS
+        ${SharemindCxxHeaders_DEFINITIONS}
+    LIBRARIES
+        ${SharemindCxxHeaders_LINK_LIBRARIES}
+)
 
 
 # Packaging:
