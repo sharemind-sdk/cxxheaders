@@ -45,7 +45,7 @@
 #define SHAREMIND_TEST_THROWS(...) \
     do { \
         try { \
-            __VA_ARGS__ ; \
+            { __VA_ARGS__ ; } \
             std::fprintf(stderr, "Sharemind test expression throws assertion failed for `" #__VA_ARGS__ "'!\n"); \
             SHAREMIND_TEST_UNREACHABLE; \
         } catch (...) { } \
