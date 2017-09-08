@@ -31,6 +31,28 @@
         std::abort(); \
     } while(false)
 
+
+#define SHAREMIND_TEST_DOES_NOT_THROW(expr) \
+    do { \
+        try { \
+            expr ; \
+        } catch (...) { \
+            std::fprintf(stderr, "Sharemind test expression does not throw assertion failed for  `" #expr "'!\n"); \
+            SHAREMIND_TEST_UNREACHABLE; \
+        } \
+    } while(false)
+
+#define SHAREMIND_TEST_THROWS(expr) \
+    do { \
+        try { \
+            expr ; \
+        } catch (...) { \
+            break; \
+        } \
+        std::fprintf(stderr, "Sharemind test expression throws assertion failed for `" #expr "'!\n"); \
+        SHAREMIND_TEST_UNREACHABLE; \
+    } while(false)
+
 #define SHAREMIND_TESTASSERT(...) \
     do { \
         if (!(__VA_ARGS__)) { \
