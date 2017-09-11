@@ -22,7 +22,30 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <exception>
+#include <functional>
 
+
+#define SHAREMIND_TEST_PRINT_CURRENT_EXCEPTION \
+    do { \
+        std::function<void(std::exception const &)> printNestedExceptions = \
+            [&printNestedExceptions](std::exception const & e) { \
+                std::fprintf(stderr, "%s\n", e.what()); \
+                try { \
+                    std::rethrow_if_nested(e); \
+                } catch (std::exception const & nested) { \
+                    printNestedExceptions(nested); \
+                } \
+            }; \
+        std::exception_ptr eptr = std::current_exception(); \
+        try { \
+            if (eptr) \
+                std::rethrow_exception(eptr); \
+        } catch (std::exception const & e) { \
+            printNestedExceptions(e); \
+            std::fflush(stderr); \
+        } \
+    } while(false)
 
 #define SHAREMIND_TEST_UNREACHABLE \
     do { \
@@ -31,14 +54,16 @@
         std::abort(); \
     } while(false)
 
-
 #define SHAREMIND_TEST_DOES_NOT_THROW(...) \
     do { \
         try { \
             __VA_ARGS__ ; \
         } catch (...) { \
-            std::fprintf(stderr, "Sharemind test expression does not throw assertion failed for  `" #__VA_ARGS__ "'!\n"); \
-            SHAREMIND_TEST_UNREACHABLE; \
+            std::fprintf(stderr,  __FILE__ ":%d: %s: Sharemind test expression does not throw assertion failed for  `" #__VA_ARGS__ "'!\n", \
+                         __LINE__, __PRETTY_FUNCTION__); \
+            std::fflush(stderr); \
+            SHAREMIND_TEST_PRINT_CURRENT_EXCEPTION; \
+            std::abort(); \
         } \
     } while(false)
 
@@ -47,15 +72,24 @@
         try { \
             { __VA_ARGS__ ; } \
             std::fprintf(stderr, "Sharemind test expression throws assertion failed for `" #__VA_ARGS__ "'!\n"); \
-            SHAREMIND_TEST_UNREACHABLE; \
+            std::fflush(stderr); \
+            std::abort(); \
         } catch (...) { } \
     } while(false)
 
 #define SHAREMIND_TESTASSERT(...) \
     do { \
-        if (!(__VA_ARGS__)) { \
-            std::fprintf(stderr,  __FILE__ ":%d: %s: Sharemind test assertion `" #__VA_ARGS__ "' failed!\n", __LINE__, __PRETTY_FUNCTION__); \
+        try { \
+            if (!(__VA_ARGS__)) { \
+                std::fprintf(stderr,  __FILE__ ":%d: %s: Sharemind test assertion `" #__VA_ARGS__ "' failed!\n", __LINE__, __PRETTY_FUNCTION__); \
+                std::fflush(stderr); \
+                std::abort(); \
+            } \
+        } catch(...) { \
+            std::fprintf(stderr,  __FILE__ ":%d: %s: Sharemind test assertion `" #__VA_ARGS__ "' failed due to unexpected exception!\n", \
+                         __LINE__, __PRETTY_FUNCTION__); \
             std::fflush(stderr); \
+            SHAREMIND_TEST_PRINT_CURRENT_EXCEPTION; \
             std::abort(); \
         } \
     } while(false)
