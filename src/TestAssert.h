@@ -71,7 +71,8 @@
     do { \
         try { \
             { __VA_ARGS__ ; } \
-            std::fprintf(stderr, "Sharemind test expression throws assertion failed for `" #__VA_ARGS__ "'!\n"); \
+            std::fprintf(stderr, __FILE__ ":%d: %s: Sharemind test expression throws assertion failed for `" #__VA_ARGS__ "'!\n", \
+                         __LINE__, __PRETTY_FUNCTION__); \
             std::fflush(stderr); \
             std::abort(); \
         } catch (...) { } \
