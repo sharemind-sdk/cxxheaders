@@ -49,8 +49,8 @@ void testWithActors(Worker worker) {
                 auto s = a_.dataAvailable();
                 SHAREMIND_TESTASSERT(s == b_.dataAvailable());
                 for (; s; --s) {
-                    B::ValueType v1;
-                    B::ValueType v2;
+                    B::ValueType v1{};
+                    B::ValueType v2{};
                     a_.read(&v1, 1u);
                     b_.read(&v2, 1u);
                     SHAREMIND_TESTASSERT(v1 == v2);
