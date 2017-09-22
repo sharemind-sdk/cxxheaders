@@ -34,10 +34,19 @@
 #define SHAREMIND_DECLARE_EXCEPTION_NOINLINE(base,name) \
     class name: public base { \
     public: /* Methods: */ \
-        ~name() noexcept; \
+        name() noexcept(std::is_nothrow_default_constructible<base>::value); \
+        name(name const &) \
+                noexcept(std::is_nothrow_copy_constructible<base>::value); \
+        ~name() noexcept override; \
     }
 #define SHAREMIND_DEFINE_EXCEPTION_NOINLINE(base,ns,name) \
-    ns name::~name() noexcept {}
+    ns name::name() \
+            noexcept(std::is_nothrow_default_constructible<base>::value) \
+            = default; \
+    ns name::name(name const &) \
+            noexcept(std::is_nothrow_copy_constructible<base>::value) \
+            = default; \
+    ns name::~name() noexcept = default
 
 #define SHAREMIND_DEFINE_EXCEPTION_UNUSED(base,name) \
     class name: public base { \
@@ -62,7 +71,9 @@
     class name: public base { \
     public: /* Methods: */ \
         name() noexcept(std::is_nothrow_default_constructible<base>::value); \
-        ~name() noexcept; \
+        name(name const &) \
+                noexcept(std::is_nothrow_copy_constructible<base>::value); \
+        ~name() noexcept override; \
         template <typename ... Args> \
         name(Args && ... args) \
                 noexcept(std::is_nothrow_constructible<base, Args...>::value) \
@@ -72,8 +83,11 @@
 #define SHAREMIND_DEFINE_EXCEPTION_CONST_MSG_NOINLINE(base,ns,name,msg) \
     ns name::name() \
             noexcept(std::is_nothrow_default_constructible<base>::value) \
-    {} \
-    ns name::~name() noexcept {} \
+            = default; \
+    ns name::name(name const &) \
+            noexcept(std::is_nothrow_copy_constructible<base>::value) \
+            = default; \
+    ns name::~name() noexcept = default; \
     const char * ns name::what() const noexcept { return (msg); }
 
 #define SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING(base,name) \
