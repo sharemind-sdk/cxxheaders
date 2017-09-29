@@ -22,11 +22,13 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <errno.h>
 #include <fstream>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include "Exception.h"
 #include "Hash.h"
 
 
@@ -42,6 +44,11 @@ public: /* Types: */
 
     using size_type = Container::size_type;
     using value_type = Container::value_type;
+
+    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
+
+    SHAREMIND_DEFINE_EXCEPTION_CONCAT(Exception,
+                                      LoadException);
 
 public: /* Methods: */
 
@@ -113,23 +120,37 @@ public: /* Methods: */
 
 private: /* Methods: */
 
-    /// \warning See https://gcc.gnu.org/PR66145
     inline static Container loadFileToContainer(std::string const & filename) {
         std::ifstream inFile;
-        inFile.exceptions(std::ios_base::badbit | std::ios_base::failbit);
-        inFile.open(filename.c_str(),
-                    std::ios_base::in | std::ios_base::binary);
-        inFile.seekg(0, std::ios::end);
 
-        std::streamoff const fileSize = inFile.tellg();
-        assert(fileSize >= 0);
-        Container contents;
-        if (fileSize > 0) {
-            inFile.seekg(0, std::ios::beg);
-            contents.resize(static_cast<size_type>(fileSize));
-            inFile.read(static_cast<char *>(&contents[0]), fileSize);
+        auto check = [&inFile] {
+            if (!inFile)
+                throw ErrnoException(errno);
+        };
+
+        try {
+            inFile.open(filename.c_str(),
+                        std::ios_base::in
+                        | std::ios_base::binary
+                        | std::ios_base::ate);
+
+            std::streamoff const fileSize = inFile.tellg();
+
+            check();
+
+            assert(fileSize >= 0);
+            Container contents;
+            if (fileSize > 0) {
+                inFile.seekg(0, std::ios::beg);
+                contents.resize(static_cast<size_type>(fileSize));
+                inFile.read(static_cast<char *>(&contents[0]), fileSize);
+                check();
+            }
+            return contents;
+        } catch (...) {
+            std::throw_with_nested(LoadException("Failed to load file!",
+                        "Failed to load file \"", filename.c_str(), "\"!"));
         }
-        return contents;
     }
 
 private: /* Fields: */
