@@ -138,8 +138,9 @@ private: /* Methods: */
             }
             return contents;
         } catch (...) {
-            std::throw_with_nested(LoadException("Failed to load file!",
-                        "Failed to load file \"", filename.c_str(), "\"!"));
+            std::throw_with_nested(
+                    LoadException("Failed to load file!",
+                                  "Failed to load file \"", filename, "\"!"));
         }
     }
 
