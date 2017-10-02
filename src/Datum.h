@@ -22,7 +22,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <errno.h>
 #include <fstream>
 #include <string>
 #include <type_traits>
@@ -122,12 +121,7 @@ private: /* Methods: */
 
     inline static Container loadFileToContainer(std::string const & filename) {
         std::ifstream inFile;
-
-        auto check = [&inFile] {
-            if (!inFile)
-                throw ErrnoException(errno);
-        };
-
+        inFile.exceptions(std::ios_base::badbit | std::ios_base::failbit);
         try {
             inFile.open(filename.c_str(),
                         std::ios_base::in
@@ -135,16 +129,12 @@ private: /* Methods: */
                         | std::ios_base::ate);
 
             std::streamoff const fileSize = inFile.tellg();
-
-            check();
-
             assert(fileSize >= 0);
             Container contents;
             if (fileSize > 0) {
                 inFile.seekg(0, std::ios::beg);
                 contents.resize(static_cast<size_type>(fileSize));
                 inFile.read(static_cast<char *>(&contents[0]), fileSize);
-                check();
             }
             return contents;
         } catch (...) {
