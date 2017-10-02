@@ -27,6 +27,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include "Concat.h"
 #include "Exception.h"
 #include "Hash.h"
 
@@ -45,9 +46,7 @@ public: /* Types: */
     using value_type = Container::value_type;
 
     SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
-
-    SHAREMIND_DEFINE_EXCEPTION_CONCAT(Exception,
-                                      LoadException);
+    SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING(Exception, LoadException);
 
 public: /* Methods: */
 
@@ -120,9 +119,11 @@ public: /* Methods: */
 private: /* Methods: */
 
     inline static Container loadFileToContainer(std::string const & filename) {
+        LoadException loadException(
+                    concat("Failed to load file \"", filename, "\"!"));
+        try {
         std::ifstream inFile;
         inFile.exceptions(std::ios_base::badbit | std::ios_base::failbit);
-        try {
             inFile.open(filename.c_str(),
                         std::ios_base::in
                         | std::ios_base::binary
@@ -138,9 +139,7 @@ private: /* Methods: */
             }
             return contents;
         } catch (...) {
-            std::throw_with_nested(
-                    LoadException("Failed to load file!",
-                                  "Failed to load file \"", filename, "\"!"));
+            std::throw_with_nested(std::move(loadException));
         }
     }
 
