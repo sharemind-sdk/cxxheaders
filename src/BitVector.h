@@ -24,6 +24,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <limits>
 #include <ostream>
 #include <stdexcept>
