@@ -150,7 +150,7 @@ private: /* Methods: */
                 contents.resize(static_cast<size_type>(fileSize));
             }
 
-            long pos = 0;
+            std::size_t pos = 0u;
 
             do {
                 auto read = std::fread(sharemind::ptrAdd(contents.data(), pos),
