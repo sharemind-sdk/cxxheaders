@@ -21,8 +21,10 @@
 #define SHAREMIND_DATUM
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
-#include <fstream>
+#include <cstdio>
+#include <errno.h>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -47,6 +49,9 @@ public: /* Types: */
 
     SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
     SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING(Exception, LoadException);
+    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                         FileSizeChanged,
+                                         "File size changed!");
 
 public: /* Methods: */
 
@@ -121,26 +126,56 @@ private: /* Methods: */
     inline static Container loadFileToContainer(std::string const & filename) {
         LoadException loadException(
                     concat("Failed to load file \"", filename, "\"!"));
-        try {
-        std::ifstream inFile;
-        inFile.exceptions(std::ios_base::badbit | std::ios_base::failbit);
-            inFile.open(filename.c_str(),
-                        std::ios_base::in
-                        | std::ios_base::binary
-                        | std::ios_base::ate);
+        Container contents;
+        long fileSize;
+        std::FILE * inFile = nullptr;
 
-            std::streamoff const fileSize = inFile.tellg();
+        try {
+            inFile = std::fopen(filename.c_str(), "rb");
+            if (!inFile)
+                throw ErrnoException(errno);
+
+            if (std::fseek(inFile, 0, SEEK_END))
+                throw ErrnoException(errno);
+
+            fileSize = std::ftell(inFile);
+            if (fileSize == -1L)
+                throw ErrnoException(errno);
+
+            if (std::fseek(inFile, 0, SEEK_SET))
+                throw ErrnoException(errno);
+
             assert(fileSize >= 0);
-            Container contents;
             if (fileSize > 0) {
-                inFile.seekg(0, std::ios::beg);
                 contents.resize(static_cast<size_type>(fileSize));
-                inFile.read(static_cast<char *>(&contents[0]), fileSize);
             }
-            return contents;
+
+            long pos = 0;
+
+            do {
+                auto read = std::fread(sharemind::ptrAdd(contents.data(), pos),
+                        sizeof(char),
+                        contents.size() - pos,
+                        inFile);
+
+                if (std::ferror(inFile))
+                    throw ErrnoException(errno);
+
+                pos += read;
+
+            } while (pos < fileSize && !std::feof(inFile));
+
+            if (pos != fileSize)
+                throw FileSizeChanged();
+
+            std::fclose(inFile);
         } catch (...) {
+            if (inFile)
+                std::fclose(inFile);
             std::throw_with_nested(std::move(loadException));
         }
+
+        return contents;
     }
 
 private: /* Fields: */
