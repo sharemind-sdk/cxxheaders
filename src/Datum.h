@@ -154,7 +154,7 @@ private: /* Methods: */
             std::size_t pos = 0u;
 
             do {
-                auto read = std::fread(sharemind::ptrAdd(contents.data(), pos),
+                auto read = std::fread(ptrAdd(contents.data(), pos),
                         sizeof(char),
                         contents.size() - pos,
                         inFile);
