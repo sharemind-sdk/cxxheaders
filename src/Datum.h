@@ -134,7 +134,7 @@ private: /* Methods: */
         LoadException loadException(
                     concat("Failed to load file \"", filename, "\"!"));
         Container contents;
-        int const inFd = ::open(filename.c_str(), O_RDONLY);
+        int const inFd = ::open(filename.c_str(), O_RDONLY | O_CLOEXEC);
         try {
             if (inFd < 0) {
                 assert(inFd == -1);
