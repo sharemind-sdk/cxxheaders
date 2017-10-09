@@ -197,7 +197,8 @@ private: /* Methods: */
 
             ::close(inFd);
         } catch (...) {
-            ::close(inFd);
+            if (inFd >= 0)
+                ::close(inFd);
             std::throw_with_nested(std::move(loadException));
         }
 
