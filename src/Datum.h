@@ -23,9 +23,12 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <cstdio>
 #include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <sharemind/DebugOnly.h>
 #include <string>
+#include <sys/stat.h>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -51,7 +54,10 @@ public: /* Types: */
     SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
     SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING(Exception, LoadException);
     SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         FileSizeChanged,
+                                         FileTypeNotSupportedException,
+                                         "File type not supported!");
+    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                         FileSizeChangedException,
                                          "File size changed!");
 
 public: /* Methods: */
@@ -128,51 +134,70 @@ private: /* Methods: */
         LoadException loadException(
                     concat("Failed to load file \"", filename, "\"!"));
         Container contents;
-        long fileSize;
-        std::FILE * inFile = nullptr;
-
+        int const inFd = ::open(filename.c_str(), O_RDONLY);
         try {
-            inFile = std::fopen(filename.c_str(), "rb");
-            if (!inFile)
+            if (inFd < 0) {
+                assert(inFd == -1);
                 throw ErrnoException(errno);
-
-            if (std::fseek(inFile, 0, SEEK_END))
-                throw ErrnoException(errno);
-
-            fileSize = std::ftell(inFile);
-            if (fileSize == -1L)
-                throw ErrnoException(errno);
-
-            if (std::fseek(inFile, 0, SEEK_SET))
-                throw ErrnoException(errno);
-
-            assert(fileSize >= 0);
-            if (fileSize > 0) {
-                contents.resize(static_cast<size_type>(fileSize));
             }
 
-            std::size_t pos = 0u;
+            std::size_t leftToRead =
+                    [](int const fd) -> std::size_t {
+                        struct ::stat statBuf;
+                        if (SHAREMIND_DEBUG_ONLY(auto const r =)
+                                ::fstat(fd, &statBuf))
+                        {
+                            assert(r == -1);
+                            throw ErrnoException(errno);
+                        }
 
-            do {
-                auto read = std::fread(ptrAdd(contents.data(), pos),
-                        sizeof(char),
-                        contents.size() - pos,
-                        inFile);
+                        /* The st_size field only makes sense for regular files
+                           and symbolic links. We support regular files only: */
+                        if ((statBuf.st_mode & S_IFMT) != S_IFREG)
+                            throw FileTypeNotSupportedException();
 
-                if (std::ferror(inFile))
-                    throw ErrnoException(errno);
+                        assert(statBuf.st_size >= 0);
+                        using S = decltype(statBuf.st_size);
+                        using U = std::make_unsigned<S>::type;
+                        static_assert(
+                                std::numeric_limits<U>::max()
+                                <= std::numeric_limits<std::size_t>::max(), "");
+                        return static_cast<U>(statBuf.st_size);
+                    }(inFd);
 
-                pos += read;
+            if (leftToRead > 0u) {
+                contents.resize(leftToRead);
 
-            } while (pos < fileSize && !std::feof(inFile));
+                auto * buf = contents.data();
 
-            if (pos != fileSize)
-                throw FileSizeChanged();
+                constexpr static ::ssize_t const max = SSIZE_MAX;
+                static_assert(max > 0, "");
 
-            std::fclose(inFile);
+                using U = std::make_unsigned<::ssize_t>::type;
+                constexpr static U const umax = static_cast<U>(max);
+
+                for (;;) {
+                    auto const toReadAtOnce(std::min(umax, leftToRead));
+                    auto const read = ::read(inFd, buf, toReadAtOnce);
+                    assert(static_cast<U>(read) <= toReadAtOnce);
+                    if (read == 0) {
+                        throw FileSizeChangedException();
+                    } else if (read < 0) {
+                        assert(read == -1);
+                        if (errno != EINTR)
+                            throw ErrnoException(errno);
+                    } else {
+                        leftToRead -= static_cast<U>(read);
+                        if (leftToRead <= 0u)
+                            break;
+                        buf = ptrAdd(buf, read);
+                    }
+                };
+            }
+
+            ::close(inFd);
         } catch (...) {
-            if (inFile)
-                std::fclose(inFile);
+            ::close(inFd);
             std::throw_with_nested(std::move(loadException));
         }
 
