@@ -32,6 +32,7 @@
 #include "Concat.h"
 #include "Exception.h"
 #include "Hash.h"
+#include "PotentiallyVoidTypeInfo.h"
 
 
 namespace sharemind {
