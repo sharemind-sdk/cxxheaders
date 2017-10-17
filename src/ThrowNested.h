@@ -29,14 +29,14 @@ namespace sharemind {
 
 template <typename Exception>
 SHAREMIND_GCC_NORETURN_PART1
-void throwNested(Exception && exception) SHAREMIND_GCC_NORETURN_PART2
+inline void throwNested(Exception && exception) SHAREMIND_GCC_NORETURN_PART2
 { throw std::forward<Exception>(exception); }
 
 template <typename Exception, typename Exception2, typename ... Exceptions>
 SHAREMIND_GCC_NORETURN_PART1
-void throwNested(Exception && exception,
-                 Exception2 && exception2,
-                 Exceptions && ... exceptions)
+inline void throwNested(Exception && exception,
+                        Exception2 && exception2,
+                        Exceptions && ... exceptions)
         SHAREMIND_GCC_NORETURN_PART2
 {
     try {
