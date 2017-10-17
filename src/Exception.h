@@ -91,37 +91,11 @@ public: /* Methods: */
     inline const char * what() const noexcept final override
     { return m_message; }
 
-    template <typename Exception_>
-    SHAREMIND_GCC_NORETURN_PART1
-    static void throwAsNestedOf(Exception_ && e,
-                                const int returnStatus = errno) noexcept(false)
-            SHAREMIND_GCC_NORETURN_PART2;
-
-    template <typename Exception_>
-    SHAREMIND_GCC_NORETURN_PART1
-    static void throwAsNestedOf(const int returnStatus = errno) noexcept(false)
-            SHAREMIND_GCC_NORETURN_PART2;
-
 private: /* Methods: */
 
     char m_message[BUFFER_SIZE];
 
 };
-
-template <typename Exception_>
-void ErrnoException::throwAsNestedOf(Exception_ && e,
-                                     const int c) noexcept(false)
-{
-    try { throw ErrnoException(c); }
-    catch (...) { std::throw_with_nested(std::forward<Exception_>(e)); }
-}
-
-template <typename Exception_>
-void ErrnoException::throwAsNestedOf(const int c) noexcept(false)
-{
-    try { throw ErrnoException(c); }
-    catch (...) { std::throw_with_nested(Exception_()); }
-}
 
 } /* namespace sharemind { */
 

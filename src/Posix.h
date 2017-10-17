@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <utility>
 #include "Exception.h"
+#include "ThrowNested.h"
 
 
 namespace sharemind {
@@ -27,7 +28,7 @@ inline auto syscallLoop(F f, P okPred, Args && ... args) noexcept(false)
         if (okPred(r))
             return r;
         if (errno != EAGAIN && errno != EINTR)
-            ErrnoException::throwAsNestedOf<E>();
+            throwNested(ErrnoException(errno), E());
     }
 }
 

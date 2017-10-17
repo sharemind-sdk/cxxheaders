@@ -19,6 +19,7 @@
 #include "Posix.h"
 #include "ScopeExit.h"
 #include "Spinwait.h"
+#include "ThrowNested.h"
 
 #if defined(__linux__)
 #include <sys/epoll.h>
@@ -186,7 +187,7 @@ private: /* Types: */
         {
             using sharemind::ErrnoException;
             if (fd == -1)
-                ErrnoException::throwAsNestedOf<EpollCreateException>();
+                throwNested(ErrnoException(errno), EpollCreateException());
         }
 
         inline ~Epoll() noexcept { ::close(fd); }
@@ -314,7 +315,7 @@ public: /* Methods: */
                 assert(numEvents == -1);
                 if (errno == EINTR || errno == EAGAIN)
                     continue;
-                ErrnoException::throwAsNestedOf<EpollWaitException>();
+                throwNested(ErrnoException(errno), EpollWaitException());
             }
             assert(numEvents <= static_cast<int>(DEFAULT_MAX_EVENTS));
 
@@ -439,7 +440,7 @@ private: /* Methods: */
                 continue;
             if (errno == ENOENT)
                 return false;
-            sharemind::ErrnoException::throwAsNestedOf<EpollCtlException>();
+            throwNested(ErrnoException(errno), EpollCtlException());
         }
         return true;
     }
@@ -455,7 +456,7 @@ private: /* Methods: */
             if (errno == EEXIST)
                 return false;
             if (errno != EAGAIN && errno != EINTR)
-                sharemind::ErrnoException::throwAsNestedOf<EpollCtlException>();
+                throwNested(ErrnoException(errno), EpollCtlException());
         }
         return true;
     }
@@ -475,7 +476,7 @@ private: /* Methods: */
             if (errno == EEXIST)
                 break;
             if (errno != EAGAIN && errno != EINTR)
-                sharemind::ErrnoException::throwAsNestedOf<EpollCtlException>();
+                throwNested(ErrnoException(errno), EpollCtlException());
         }
         syscallLoop<EpollCtlException>(
                     ::epoll_ctl,
