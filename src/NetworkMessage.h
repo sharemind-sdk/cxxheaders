@@ -31,7 +31,7 @@ namespace sharemind {
 
 struct NetworkMessagePayload {
     void const * data;
-    size_t size;
+    std::size_t size;
 };
 
 class NetworkMessage: public NetworkMessagePayload {
@@ -78,41 +78,41 @@ private: /* Types: */
 
 public: /* Types: */
 
-    using BlockSizeType = uint32_t;
-    static_assert(sizeof(BlockSizeType) <= sizeof(size_t),
+    using BlockSizeType = std::uint32_t;
+    static_assert(sizeof(BlockSizeType) <= sizeof(std::size_t),
                   "BlockSizeType too wide!");
-    using StringSizeType = uint16_t;
-    static_assert(sizeof(StringSizeType) <= sizeof(size_t),
+    using StringSizeType = std::uint16_t;
+    static_assert(sizeof(StringSizeType) <= sizeof(std::size_t),
                   "StringSizeType too wide!");
 
 public: /* Methods: */
 
     inline void const * getData() const noexcept { return data; }
-    inline size_t getSize() const noexcept { return size; }
-    inline size_t getOffset() const noexcept { return m_offset; }
+    inline std::size_t getSize() const noexcept { return size; }
+    inline std::size_t getOffset() const noexcept { return m_offset; }
 
     inline void const * getPtr() const noexcept
     { return static_cast<char const *>(data) + m_offset; }
 
-    inline size_t getRemainingSize() const noexcept { return size - m_offset; }
+    inline std::size_t getRemainingSize() const noexcept { return size - m_offset; }
 
-    inline bool seek(size_t pos) noexcept;
+    inline bool seek(std::size_t pos) noexcept;
 
 private: /* Methods: */
 
     inline SeekableNetworkMessage() noexcept;
     SeekableNetworkMessage(SeekableNetworkMessage const &) = delete;
-    inline SeekableNetworkMessage(void const * const data, size_t const size)
-            noexcept;
+    inline SeekableNetworkMessage(void const * const data,
+                                  std::size_t const size) noexcept;
 
     SeekableNetworkMessage & operator=(SeekableNetworkMessage const &) = delete;
 
     template <typename T>
-    static inline size_t maxItemsInSizeT() noexcept;
+    static inline std::size_t maxItemsInSizeT() noexcept;
 
 private: /* Fields: */
 
-    size_t m_offset;
+    std::size_t m_offset;
 
 }; /* class SeekableNetworkMessage { */
 
@@ -121,7 +121,7 @@ class IncomingNetworkMessage: public SeekableNetworkMessage {
 public: /* Methods: */
 
     inline IncomingNetworkMessage(void const * const data,
-                                  size_t const size) noexcept;
+                                  std::size_t const size) noexcept;
 
     inline bool readBlock(void * begin, void * end)
             noexcept __attribute__ ((warn_unused_result));
@@ -130,7 +130,7 @@ public: /* Methods: */
     inline bool readBlock(T * begin, T * end)
             noexcept __attribute__ ((warn_unused_result));
 
-    inline bool readBytes(void * buffer, size_t size) noexcept;
+    inline bool readBytes(void * buffer, std::size_t size) noexcept;
 
     inline bool readEmptyBlock() noexcept __attribute__ ((warn_unused_result));
 
@@ -162,7 +162,7 @@ public: /* Methods: */
 
     inline void write(bool val) noexcept(false);
     inline void write(char const * val) noexcept(false);
-    inline void write(char const * val, size_t const size) noexcept(false);
+    inline void write(char const * val, std::size_t const size) noexcept(false);
     inline void write(std::string const & val) noexcept(false);
     inline void write(NetworkMessage const & val) noexcept(false);
 
@@ -179,16 +179,16 @@ public: /* Methods: */
     template <typename T>
     inline void writeVector(std::vector<T> const & vec) noexcept(false);
 
-    inline void writeBytes(void const * data, size_t const bytes)
+    inline void writeBytes(void const * data, std::size_t const bytes)
             noexcept(false);
 
 private: /* Methods: */
 
-    inline size_t spaceLeft() const noexcept
-    { return std::numeric_limits<size_t>::max() - m_offset; }
+    inline std::size_t spaceLeft() const noexcept
+    { return std::numeric_limits<std::size_t>::max() - m_offset; }
 
-    inline void addBytes(size_t const bytes) noexcept(false);
-    inline void pokeBytes(void const * data, size_t const bytes) noexcept;
+    inline void addBytes(std::size_t const bytes) noexcept(false);
+    inline void pokeBytes(void const * data, std::size_t const bytes) noexcept;
 
 }; /* class OutgoingNetworkMessage { */
 
@@ -216,7 +216,7 @@ inline SeekableNetworkMessage::SeekableNetworkMessage() noexcept
 }
 
 inline SeekableNetworkMessage::SeekableNetworkMessage(void const * const data,
-                                                      size_t const size)
+                                                      std::size_t const size)
         noexcept
     : m_offset{0u}
 {
@@ -225,7 +225,7 @@ inline SeekableNetworkMessage::SeekableNetworkMessage(void const * const data,
     this->size = size;
 }
 
-inline bool SeekableNetworkMessage::seek(size_t pos) noexcept {
+inline bool SeekableNetworkMessage::seek(std::size_t pos) noexcept {
     if (pos >= size)
         return false;
 
@@ -234,9 +234,9 @@ inline bool SeekableNetworkMessage::seek(size_t pos) noexcept {
 }
 
 template <typename T>
-inline size_t SeekableNetworkMessage::maxItemsInSizeT() noexcept {
+inline std::size_t SeekableNetworkMessage::maxItemsInSizeT() noexcept {
     static_assert(sizeof(T) > 0u, "T must be a non-empty type!");
-    return std::numeric_limits<size_t>::max() / sizeof(T);
+    return std::numeric_limits<std::size_t>::max() / sizeof(T);
 }
 
 /*******************************************************************************
@@ -245,7 +245,7 @@ inline size_t SeekableNetworkMessage::maxItemsInSizeT() noexcept {
 
 inline IncomingNetworkMessage::IncomingNetworkMessage(
         void const * const data,
-        size_t const size) noexcept
+        std::size_t const size) noexcept
     : SeekableNetworkMessage{((void) assert(data || size == 0u), data), size}
 {}
 
@@ -254,7 +254,7 @@ inline bool IncomingNetworkMessage::readBlock(T * begin, T * end) noexcept {
     assert(this->data);
     assert(m_offset <= this->size);
 
-    size_t const rollbackOffset = m_offset;
+    std::size_t const rollbackOffset = m_offset;
 
     BlockSizeType size;
     if (!read(size))
@@ -279,7 +279,7 @@ inline bool IncomingNetworkMessage::readBlock(T * begin, T * end) noexcept {
 inline bool IncomingNetworkMessage::readBlock(void * begin, void * end) noexcept
 { return readBlock(static_cast<char *>(begin), static_cast<char *>(end)); }
 
-inline bool IncomingNetworkMessage::readBytes(void * buffer, size_t size)
+inline bool IncomingNetworkMessage::readBytes(void * buffer, std::size_t size)
         noexcept
 {
     assert(this->data);
@@ -298,7 +298,7 @@ inline bool IncomingNetworkMessage::readVector(std::vector<T> & vec) {
     assert(this->data);
     assert(m_offset <= this->size);
 
-    size_t const rollbackOffset = m_offset;
+    std::size_t const rollbackOffset = m_offset;
 
     BlockSizeType size;
     if (!read(size))
@@ -362,7 +362,7 @@ inline bool IncomingNetworkMessage::read(std::string & val) {
     assert(this->data);
     assert(m_offset <= this->size);
 
-    size_t const rollbackOffset = m_offset;
+    std::size_t const rollbackOffset = m_offset;
 
     StringSizeType length;
     if (!read(length))
@@ -393,9 +393,9 @@ inline bool IncomingNetworkMessage::read(bool & val) noexcept {
     assert(this->data);
     assert(m_offset <= this->size);
 
-    size_t const rollbackOffset = m_offset;
+    std::size_t const rollbackOffset = m_offset;
 
-    uint8_t temp;
+    std::uint8_t temp;
     if (!read(temp))
         return false;
 
@@ -418,20 +418,21 @@ inline bool IncomingNetworkMessage::read(bool & val) noexcept {
 *******************************************************************************/
 
 inline void OutgoingNetworkMessage::write(bool val) noexcept(false) {
-    uint8_t const value = static_cast<uint8_t>(val ? 1u : 0u);
+    std::uint8_t const value = static_cast<std::uint8_t>(val ? 1u : 0u);
     writeBytes(&value, sizeof(value));
 }
 
 inline void OutgoingNetworkMessage::write(char const * val) noexcept(false)
 { write(val, strlen(val)); }
 
-inline void OutgoingNetworkMessage::write(char const * val, size_t const size)
-        noexcept(false)
+inline void OutgoingNetworkMessage::write(char const * val,
+                                          std::size_t const size) noexcept(false)
 {
     if (size > 0u) {
         if (!SizeTypeInfo<StringSizeType>::fitsValue(size))
             throw StringLengthError{};
-        if (std::numeric_limits<size_t>::max() - size < sizeof(StringSizeType))
+        if (std::numeric_limits<std::size_t>::max() - size
+            < sizeof(StringSizeType))
             throw MessageLengthError{};
         addBytes(sizeof(StringSizeType) + size);
         StringSizeType const s =
@@ -469,17 +470,17 @@ inline void OutgoingNetworkMessage::writeBlock(T const * begin, T const * end)
         noexcept(false)
 {
     assert(begin <= end);
-    size_t const numItems = std::distance(begin, end);
+    std::size_t const numItems = std::distance(begin, end);
     if (numItems > 0u) {
         if (!SizeTypeInfo<BlockSizeType>::fitsValue(numItems))
             throw BlockLengthError{};
         if (numItems > maxItemsInSizeT<T>())
             throw MessageLengthError{};
-        size_t const totalDataSize = numItems * sizeof(T);
-        if (std::numeric_limits<size_t>::max() - sizeof(BlockSizeType)
+        std::size_t const totalDataSize = numItems * sizeof(T);
+        if (std::numeric_limits<std::size_t>::max() - sizeof(BlockSizeType)
             < totalDataSize)
             throw MessageLengthError{};
-        size_t const totalSize = totalDataSize + sizeof(BlockSizeType);
+        std::size_t const totalSize = totalDataSize + sizeof(BlockSizeType);
         if (totalSize > spaceLeft())
             throw MessageLengthError{};
 
@@ -508,7 +509,7 @@ inline void OutgoingNetworkMessage::writeVector(std::vector<T> const & vec)
 { writeBlock(vec.data(), vec.data() + vec.size()); }
 
 inline void OutgoingNetworkMessage::writeBytes(void const * data,
-                                               size_t const bytes)
+                                               std::size_t const bytes)
         noexcept(false)
 {
     if (bytes == 0u)
@@ -520,14 +521,14 @@ inline void OutgoingNetworkMessage::writeBytes(void const * data,
     pokeBytes(data, bytes);
 }
 
-inline void OutgoingNetworkMessage::addBytes(size_t const bytes)
+inline void OutgoingNetworkMessage::addBytes(std::size_t const bytes)
         noexcept(false)
 {
     assert(bytes > 0u);
-    assert(bytes <= std::numeric_limits<size_t>::max() - m_offset);
+    assert(bytes <= std::numeric_limits<std::size_t>::max() - m_offset);
     assert(this->size == m_offset); // All data previously poked
 
-    size_t const newSize = this->size + bytes;
+    std::size_t const newSize = this->size + bytes;
     void * const newData = realloc(const_cast<void *>(this->data), newSize);
     if (!newData)
         throw std::bad_alloc{};
@@ -537,7 +538,7 @@ inline void OutgoingNetworkMessage::addBytes(size_t const bytes)
 }
 
 inline void OutgoingNetworkMessage::pokeBytes(void const * data,
-                                              size_t const bytes) noexcept
+                                              std::size_t const bytes) noexcept
 {
     assert(data || bytes == 0u);
     assert(this->size - m_offset >= bytes);
