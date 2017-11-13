@@ -246,7 +246,7 @@ inline size_t SeekableNetworkMessage::maxItemsInSizeT() noexcept {
 inline IncomingNetworkMessage::IncomingNetworkMessage(
         void const * const data,
         size_t const size) noexcept
-    : SeekableNetworkMessage{(assert(data || size == 0u), data), size}
+    : SeekableNetworkMessage{((void) assert(data || size == 0u), data), size}
 {}
 
 template <typename T>
