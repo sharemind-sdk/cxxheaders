@@ -25,7 +25,7 @@
 #include <cstddef>
 #include <errno.h>
 #include <fcntl.h>
-#include <limits.h>
+#include <limits>
 #include <sharemind/DebugOnly.h>
 #include <string>
 #include <sys/stat.h>
@@ -170,7 +170,8 @@ private: /* Methods: */
 
                 auto * buf = contents.data();
 
-                constexpr static ::ssize_t const max = SSIZE_MAX;
+                constexpr static ::ssize_t const max =
+                        std::numeric_limits<::ssize_t>::max();
                 static_assert(max > 0, "");
 
                 using U = std::make_unsigned<::ssize_t>::type;
