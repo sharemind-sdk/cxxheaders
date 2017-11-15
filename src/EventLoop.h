@@ -343,7 +343,7 @@ public: /* Methods: */
                         assert(static_cast<std::size_t>(rd) <= DISCARD_SIZE);
                         if (rd <= 0) {
                             if (rd == 0 // HUP or EOF
-                                    || (assert(rd == -1),
+                                    || (static_cast<void>(assert(rd == -1)),
                                         (errno != EAGAIN) && (errno != EINTR)))
                                 return; // Error or stop signalled
                         } else if (static_cast<std::size_t>(rd) < DISCARD_SIZE)
