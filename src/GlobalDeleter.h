@@ -20,6 +20,8 @@
 #ifndef SHAREMIND_GLOBALDELETER_H
 #define SHAREMIND_GLOBALDELETER_H
 
+#include <new>
+
 
 namespace sharemind {
 
