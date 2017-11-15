@@ -26,7 +26,10 @@ namespace sharemind {
 struct GlobalDeleter {
     using type = GlobalDeleter;
     constexpr GlobalDeleter() noexcept = default;
-    GlobalDeleter(GlobalDeleter const &) noexcept {}
+    GlobalDeleter(GlobalDeleter &&) noexcept = default;
+    GlobalDeleter(GlobalDeleter const &) noexcept = default;
+    GlobalDeleter & operator=(GlobalDeleter &&) noexcept = default;
+    GlobalDeleter & operator=(GlobalDeleter const &) noexcept = default;
     void operator()(void * const ptr) const noexcept { ::operator delete(ptr); }
 };
 
