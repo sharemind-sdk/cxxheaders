@@ -78,9 +78,9 @@ SHAREMIND_ENDIAN_INT_FUN(bigEndianToHost, int64_t, be64toh)
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 SHAREMIND_ENDIAN_ID_FUNS_ALLTYPES(hostToLittleEndian)
-SHAREMIND_ENDIAN_ID_FUNS_ALLTYPES(hostToNetOrder)
+SHAREMIND_ENDIAN_ID_FUNS_ALLTYPES(hostToSharemindNetOrder)
 SHAREMIND_ENDIAN_ID_FUNS_ALLTYPES(littleEndianToHost)
-SHAREMIND_ENDIAN_ID_FUNS_ALLTYPES(netToHostOrder)
+SHAREMIND_ENDIAN_ID_FUNS_ALLTYPES(sharemindNetToHostOrder)
 #else
 inline uint8_t  hostToLittleEndian(uint8_t  const v) noexcept { return v; }
 inline uint16_t hostToLittleEndian(uint16_t const v) noexcept { return htole16(v); }
@@ -90,14 +90,14 @@ inline int8_t  hostToLittleEndian(int8_t  const v) noexcept { return v; }
 SHAREMIND_ENDIAN_INT_FUN(hostToLittleEndian, int16_t, htole16)
 SHAREMIND_ENDIAN_INT_FUN(hostToLittleEndian, int32_t, htole32)
 SHAREMIND_ENDIAN_INT_FUN(hostToLittleEndian, int64_t, htole64)
-inline uint8_t  hostToNetOrder(uint8_t  const v) noexcept { return v; }
-inline uint16_t hostToNetOrder(uint16_t const v) noexcept { return htole16(v); }
-inline uint32_t hostToNetOrder(uint32_t const v) noexcept { return htole32(v); }
-inline uint64_t hostToNetOrder(uint64_t const v) noexcept { return htole64(v); }
-inline int8_t  hostToNetOrder(int8_t  const v) noexcept { return v; }
-SHAREMIND_ENDIAN_INT_FUN(hostToNetOrder, int16_t, htole16)
-SHAREMIND_ENDIAN_INT_FUN(hostToNetOrder, int32_t, htole32)
-SHAREMIND_ENDIAN_INT_FUN(hostToNetOrder, int64_t, htole64)
+inline uint8_t  hostToSharemindNetOrder(uint8_t  const v) noexcept { return v; }
+inline uint16_t hostToSharemindNetOrder(uint16_t const v) noexcept { return htole16(v); }
+inline uint32_t hostToSharemindNetOrder(uint32_t const v) noexcept { return htole32(v); }
+inline uint64_t hostToSharemindNetOrder(uint64_t const v) noexcept { return htole64(v); }
+inline int8_t  hostToSharemindNetOrder(int8_t  const v) noexcept { return v; }
+SHAREMIND_ENDIAN_INT_FUN(hostToSharemindNetOrder, int16_t, htole16)
+SHAREMIND_ENDIAN_INT_FUN(hostToSharemindNetOrder, int32_t, htole32)
+SHAREMIND_ENDIAN_INT_FUN(hostToSharemindNetOrder, int64_t, htole64)
 
 inline uint8_t  littleEndianToHost(uint8_t  const v) noexcept { return v; }
 inline uint16_t littleEndianToHost(uint16_t const v) noexcept { return le16toh(v); }
@@ -107,14 +107,14 @@ inline int8_t  littleEndianToHost(int8_t  const v) noexcept { return v; }
 SHAREMIND_ENDIAN_INT_FUN(littleEndianToHost, int16_t, le16toh)
 SHAREMIND_ENDIAN_INT_FUN(littleEndianToHost, int32_t, le32toh)
 SHAREMIND_ENDIAN_INT_FUN(littleEndianToHost, int64_t, le64toh)
-inline uint8_t  netToHostOrder(uint8_t  const v) noexcept { return v; }
-inline uint16_t netToHostOrder(uint16_t const v) noexcept { return le16toh(v); }
-inline uint32_t netToHostOrder(uint32_t const v) noexcept { return le32toh(v); }
-inline uint64_t netToHostOrder(uint64_t const v) noexcept { return le64toh(v); }
-inline int8_t  netToHostOrder(int8_t  const v) noexcept { return v; }
-SHAREMIND_ENDIAN_INT_FUN(netToHostOrder, int16_t, le16toh)
-SHAREMIND_ENDIAN_INT_FUN(netToHostOrder, int32_t, le32toh)
-SHAREMIND_ENDIAN_INT_FUN(netToHostOrder, int64_t, le64toh)
+inline uint8_t  sharemindNetToHostOrder(uint8_t  const v) noexcept { return v; }
+inline uint16_t sharemindNetToHostOrder(uint16_t const v) noexcept { return le16toh(v); }
+inline uint32_t sharemindNetToHostOrder(uint32_t const v) noexcept { return le32toh(v); }
+inline uint64_t sharemindNetToHostOrder(uint64_t const v) noexcept { return le64toh(v); }
+inline int8_t  sharemindNetToHostOrder(int8_t  const v) noexcept { return v; }
+SHAREMIND_ENDIAN_INT_FUN(sharemindNetToHostOrder, int16_t, le16toh)
+SHAREMIND_ENDIAN_INT_FUN(sharemindNetToHostOrder, int32_t, le32toh)
+SHAREMIND_ENDIAN_INT_FUN(sharemindNetToHostOrder, int64_t, le64toh)
 #endif
 
 #undef SHAREMIND_ENDIAN_ID_FUNS_ALLTYPES
