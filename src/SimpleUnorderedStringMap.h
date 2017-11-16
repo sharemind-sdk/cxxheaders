@@ -187,6 +187,11 @@ public: /* Methods: */
 
     /* Modifiers: */
 
+    SimpleUnorderedStringMap & operator=(SimpleUnorderedStringMap const &)
+            = default;
+
+    SimpleUnorderedStringMap & operator=(SimpleUnorderedStringMap &&) = default;
+
     typename SimpleUnorderedStringMap::size_type erase(char const * const key) {
         auto it(find(key));
         return (it != this->end()) ? this->erase(std::move(it)) : 0u;
