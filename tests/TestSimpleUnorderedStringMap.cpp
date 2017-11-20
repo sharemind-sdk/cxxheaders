@@ -50,6 +50,8 @@ int main() {
     try {
         using V = decltype(myRand->get());
         UM<V> m;
+        static_assert(noexcept(m.hash_function()), "");
+        static_assert(noexcept(m.key_eq()), "");
         using VP = decltype(m)::value_type;
         std::vector<VP> valuePairs;
         {
