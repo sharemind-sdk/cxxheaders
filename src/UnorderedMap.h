@@ -416,9 +416,13 @@ public: /* Methods: */
 
     /* Observers: */
 
-    hasher hash_function() const { return m_hasher; }
+    hasher hash_function() const
+        noexcept(noexcept(std::is_nothrow_copy_constructible<hasher>::value))
+    { return m_hasher; }
 
-    key_equal key_eq() const { return m_pred; }
+    key_equal key_eq() const
+        noexcept(noexcept(std::is_nothrow_copy_constructible<key_equal>::value))
+    { return m_pred; }
 
 
     /* Lookup: */
