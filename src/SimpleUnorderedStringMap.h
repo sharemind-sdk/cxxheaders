@@ -23,8 +23,8 @@
 #include "UnorderedMap.h"
 #include <string>
 
+#include <boost/functional/hash.hpp>
 #include <cstring>
-#include <locale>
 #include <functional>
 #include <type_traits>
 
@@ -32,27 +32,13 @@
 namespace sharemind {
 namespace Detail {
 
-class StringAndCStringHasher {
+struct StringAndCStringHasher {
 
-private: /* Types: */
+    std::size_t operator()(std::string const & v) const noexcept
+    { return boost::hash_range(v.begin(), v.end()); }
 
-    struct MyCollate: std::collate<char> {};
-
-public: /* Methods: */
-
-    std::size_t operator()(std::string const & v) const noexcept {
-        auto const h(m_collate->hash(v.c_str(), v.c_str() + v.size()));
-        return std::hash<std::decay<decltype(h)>::type>()(h);
-    }
-
-    std::size_t operator()(char const * const str) const noexcept {
-        auto const h(m_collate->hash(str, str + std::strlen(str)));
-        return std::hash<std::decay<decltype(h)>::type>()(h);
-    }
-
-private: /* Fields: */
-
-    std::shared_ptr<MyCollate> m_collate{std::make_shared<MyCollate>()};
+    std::size_t operator()(char const * const v) const noexcept
+    { return boost::hash_range(v, v + std::strlen(v)); }
 
 };
 

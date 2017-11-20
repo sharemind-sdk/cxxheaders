@@ -45,6 +45,20 @@ using UM = sharemind::SimpleUnorderedStringMap<T>;
 
 } // anonymous namespace
 
+using H = UM<int>::hasher;
+static_assert(std::is_nothrow_default_constructible<H>::value, "");
+static_assert(std::is_nothrow_copy_constructible<H>::value, "");
+static_assert(std::is_nothrow_move_constructible<H>::value, "");
+static_assert(std::is_nothrow_copy_assignable<H>::value, "");
+static_assert(std::is_nothrow_move_assignable<H>::value, "");
+
+using P = UM<int>::key_equal;
+static_assert(std::is_nothrow_default_constructible<P>::value, "");
+static_assert(std::is_nothrow_copy_constructible<P>::value, "");
+static_assert(std::is_nothrow_move_constructible<P>::value, "");
+static_assert(std::is_nothrow_copy_assignable<P>::value, "");
+static_assert(std::is_nothrow_move_assignable<P>::value, "");
+
 int main() {
     myRand = new Rand;
     try {
