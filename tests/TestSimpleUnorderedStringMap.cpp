@@ -19,6 +19,7 @@
 
 #include "../src/SimpleUnorderedStringMap.h"
 
+#include <boost/range/iterator_range.hpp>
 #include <cstddef>
 #include <random>
 #include <string>
@@ -95,6 +96,17 @@ int main() {
             SHAREMIND_TESTASSERT(r.first->second == vp.second);
         }
 
+        std::string const noSuchValue(
+                    "NOT READY READING VALUE! ABORT, RETRY, FAIL?");
+
+        static auto const rangeOf =
+                [](std::string & str) noexcept
+                { return boost::make_iterator_range(str.begin(), str.end()); };
+        static auto const constRangeOf =
+                [](std::string const & str) noexcept
+                { return boost::make_iterator_range(str.begin(), str.end()); };
+
+        // Find:
         for (auto const & vp: valuePairs) {
             {
                 auto const it(m.find(vp.first));
@@ -116,8 +128,131 @@ int main() {
                 SHAREMIND_TESTASSERT(it != cm.end());
                 SHAREMIND_TESTASSERT(it->first == vp.first);
                 SHAREMIND_TESTASSERT(it->second == vp.second);
+            }{
+                auto const it(m.find(constRangeOf(vp.first)));
+                SHAREMIND_TESTASSERT(it != m.end());
+                SHAREMIND_TESTASSERT(it->first == vp.first);
+                SHAREMIND_TESTASSERT(it->second == vp.second);
+            }{
+                auto const it(cm.find(constRangeOf(vp.first)));
+                SHAREMIND_TESTASSERT(it != cm.end());
+                SHAREMIND_TESTASSERT(it->first == vp.first);
+                SHAREMIND_TESTASSERT(it->second == vp.second);
+            }{
+                auto tmp(vp.first);
+                auto const it(m.find(rangeOf(tmp)));
+                SHAREMIND_TESTASSERT(it != m.end());
+                SHAREMIND_TESTASSERT(it->first == vp.first);
+                SHAREMIND_TESTASSERT(it->second == vp.second);
+            }{
+                auto tmp(vp.first);
+                auto const it(cm.find(rangeOf(tmp)));
+                SHAREMIND_TESTASSERT(it != cm.end());
+                SHAREMIND_TESTASSERT(it->first == vp.first);
+                SHAREMIND_TESTASSERT(it->second == vp.second);
             }
         }
+        SHAREMIND_TESTASSERT(m.find(noSuchValue) == m.end());
+        SHAREMIND_TESTASSERT(cm.find(noSuchValue) == cm.end());
+        SHAREMIND_TESTASSERT(m.find(noSuchValue.c_str()) == m.end());
+        SHAREMIND_TESTASSERT(cm.find(noSuchValue.c_str()) == cm.end());
+        SHAREMIND_TESTASSERT(m.find(constRangeOf(noSuchValue)) == m.end());
+        SHAREMIND_TESTASSERT(cm.find(constRangeOf(noSuchValue)) == cm.end());
+        {
+            auto tmp(noSuchValue);
+            SHAREMIND_TESTASSERT(m.find(rangeOf(tmp)) == m.end());
+            SHAREMIND_TESTASSERT(cm.find(rangeOf(tmp)) == cm.end());
+        }
+
+        // Count:
+        for (auto const & vp: valuePairs) {
+            SHAREMIND_TESTASSERT(m.count(vp.first) == 1u);
+            SHAREMIND_TESTASSERT(cm.count(vp.first) == 1u);
+            SHAREMIND_TESTASSERT(m.count(vp.first.c_str()) == 1u);
+            SHAREMIND_TESTASSERT(cm.count(vp.first.c_str()) == 1u);
+            SHAREMIND_TESTASSERT(m.count(constRangeOf(vp.first)) == 1u);
+            SHAREMIND_TESTASSERT(cm.count(constRangeOf(vp.first)) == 1u);
+            {
+                auto tmp(vp.first);
+                SHAREMIND_TESTASSERT(m.count(rangeOf(tmp)) == 1u);
+            }{
+                auto tmp(vp.first);
+                SHAREMIND_TESTASSERT(cm.count(rangeOf(tmp)) == 1u);
+            }
+        }
+        SHAREMIND_TESTASSERT(m.count(noSuchValue) == 0u);
+        SHAREMIND_TESTASSERT(cm.count(noSuchValue) == 0u);
+        SHAREMIND_TESTASSERT(m.count(noSuchValue.c_str()) == 0u);
+        SHAREMIND_TESTASSERT(cm.count(noSuchValue.c_str()) == 0u);
+        SHAREMIND_TESTASSERT(m.count(constRangeOf(noSuchValue)) == 0u);
+        SHAREMIND_TESTASSERT(cm.count(constRangeOf(noSuchValue)) == 0u);
+        {
+            auto tmp(noSuchValue);
+            SHAREMIND_TESTASSERT(m.count(rangeOf(tmp)) == 0u);
+            SHAREMIND_TESTASSERT(cm.count(rangeOf(tmp)) == 0u);
+        }
+
+        // Equal range:
+        for (auto const & vp: valuePairs) {
+            auto const testConst =
+                    [&vp](std::pair<UM<V>::const_iterator,
+                                    UM<V>::const_iterator> const & p)
+                    {
+                        SHAREMIND_TESTASSERT(p.first != p.second);
+                        SHAREMIND_TESTASSERT(std::next(p.first) == p.second);
+                        SHAREMIND_TESTASSERT(vp == *p.first);
+                    };
+            auto const test =
+                    [&vp](std::pair<UM<V>::iterator, UM<V>::iterator> const & p)
+                    {
+                        SHAREMIND_TESTASSERT(p.first != p.second);
+                        SHAREMIND_TESTASSERT(std::next(p.first) == p.second);
+                        SHAREMIND_TESTASSERT(vp == *p.first);
+                    };
+            test(m.equal_range(vp.first));
+            testConst(cm.equal_range(vp.first));
+            test(m.equal_range(vp.first.c_str()));
+            testConst(cm.equal_range(vp.first.c_str()));
+            test(m.equal_range(constRangeOf(vp.first)));
+            testConst(cm.equal_range(constRangeOf(vp.first)));
+            {
+                auto tmp(vp.first);
+                test(m.equal_range(rangeOf(tmp)));
+            }{
+                auto tmp(vp.first);
+                testConst(cm.equal_range(rangeOf(tmp)));
+            }
+        }{
+            auto const testConst =
+                    [&cm](std::pair<UM<V>::const_iterator,
+                                    UM<V>::const_iterator> const & p)
+                    {
+                        SHAREMIND_TESTASSERT(p.first == cm.end());
+                        SHAREMIND_TESTASSERT(p.second == cm.end());
+                    };
+            auto const test =
+                    [&m](std::pair<UM<V>::iterator, UM<V>::iterator> const & p)
+                    {
+                        SHAREMIND_TESTASSERT(p.first == m.end());
+                        SHAREMIND_TESTASSERT(p.second == m.end());
+                    };
+            test(m.equal_range(noSuchValue));
+            testConst(cm.equal_range(noSuchValue));
+            test(m.equal_range(noSuchValue.c_str()));
+            testConst(cm.equal_range(noSuchValue.c_str()));
+            test(m.equal_range(constRangeOf(noSuchValue)));
+            testConst(cm.equal_range(constRangeOf(noSuchValue)));
+            {
+                auto tmp(noSuchValue);
+                testConst(cm.equal_range(rangeOf(tmp)));
+            }{
+                auto tmp(noSuchValue);
+                testConst(cm.equal_range(rangeOf(tmp)));
+            }
+        }
+
+        /// \todo Add tests for bucket interface
+
     } catch (...) {
         delete myRand;
         throw;

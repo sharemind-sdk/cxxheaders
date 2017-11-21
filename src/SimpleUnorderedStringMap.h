@@ -24,15 +24,89 @@
 #include <string>
 
 #include <boost/functional/hash.hpp>
+#include <cassert>
 #include <cstring>
 #include <functional>
+#include <iterator>
 #include <type_traits>
+#include <utility>
+#if __cplusplus < 201402L
+#include "IntegralComparisons.h"
+#endif
 
 
 namespace sharemind {
 namespace Detail {
+namespace SimpleUnorderedStringMap {
 
-struct StringAndCStringHasher {
+template <typename T>
+using DecaysToString =
+        std::integral_constant<
+            bool,
+            std::is_same<typename std::decay<T>::type, std::string>::value
+        >;
+
+template <typename T>
+using IsIteratorOverSomeCharIterator =
+        std::integral_constant<
+            bool,
+            std::is_same<
+                typename std::decay<
+                    typename std::iterator_traits<T>::value_type
+                >::type,
+                char
+            >::value
+        >;
+
+template <typename T>
+using BeginIterator = decltype(std::begin(std::declval<T>()));
+template <typename T>
+using EndIterator = decltype(std::begin(std::declval<T>()));
+
+template <typename T>
+using IsCharRange =
+        std::integral_constant<
+            bool,
+            !DecaysToString<T>::value
+            && IsIteratorOverSomeCharIterator<BeginIterator<T> >::value
+            && IsIteratorOverSomeCharIterator<EndIterator<T> >::value
+        >;
+
+template <typename T>
+using IsRandomAccessIterator =
+        typename std::is_same<
+            typename std::iterator_traits<T>::iterator_category,
+            std::random_access_iterator_tag
+        >::type;
+
+template <typename T>
+using HasRandomAccessIters =
+        std::integral_constant<
+            bool,
+            IsRandomAccessIterator<BeginIterator<T> >::value
+            && IsRandomAccessIterator<EndIterator<T> >::value
+        >;
+
+template <typename T, typename R>
+using CharRangeEnableIfRandomAccess =
+        typename std::enable_if<
+            IsCharRange<T>::value && HasRandomAccessIters<T>::value,
+            R
+        >::type;
+
+template <typename T, typename R>
+using CharRangeEnableIfNonRandomAccess =
+        typename std::enable_if<
+            IsCharRange<T>::value && !HasRandomAccessIters<T>::value,
+            R
+        >::type;
+
+struct Hasher {
+
+    template <typename T>
+    auto operator()(T && v) const noexcept
+            -> typename std::enable_if<IsCharRange<T>::value, std::size_t>::type
+    { return boost::hash_range(std::begin(v), std::end(v)); }
 
     std::size_t operator()(std::string const & v) const noexcept
     { return boost::hash_range(v.begin(), v.end()); }
@@ -42,7 +116,53 @@ struct StringAndCStringHasher {
 
 };
 
-struct StringAndCStringEqualTo {
+struct KeyEqual {
+
+    template <typename T>
+    auto operator()(std::string const & a, T && b) const noexcept
+            -> typename std::enable_if<
+                    IsCharRange<T>::value
+                    #if __cplusplus < 201402L
+                    && SimpleUnorderedStringMap::HasRandomAccessIters<T>::value
+                    #endif
+                    , bool
+                >::type
+    {
+        #if __cplusplus >= 201402L
+        return std::equal(a.begin(), a.end(), b.begin(), b.end());
+        #else
+        auto bIt(std::begin(b));
+        auto const bEnd(std::end(b));
+        if (!integralEqual(a.size(), std::distance(bIt, bEnd)))
+            return false;
+        return std::equal(bIt, bEnd, a.begin());
+        #endif
+    }
+
+    #if __cplusplus < 201402L
+    template <typename T>
+    auto operator()(std::string const & a, T && b) const noexcept
+            -> typename std::enable_if<
+                    IsCharRange<T>::value &&
+                      !SimpleUnorderedStringMap::HasRandomAccessIters<T>::value,
+                    bool
+                >::type
+    {
+        auto aIt(a.begin());
+        auto const aEnd(a.end());
+        auto bIt(std::begin(b));
+        auto const bEnd(std::end(b));
+        for (; aIt != aEnd; ++aIt, ++bIt)
+            if ((bIt == bEnd) || (*aIt != *bIt))
+                return false;
+        return bIt == bEnd;
+    }
+    #endif
+
+    template <typename T>
+    auto operator()(T && a, std::string const & b) const noexcept
+            -> typename std::enable_if<IsCharRange<T>::value, bool>::type
+    { return this->operator()(b, std::forward<T>(a)); }
 
     bool operator()(std::string const & a, std::string const & b)
             const noexcept
@@ -56,20 +176,17 @@ struct StringAndCStringEqualTo {
             const noexcept
     { return std::strcmp(a.c_str(), b) == 0; }
 
-    bool operator()(char const * const a, char const * const b)
-            const noexcept
-    { return std::strcmp(a, b) == 0; }
-
 };
 
+} /* namespace SimpleUnorderedStringMap { */
 } /* namespace Detail { */
 
 #define SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE \
     UnorderedMap< \
         std::string, \
         T, \
-        Detail::StringAndCStringHasher, \
-        Detail::StringAndCStringEqualTo, \
+        Detail::SimpleUnorderedStringMap::Hasher, \
+        Detail::SimpleUnorderedStringMap::KeyEqual, \
         Allocator \
     >
 
@@ -79,8 +196,8 @@ template <
         typename UnorderedMap<
             std::string,
             T,
-            Detail::StringAndCStringHasher,
-            Detail::StringAndCStringEqualTo
+            Detail::SimpleUnorderedStringMap::Hasher,
+            Detail::SimpleUnorderedStringMap::KeyEqual
         >::allocator_type
 >
 class SimpleUnorderedStringMap
@@ -195,10 +312,26 @@ public: /* Methods: */
             char const * const key) const
     { return find(this->hash_function()(key), this->key_eq(), key); }
 
+    template <typename Range>
+    auto find(Range && key) const
+            -> typename std::enable_if<
+                Detail::SimpleUnorderedStringMap::IsCharRange<Range>::value,
+                typename SimpleUnorderedStringMap::const_iterator
+               >::type
+    { return find(this->hash_function()(key), this->key_eq(), key); }
+
     using SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE::find;
 
     typename SimpleUnorderedStringMap::size_type count(char const * const key)
             const
+    { return this->count(this->hash_function()(key), this->key_eq(), key); }
+
+    template <typename Range>
+    auto count(Range && key) const
+            -> typename std::enable_if<
+                Detail::SimpleUnorderedStringMap::IsCharRange<Range>::value,
+                typename SimpleUnorderedStringMap::size_type
+               >::type
     { return this->count(this->hash_function()(key), this->key_eq(), key); }
 
     using SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE::count;
@@ -221,6 +354,32 @@ public: /* Methods: */
                                  key);
     }
 
+    template <typename Range>
+    auto equal_range(Range && key)
+            -> typename std::enable_if<
+                Detail::SimpleUnorderedStringMap::IsCharRange<Range>::value,
+                std::pair<typename SimpleUnorderedStringMap::iterator,
+                          typename SimpleUnorderedStringMap::iterator>
+               >::type
+    {
+        return this->equal_range(this->hash_function()(key),
+                                 this->key_eq(),
+                                 key);
+    }
+
+    template <typename Range>
+    auto equal_range(Range && key) const
+            -> typename std::enable_if<
+                Detail::SimpleUnorderedStringMap::IsCharRange<Range>::value,
+                std::pair<typename SimpleUnorderedStringMap::const_iterator,
+                          typename SimpleUnorderedStringMap::const_iterator>
+               >::type
+    {
+        return this->equal_range(this->hash_function()(key),
+                                 this->key_eq(),
+                                 key);
+    }
+
     using SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE::equal_range;
 
 
@@ -228,6 +387,14 @@ public: /* Methods: */
 
     typename SimpleUnorderedStringMap::size_type bucket(char const * const key)
             const
+    { return this->bucket(this->hash_function()(key)); }
+
+    template <typename Range>
+    auto bucket(Range && key) const
+            -> typename std::enable_if<
+                Detail::SimpleUnorderedStringMap::IsCharRange<Range>::value,
+                typename SimpleUnorderedStringMap::size_type
+               >::type
     { return this->bucket(this->hash_function()(key)); }
 
     using SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE::bucket;
