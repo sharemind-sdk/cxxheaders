@@ -38,6 +38,9 @@ using sharemind::throwNested;
 */
 #if !defined(SHAREMIND_GCC_VERSION) || SHAREMIND_GCC_VERSION >= 50000
 using FirstException = int;
+struct A {};
+struct B {};
+struct C {};
 #else
 struct FirstException {
     FirstException(int v) noexcept : m_v(v) {}
@@ -45,10 +48,10 @@ struct FirstException {
     bool operator==(int v) const noexcept { return m_v == v; }
     int m_v;
 };
+struct A { virtual ~A() noexcept {} };
+struct B { virtual ~B() noexcept {} };
+struct C { virtual ~C() noexcept {} };
 #endif
-struct A {};
-struct B {};
-struct C {};
 
 int main() {
     try {
