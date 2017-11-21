@@ -52,37 +52,37 @@ struct C {};
 
 int main() {
     try {
-        throwNested(int(42));
-    } catch (int const e) {
+        throwNested(FirstException(42));
+    } catch (FirstException const & e) {
         SHAREMIND_TESTASSERT(e == 42);
     } catch (...) { SHAREMIND_TEST_UNREACHABLE; }
 
     try {
-        throwNested(int(42), A());
+        throwNested(FirstException(42), A());
     } catch (A const & e) {
         try {
             std::rethrow_if_nested(e);
-        } catch (int const e) {
+        } catch (FirstException const & e) {
             SHAREMIND_TESTASSERT(e == 42);
         } catch (...) { SHAREMIND_TEST_UNREACHABLE; }
     } catch (...) { SHAREMIND_TEST_UNREACHABLE; }
 
     try {
-        throwNested(int(42), A(), B());
+        throwNested(FirstException(42), A(), B());
     } catch (B const & e) {
         try {
             std::rethrow_if_nested(e);
         } catch (A const & e) {
             try {
                 std::rethrow_if_nested(e);
-            } catch (int const e) {
+            } catch (FirstException const & e) {
                 SHAREMIND_TESTASSERT(e == 42);
             } catch (...) { SHAREMIND_TEST_UNREACHABLE; }
         } catch (...) { SHAREMIND_TEST_UNREACHABLE; }
     } catch (...) { SHAREMIND_TEST_UNREACHABLE; }
 
     try {
-        throwNested(int(42), A(), B(), C());
+        throwNested(FirstException(42), A(), B(), C());
     } catch (C const & e) {
         try {
             std::rethrow_if_nested(e);
@@ -92,7 +92,7 @@ int main() {
             } catch (A const & e) {
                 try {
                     std::rethrow_if_nested(e);
-                } catch (int const e) {
+                } catch (FirstException const & e) {
                     SHAREMIND_TESTASSERT(e == 42);
                 } catch (...) { SHAREMIND_TEST_UNREACHABLE; }
             } catch (...) { SHAREMIND_TEST_UNREACHABLE; }
