@@ -21,19 +21,12 @@
 #define SHAREMIND_INTEGRALCOMPARISIONS_H
 
 #include <type_traits>
+#include "SignedToUnsigned.h"
 
 
 namespace sharemind {
 namespace Detail {
 namespace IntegralComparisons {
-
-template <typename S>
-constexpr inline auto signedToUnsigned(S s) noexcept ->
-        typename std::enable_if<
-            std::is_signed<S>::value,
-            typename std::make_unsigned<S>::type
-        >::type
-{ return static_cast<typename std::make_unsigned<S>::type>(s); }
 
 enum Types { Invalid, Same, SignedUnsigned, UnsignedSigned };
 
