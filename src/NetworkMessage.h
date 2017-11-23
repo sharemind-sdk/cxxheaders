@@ -25,6 +25,7 @@
 #include <vector>
 #include "Exception.h"
 #include "ExceptionMacros.h"
+#include "SignedToUnsigned.h"
 
 
 namespace sharemind {
@@ -470,7 +471,7 @@ inline void OutgoingNetworkMessage::writeBlock(T const * begin, T const * end)
         noexcept(false)
 {
     assert(begin <= end);
-    std::size_t const numItems = std::distance(begin, end);
+    std::size_t const numItems = signedToUnsigned(std::distance(begin, end));
     if (numItems > 0u) {
         if (!SizeTypeInfo<BlockSizeType>::fitsValue(numItems))
             throw BlockLengthError{};
