@@ -263,7 +263,7 @@ inline bool IncomingNetworkMessage::readBlock(T * begin, T * end) noexcept {
     size = sharemind::littleEndianToHost(size);
 
     if ((size > maxItemsInSizeT<T>()) // overflow check
-        || (size > std::distance(begin, end))
+        || (size > signedToUnsigned(std::distance(begin, end)))
         || (this->size - m_offset < sizeof(T) * size))
     {
         m_offset = rollbackOffset;
