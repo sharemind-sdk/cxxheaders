@@ -27,11 +27,11 @@ using namespace sharemind;
 
 // Test SHAREMIND_DEFINE_CONCEPT:
 
-SHAREMIND_DEFINE_CONCEPT(IsPrefixIncrementable) {
+SHAREMIND_DEFINE_CONCEPT(PrefixIncrementable) {
     template <typename T>
     auto check(T && t) -> decltype(++t);
 };
-SHAREMIND_DEFINE_CONCEPT(IsPostfixIncrementable) {
+SHAREMIND_DEFINE_CONCEPT(PostfixIncrementable) {
     template <typename T>
     auto check(T && t) -> decltype(t++);
 };
@@ -43,11 +43,11 @@ struct Prefix {};
 struct Postfix {};
 
 template <typename T,
-          SHAREMIND_REQUIRES_CONCEPT(IsPrefixIncrementable(T))>
+          SHAREMIND_REQUIRES_CONCEPT(PrefixIncrementable(T))>
 Prefix f(T && t);
 
 template <typename T,
-          SHAREMIND_REQUIRES_CONCEPT(IsPostfixIncrementable(T))>
+          SHAREMIND_REQUIRES_CONCEPT(PostfixIncrementable(T))>
 Postfix f(T && t);
 
 struct PostfixInc { void operator++(int) noexcept; };
@@ -63,16 +63,16 @@ static_assert(std::is_same<Postfix,
 /* Tests for ValidTypes, SHAREMIND_REQUIRE, SHAREMIND_REQUIRE_CONCEPT,
    SHAREMIND_REQUIRES, SHAREMIND_REQUIRES_CONCEPT: */
 
-SHAREMIND_DEFINE_CONCEPT(IsNoexceptPrefixIncrementable) {
-    template <typename T, SHAREMIND_REQUIRES_CONCEPT(IsPrefixIncrementable(T))>
+SHAREMIND_DEFINE_CONCEPT(NoexceptPrefixIncrementable) {
+    template <typename T, SHAREMIND_REQUIRES_CONCEPT(PrefixIncrementable(T))>
     auto check(T && t) -> ValidTypes<
             SHAREMIND_REQUIRE(noexcept(++t))
     >;
 };
-SHAREMIND_DEFINE_CONCEPT(IsNotNoexceptPrefixIncrementable) {
+SHAREMIND_DEFINE_CONCEPT(NotNoexceptPrefixIncrementable) {
     template <typename T, SHAREMIND_REQUIRES(!noexcept(++std::declval<T>()))>
     auto check(T && t) -> ValidTypes<
-            SHAREMIND_REQUIRE_CONCEPT(IsPrefixIncrementable(T))
+            SHAREMIND_REQUIRE_CONCEPT(PrefixIncrementable(T))
     >;
 };
 
@@ -80,11 +80,11 @@ struct Noexcept {};
 struct NotNoexcept {};
 
 template <typename T,
-          SHAREMIND_REQUIRES_CONCEPT(IsNoexceptPrefixIncrementable(T))>
+          SHAREMIND_REQUIRES_CONCEPT(NoexceptPrefixIncrementable(T))>
 Noexcept g(T && t);
 
 template <typename T,
-          SHAREMIND_REQUIRES_CONCEPT(IsNotNoexceptPrefixIncrementable(T))>
+          SHAREMIND_REQUIRES_CONCEPT(NotNoexceptPrefixIncrementable(T))>
 NotNoexcept g(T && t);
 
 static_assert(std::is_same<Noexcept,
