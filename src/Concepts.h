@@ -60,14 +60,14 @@ using Models = TemplateAll<Detail::ModelsConcept<Cs>::value...>;
 #define SHAREMIND_REQUIRE_DEFAULTVALUE \
     ::sharemind::Detail::RequiresConceptResult::Succeed
 
-#define SHAREMIND_REQUIRE_CONCEPT(...) \
+#define SHAREMIND_REQUIRE_CONCEPTS(...) \
     SHAREMIND_REQUIRE(Models<__VA_ARGS__>::value)
 
 #define SHAREMIND_REQUIRES(...) \
     SHAREMIND_REQUIRE(__VA_ARGS__) = SHAREMIND_REQUIRE_DEFAULTVALUE
 
-#define SHAREMIND_REQUIRES_CONCEPT(...) \
-    SHAREMIND_REQUIRE_CONCEPT(__VA_ARGS__) = SHAREMIND_REQUIRE_DEFAULTVALUE
+#define SHAREMIND_REQUIRES_CONCEPTS(...) \
+    SHAREMIND_REQUIRE_CONCEPTS(__VA_ARGS__) = SHAREMIND_REQUIRE_DEFAULTVALUE
 
 #define SHAREMIND_DEFINE_CONCEPT(name) struct name: ::sharemind::Concept
 

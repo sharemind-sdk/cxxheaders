@@ -39,32 +39,42 @@ SHAREMIND_DEFINE_CONCEPT(PostfixIncrementable) {
 
 // Test SHAREMIND_REQUIRES_CONCEPT:
 
-struct Prefix {};
-struct Postfix {};
+struct PrefixResult {};
+struct PostfixResult {};
 
 template <typename T,
-          SHAREMIND_REQUIRES_CONCEPT(PrefixIncrementable(T))>
-Prefix f(T && t);
+          SHAREMIND_REQUIRES_CONCEPTS(PrefixIncrementable(T))>
+PrefixResult f(T && t);
 
 template <typename T,
-          SHAREMIND_REQUIRES_CONCEPT(PostfixIncrementable(T))>
-Postfix f(T && t);
+          SHAREMIND_REQUIRES_CONCEPTS(PostfixIncrementable(T))>
+PostfixResult f(T && t);
 
-struct PostfixInc { void operator++(int) noexcept; };
-struct PrefixInc { void operator++() noexcept; };
+struct TestPostfixIncrementable { void operator++(int) noexcept; };
+struct TestPrefixIncrementable { void operator++() noexcept; };
+static_assert(
+        std::is_same<
+            PrefixResult,
+            decltype(f(std::declval<TestPrefixIncrementable>()))
+        >::value, "");
+static_assert(
+        std::is_same<
+            PostfixResult,
+            decltype(f(std::declval<TestPostfixIncrementable>()))
+        >::value, "");
 
-static_assert(std::is_same<Prefix,
-                           decltype(f(std::declval<PrefixInc>()))>::value, "");
 
-static_assert(std::is_same<Postfix,
-                           decltype(f(std::declval<PostfixInc>()))>::value, "");
+/* Tests for ValidTypes, SHAREMIND_REQUIRE, SHAREMIND_REQUIRE_CONCEPTS,
+   SHAREMIND_REQUIRES, SHAREMIND_REQUIRES_CONCEPTS: */
 
-
-/* Tests for ValidTypes, SHAREMIND_REQUIRE, SHAREMIND_REQUIRE_CONCEPT,
-   SHAREMIND_REQUIRES, SHAREMIND_REQUIRES_CONCEPT: */
+SHAREMIND_DEFINE_CONCEPT(Callable) {
+    template <typename T, typename ... Args>
+    auto check(T && t, Args && ... args)
+            -> decltype(t(std::forward<Args>(args)...));
+};
 
 SHAREMIND_DEFINE_CONCEPT(NoexceptPrefixIncrementable) {
-    template <typename T, SHAREMIND_REQUIRES_CONCEPT(PrefixIncrementable(T))>
+    template <typename T, SHAREMIND_REQUIRES_CONCEPTS(PrefixIncrementable(T))>
     auto check(T && t) -> ValidTypes<
             SHAREMIND_REQUIRE(noexcept(++t))
     >;
@@ -72,27 +82,45 @@ SHAREMIND_DEFINE_CONCEPT(NoexceptPrefixIncrementable) {
 SHAREMIND_DEFINE_CONCEPT(NotNoexceptPrefixIncrementable) {
     template <typename T, SHAREMIND_REQUIRES(!noexcept(++std::declval<T>()))>
     auto check(T && t) -> ValidTypes<
-            SHAREMIND_REQUIRE_CONCEPT(PrefixIncrementable(T))
+            SHAREMIND_REQUIRE_CONCEPTS(PrefixIncrementable(T))
     >;
 };
 
-struct Noexcept {};
-struct NotNoexcept {};
+struct NoexceptResult {};
+struct NotNoexceptResult {};
 
 template <typename T,
-          SHAREMIND_REQUIRES_CONCEPT(NoexceptPrefixIncrementable(T))>
-Noexcept g(T && t);
+          SHAREMIND_REQUIRES_CONCEPTS(NoexceptPrefixIncrementable(T),
+                                      Callable(T, float, T &, NoexceptResult))>
+NoexceptResult g(T && t);
 
 template <typename T,
-          SHAREMIND_REQUIRES_CONCEPT(NotNoexceptPrefixIncrementable(T))>
-NotNoexcept g(T && t);
+          SHAREMIND_REQUIRES_CONCEPTS(NotNoexceptPrefixIncrementable(T)),
+          SHAREMIND_REQUIRES_CONCEPTS(Callable(T, float, T &, NoexceptResult))>
+NotNoexceptResult g(T && t);
 
-static_assert(std::is_same<Noexcept,
-                           decltype(g(std::declval<PrefixInc>()))>::value, "");
+struct WeirdCallable {
+    template <typename ... Args>
+    void operator()(float, WeirdCallable &, Args && ...);
+};
+struct TestNoexceptPrefixIncrementableCallable
+        : TestPrefixIncrementable
+        , WeirdCallable
+{};
+static_assert(
+        std::is_same<
+            NoexceptResult,
+            decltype(g(std::declval<TestNoexceptPrefixIncrementableCallable>()))
+        >::value, "");
 
-struct PrefixInc2 { void operator++(); };
-static_assert(std::is_same<NotNoexcept,
-                           decltype(g(std::declval<PrefixInc2>()))>::value, "");
+struct NotNoexceptPrefixIncrementableCallable: WeirdCallable {
+    void operator++();
+};
+static_assert(
+        std::is_same<
+            NotNoexceptResult,
+            decltype(g(std::declval<NotNoexceptPrefixIncrementableCallable>()))
+        >::value, "");
 
 
 int main() {}
