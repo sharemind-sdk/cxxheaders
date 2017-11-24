@@ -71,6 +71,13 @@ using Models = TemplateAll<Detail::ModelsConcept<Cs>::value...>;
 
 #define SHAREMIND_DEFINE_CONCEPT(name) struct name: ::sharemind::Concept
 
+
+SHAREMIND_DEFINE_CONCEPT(Callable) {
+    template <typename T, typename ... Args>
+    auto check(T && t, Args && ... args)
+            -> decltype(t(std::forward<Args>(args)...));
+};
+
 } /* namespace Sharemind { */
 
 #endif /* SHAREMIND_CONCEPTS_H */

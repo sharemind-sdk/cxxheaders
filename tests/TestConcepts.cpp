@@ -64,14 +64,7 @@ static_assert(
         >::value, "");
 
 
-/* Tests for ValidTypes, SHAREMIND_REQUIRE, SHAREMIND_REQUIRE_CONCEPTS,
-   SHAREMIND_REQUIRES, SHAREMIND_REQUIRES_CONCEPTS: */
-
-SHAREMIND_DEFINE_CONCEPT(Callable) {
-    template <typename T, typename ... Args>
-    auto check(T && t, Args && ... args)
-            -> decltype(t(std::forward<Args>(args)...));
-};
+// Tests for Callable, ValidTypes, SHAREMIND_REQUIRE(S)?(_CONCEPTS)?:
 
 SHAREMIND_DEFINE_CONCEPT(NoexceptPrefixIncrementable) {
     template <typename T, SHAREMIND_REQUIRES_CONCEPTS(PrefixIncrementable(T))>
