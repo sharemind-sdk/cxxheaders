@@ -25,6 +25,12 @@
 
 using namespace sharemind;
 
+#define STATIC_TEST_TYPE(T, ...) \
+    static_assert(std::is_same<T, __VA_ARGS__>::value, "");
+#define STATIC_TEST_DECLTYPE(T, ...) STATIC_TEST_TYPE(T, decltype(__VA_ARGS__))
+#define RETURNS_TRUE(...) STATIC_TEST_DECLTYPE(std::true_type, __VA_ARGS__)
+#define RETURNS_FALSE(...) STATIC_TEST_DECLTYPE(std::false_type, __VA_ARGS__)
+
 // Test SHAREMIND_DEFINE_CONCEPT:
 
 SHAREMIND_DEFINE_CONCEPT(PrefixIncrementable) {
@@ -39,29 +45,18 @@ SHAREMIND_DEFINE_CONCEPT(PostfixIncrementable) {
 
 // Test SHAREMIND_REQUIRES_CONCEPT:
 
-struct PrefixResult {};
-struct PostfixResult {};
-
 template <typename T,
           SHAREMIND_REQUIRES_CONCEPTS(PrefixIncrementable(T))>
-PrefixResult f(T && t);
+std::true_type f(T && t);
 
 template <typename T,
           SHAREMIND_REQUIRES_CONCEPTS(PostfixIncrementable(T))>
-PostfixResult f(T && t);
+std::false_type f(T && t);
 
 struct TestPostfixIncrementable { void operator++(int) noexcept; };
 struct TestPrefixIncrementable { void operator++() noexcept; };
-static_assert(
-        std::is_same<
-            PrefixResult,
-            decltype(f(std::declval<TestPrefixIncrementable>()))
-        >::value, "");
-static_assert(
-        std::is_same<
-            PostfixResult,
-            decltype(f(std::declval<TestPostfixIncrementable>()))
-        >::value, "");
+RETURNS_TRUE(f(std::declval<TestPrefixIncrementable>()));
+RETURNS_FALSE(f(std::declval<TestPostfixIncrementable>()));
 
 
 // Tests for Callable, ValidTypes, SHAREMIND_REQUIRE(S)?(_CONCEPTS)?:
@@ -79,18 +74,15 @@ SHAREMIND_DEFINE_CONCEPT(NotNoexceptPrefixIncrementable) {
     >;
 };
 
-struct NoexceptResult {};
-struct NotNoexceptResult {};
-
 template <typename T,
           SHAREMIND_REQUIRES_CONCEPTS(NoexceptPrefixIncrementable(T),
-                                      Callable(T, float, T &, NoexceptResult))>
-NoexceptResult g(T && t);
+                                      Callable(T, float, T &, std::true_type))>
+std::true_type g(T && t);
 
 template <typename T,
           SHAREMIND_REQUIRES_CONCEPTS(NotNoexceptPrefixIncrementable(T)),
-          SHAREMIND_REQUIRES_CONCEPTS(Callable(T, float, T &, NoexceptResult))>
-NotNoexceptResult g(T && t);
+          SHAREMIND_REQUIRES_CONCEPTS(Callable(T, float, T &, long double))>
+std::false_type g(T && t);
 
 struct WeirdCallable {
     template <typename ... Args>
@@ -100,20 +92,12 @@ struct TestNoexceptPrefixIncrementableCallable
         : TestPrefixIncrementable
         , WeirdCallable
 {};
-static_assert(
-        std::is_same<
-            NoexceptResult,
-            decltype(g(std::declval<TestNoexceptPrefixIncrementableCallable>()))
-        >::value, "");
+RETURNS_TRUE(g(std::declval<TestNoexceptPrefixIncrementableCallable>()));
 
 struct NotNoexceptPrefixIncrementableCallable: WeirdCallable {
     void operator++();
 };
-static_assert(
-        std::is_same<
-            NotNoexceptResult,
-            decltype(g(std::declval<NotNoexceptPrefixIncrementableCallable>()))
-        >::value, "");
+RETURNS_FALSE(g(std::declval<NotNoexceptPrefixIncrementableCallable>()));
 
 
 int main() {}
