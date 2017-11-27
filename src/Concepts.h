@@ -190,6 +190,23 @@ SHAREMIND_DEFINE_CONCEPT(EqualityComparable) {
                 );
 };
 
+SHAREMIND_DEFINE_CONCEPT(LessThanComparable) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(
+                    std::is_convertible<decltype(t < t), bool>::value
+                    && std::is_convertible<
+                        decltype(t < std::declval<T const>()), bool>::value
+                    && std::is_convertible<
+                        decltype(std::declval<T const>() < t), bool>::value
+                    && std::is_convertible<
+                        decltype(std::declval<T const>()
+                                 < std::declval<T const>()),
+                        bool
+                    >::value
+                );
+};
+
 SHAREMIND_DEFINE_CONCEPT(Iterator) {
     template <typename T>
     auto check(T && t) -> ValidTypes<

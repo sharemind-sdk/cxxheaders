@@ -163,6 +163,30 @@ RETURNS_FALSE(testEqualityComparable(std::declval<TestEqualityComparable3>()));
 RETURNS_FALSE(testEqualityComparable(std::declval<TestEqualityComparable4>()));
 
 
+// Test LessThanComparable:
+
+struct TestLessThanComparable {};
+struct TestLessThanComparable2 {
+    bool operator<(TestLessThanComparable2 const &) const;
+};
+struct TestLessThanComparable3 {
+    bool operator<(TestLessThanComparable3 const &);
+};
+struct TestLessThanComparable4 {
+    bool operator<(TestLessThanComparable4 const &) = delete;
+    bool operator<(TestLessThanComparable4 const &) const;
+};
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(LessThanComparable(T))>
+std::true_type testLessThanComparable(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(LessThanComparable(T)))>
+std::false_type testLessThanComparable(T && t);
+RETURNS_TRUE(testLessThanComparable(42));
+RETURNS_FALSE(testLessThanComparable(std::declval<TestLessThanComparable>()));
+RETURNS_TRUE(testLessThanComparable(std::declval<TestLessThanComparable2>()));
+RETURNS_FALSE(testLessThanComparable(std::declval<TestLessThanComparable3>()));
+RETURNS_FALSE(testLessThanComparable(std::declval<TestLessThanComparable4>()));
+
+
 // Test Iterator:
 
 /// \todo Improve Iterator tests
