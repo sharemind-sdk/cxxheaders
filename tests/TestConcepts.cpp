@@ -100,4 +100,41 @@ struct NotNoexceptPrefixIncrementableCallable: WeirdCallable {
 RETURNS_FALSE(g(std::declval<NotNoexceptPrefixIncrementableCallable>()));
 
 
+// Test Same:
+
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Same(T, bool))>
+std::true_type testSame(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Same(T, int))>
+std::false_type testSame(T && t);
+RETURNS_TRUE(testSame(true));
+RETURNS_FALSE(testSame(0));
+
+
+// Test Not, Same:
+
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Same(T, int))>
+std::true_type testNot(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(Same(T, int)))>
+std::false_type testNot(T && t);
+RETURNS_TRUE(testNot(0));
+RETURNS_FALSE(testNot(true));
+
+
+// Test BaseOf, Not:
+
+struct TestBaseOfBaseBase {};
+struct TestBaseOfBase: TestBaseOfBaseBase {};
+struct TestBaseOf: TestBaseOfBase {};
+struct TestBaseOfDerived: TestBaseOf {};
+
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(BaseOf(TestBaseOfBase, T))>
+std::true_type testBaseOf(T && t);
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(Not(BaseOf(TestBaseOfBase, T)))>
+std::false_type testBaseOf(T && t);
+RETURNS_TRUE(testBaseOf(std::declval<TestBaseOf>()));
+RETURNS_TRUE(testBaseOf(std::declval<TestBaseOfDerived>()));
+RETURNS_TRUE(testBaseOf(std::declval<TestBaseOfBase>()));
+RETURNS_FALSE(testBaseOf(std::declval<TestBaseOfBaseBase>()));
+
 int main() {}

@@ -72,6 +72,21 @@ using Models = TemplateAll<Detail::ModelsConcept<Cs>::value...>;
 #define SHAREMIND_DEFINE_CONCEPT(name) struct name: ::sharemind::Concept
 
 
+SHAREMIND_DEFINE_CONCEPT(Same) {
+    template <typename A, typename B>
+    auto check(A &&, B &&) -> SHAREMIND_REQUIRE(std::is_same<A, B>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(Not) {
+    template <typename C, typename ... Ts>
+    auto check(C(Ts...)) -> SHAREMIND_REQUIRE(!Models<C(Ts...)>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(BaseOf) {
+    template <typename A, typename B>
+    auto check(A &&, B &&) -> SHAREMIND_REQUIRE(std::is_base_of<A, B>::value);
+};
+
 SHAREMIND_DEFINE_CONCEPT(Callable) {
     template <typename T, typename ... Args>
     auto check(T && t, Args && ... args)
