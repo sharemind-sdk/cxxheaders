@@ -156,52 +156,40 @@ RETURNS_FALSE(testSwappable(TestSwappable{42}));
 /// \todo Add tests for *Constructible, *Assignable and Destructible
 
 
-// Test EqualityComparable:
+// Test *Comparable:
 
-struct TestEqualityComparable {};
-struct TestEqualityComparable2 {
-    bool operator==(TestEqualityComparable2 const &) const;
-};
-struct TestEqualityComparable3 {
-    bool operator==(TestEqualityComparable3 const &);
-};
-struct TestEqualityComparable4 {
-    bool operator==(TestEqualityComparable4 const &) = delete;
-    bool operator==(TestEqualityComparable4 const &) const;
-};
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(EqualityComparable(T))>
-std::true_type testEqualityComparable(T && t);
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(EqualityComparable(T)))>
-std::false_type testEqualityComparable(T && t);
-RETURNS_TRUE(testEqualityComparable(42));
-RETURNS_FALSE(testEqualityComparable(std::declval<TestEqualityComparable>()));
-RETURNS_TRUE(testEqualityComparable(std::declval<TestEqualityComparable2>()));
-RETURNS_FALSE(testEqualityComparable(std::declval<TestEqualityComparable3>()));
-RETURNS_FALSE(testEqualityComparable(std::declval<TestEqualityComparable4>()));
-
-
-// Test LessThanComparable:
-
-struct TestLessThanComparable {};
-struct TestLessThanComparable2 {
-    bool operator<(TestLessThanComparable2 const &) const;
-};
-struct TestLessThanComparable3 {
-    bool operator<(TestLessThanComparable3 const &);
-};
-struct TestLessThanComparable4 {
-    bool operator<(TestLessThanComparable4 const &) = delete;
-    bool operator<(TestLessThanComparable4 const &) const;
-};
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(LessThanComparable(T))>
-std::true_type testLessThanComparable(T && t);
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(LessThanComparable(T)))>
-std::false_type testLessThanComparable(T && t);
-RETURNS_TRUE(testLessThanComparable(42));
-RETURNS_FALSE(testLessThanComparable(std::declval<TestLessThanComparable>()));
-RETURNS_TRUE(testLessThanComparable(std::declval<TestLessThanComparable2>()));
-RETURNS_FALSE(testLessThanComparable(std::declval<TestLessThanComparable3>()));
-RETURNS_FALSE(testLessThanComparable(std::declval<TestLessThanComparable4>()));
+#define TEST_COMPARISION_CONCEPT(Name,op) \
+    struct Test ## Name ## Comparable {}; \
+    struct Test ## Name ## Comparable2 { \
+        bool operator op(Test ## Name ## Comparable2 const &) const; \
+    }; \
+    struct Test ## Name ## Comparable3 { \
+        bool operator op(Test ## Name ## Comparable3 const &); \
+    }; \
+    struct Test ## Name ## Comparable4 { \
+        bool operator op(Test ## Name ## Comparable4 const &) = delete; \
+        bool operator op(Test ## Name ## Comparable4 const &) const; \
+    }; \
+    template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Name ## Comparable(T))> \
+    std::true_type test ## Name ## Comparable(T && t); \
+    template <typename T,  \
+              SHAREMIND_REQUIRES_CONCEPTS(Not(Name ## Comparable(T)))> \
+    std::false_type test ## Name ## Comparable(T && t); \
+    RETURNS_TRUE(test ## Name ## Comparable(42)); \
+    RETURNS_FALSE(test ## Name ## Comparable( \
+                        std::declval<Test ## Name ## Comparable>())); \
+    RETURNS_TRUE(test ## Name ## Comparable( \
+                        std::declval<Test ## Name ## Comparable2>())); \
+    RETURNS_FALSE(test ## Name ## Comparable( \
+                        std::declval<Test ## Name ## Comparable3>())); \
+    RETURNS_FALSE(test ## Name ## Comparable( \
+                        std::declval<Test ## Name ## Comparable4>()));
+TEST_COMPARISION_CONCEPT(Equality,==)
+TEST_COMPARISION_CONCEPT(Inequality,!=)
+TEST_COMPARISION_CONCEPT(LessThan,<)
+TEST_COMPARISION_CONCEPT(LessOrEqual,<=)
+TEST_COMPARISION_CONCEPT(GreaterThan,>)
+TEST_COMPARISION_CONCEPT(GreaterOrEqual,>=)
 
 
 // Test Iterator:

@@ -187,39 +187,32 @@ SHAREMIND_DEFINE_CONCEPT(Swappable) {
             >;
 };
 
-SHAREMIND_DEFINE_CONCEPT(EqualityComparable) {
-    template <typename T>
-    auto check(T && t)
-            -> SHAREMIND_REQUIRE(
-                    std::is_convertible<decltype(t == t), bool>::value
-                    && std::is_convertible<
-                        decltype(t == std::declval<T const>()), bool>::value
-                    && std::is_convertible<
-                        decltype(std::declval<T const>() == t), bool>::value
-                    && std::is_convertible<
-                        decltype(std::declval<T const>()
-                                 == std::declval<T const>()),
-                        bool
-                    >::value
-                );
-};
-
-SHAREMIND_DEFINE_CONCEPT(LessThanComparable) {
-    template <typename T>
-    auto check(T && t)
-            -> SHAREMIND_REQUIRE(
-                    std::is_convertible<decltype(t < t), bool>::value
-                    && std::is_convertible<
-                        decltype(t < std::declval<T const>()), bool>::value
-                    && std::is_convertible<
-                        decltype(std::declval<T const>() < t), bool>::value
-                    && std::is_convertible<
-                        decltype(std::declval<T const>()
-                                 < std::declval<T const>()),
-                        bool
-                    >::value
-                );
-};
+#define SHAREMIND_CONCEPTS_H_(Name,op) \
+    SHAREMIND_DEFINE_CONCEPT(Name ## Comparable) { \
+        template <typename T> \
+        auto check(T && t) \
+                -> SHAREMIND_REQUIRE( \
+                        std::is_convertible<decltype(t op t), bool>::value \
+                        && std::is_convertible< \
+                            decltype(t op std::declval<T const>()),  \
+                            bool>::value \
+                        && std::is_convertible< \
+                            decltype(std::declval<T const>() op t),  \
+                            bool>::value \
+                        && std::is_convertible< \
+                            decltype(std::declval<T const>() \
+                                     op std::declval<T const>()), \
+                            bool \
+                        >::value \
+                    ); \
+    };
+SHAREMIND_CONCEPTS_H_(Equality,==)
+SHAREMIND_CONCEPTS_H_(Inequality,!=)
+SHAREMIND_CONCEPTS_H_(LessThan,<)
+SHAREMIND_CONCEPTS_H_(LessOrEqual,<=)
+SHAREMIND_CONCEPTS_H_(GreaterThan,>)
+SHAREMIND_CONCEPTS_H_(GreaterOrEqual,>=)
+#undef SHAREMIND_CONCEPTS_H_
 
 SHAREMIND_DEFINE_CONCEPT(Iterator) {
     template <typename T>
