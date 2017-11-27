@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_CONCEPTS_H
 #define SHAREMIND_CONCEPTS_H
 
+#include <cstddef>
 #include <iterator>
 #include <type_traits>
 #include <utility>
@@ -275,6 +276,38 @@ SHAREMIND_DEFINE_CONCEPT(NullablePointer) {
                 SHAREMIND_REQUIRE(
                         std::is_convertible<decltype(nullptr != t),
                                             bool>::value)
+            >;
+};
+
+SHAREMIND_DEFINE_CONCEPT(Hash) {
+    template <typename T, typename Key>
+    auto check(T && t, Key && key) -> ValidTypes<
+                SHAREMIND_REQUIRE(std::is_object<T>::value),
+                SHAREMIND_REQUIRE_CONCEPTS(CopyConstructible(T)),
+                SHAREMIND_REQUIRE_CONCEPTS(Destructible(T)),
+                SHAREMIND_REQUIRE(
+                        std::is_same<
+                            decltype(std::declval<T &>()(std::declval<Key>())),
+                            std::size_t
+                        >::value),
+                SHAREMIND_REQUIRE(
+                        std::is_same<
+                            decltype(std::declval<T&>()(
+                                         std::declval<Key const>())),
+                            std::size_t
+                        >::value),
+                SHAREMIND_REQUIRE(
+                        std::is_same<
+                            decltype(std::declval<T const &>()(
+                                         std::declval<Key>())),
+                            std::size_t
+                        >::value),
+                SHAREMIND_REQUIRE(
+                        std::is_same<
+                            decltype(std::declval<T const &>()(
+                                         std::declval<Key const>())),
+                            std::size_t
+                        >::value)
             >;
 };
 
