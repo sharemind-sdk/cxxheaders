@@ -19,6 +19,7 @@
 
 #include "../src/Concepts.h"
 
+#include <string>
 #include <type_traits>
 #include <utility>
 #include <unordered_map>
