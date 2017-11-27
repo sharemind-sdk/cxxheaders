@@ -238,4 +238,7 @@ RETURNS_FALSE(testValueSwappable(std::declval<TestValueSwappableIt4>()));
 RETURNS_FALSE(testValueSwappable(std::declval<int>()));
 
 
+/// \todo Add tests for NullablePointer
+
+
 int main() {}

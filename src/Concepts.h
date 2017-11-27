@@ -249,6 +249,35 @@ SHAREMIND_DEFINE_CONCEPT(ValueSwappable) {
             >;
 };
 
+SHAREMIND_DEFINE_CONCEPT(NullablePointer) {
+    template <typename T>
+    auto check(T && t) -> ValidTypes<
+                SHAREMIND_REQUIRE_CONCEPTS(EqualityComparable(T)),
+                SHAREMIND_REQUIRE_CONCEPTS(DefaultConstructible(T)),
+                SHAREMIND_REQUIRE_CONCEPTS(CopyConstructible(T)),
+                SHAREMIND_REQUIRE_CONCEPTS(CopyAssignable(T)),
+                SHAREMIND_REQUIRE_CONCEPTS(Destructible(T)),
+                SHAREMIND_REQUIRE_CONCEPTS(Swappable(T &)),
+                SHAREMIND_REQUIRE(std::is_convertible<T, bool>::value),
+                SHAREMIND_REQUIRE(
+                        std::is_same<decltype(t = nullptr), T &>::value),
+                SHAREMIND_REQUIRE(
+                        std::is_convertible<decltype(t != t), bool>::value),
+                SHAREMIND_REQUIRE(
+                        std::is_convertible<decltype(t == nullptr),
+                                            bool>::value),
+                SHAREMIND_REQUIRE(
+                        std::is_convertible<decltype(nullptr == t),
+                                            bool>::value),
+                SHAREMIND_REQUIRE(
+                        std::is_convertible<decltype(t != nullptr),
+                                            bool>::value),
+                SHAREMIND_REQUIRE(
+                        std::is_convertible<decltype(nullptr != t),
+                                            bool>::value)
+            >;
+};
+
 } /* namespace Sharemind { */
 
 #endif /* SHAREMIND_CONCEPTS_H */
