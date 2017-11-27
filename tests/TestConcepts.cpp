@@ -139,6 +139,30 @@ RETURNS_TRUE(testBaseOf(std::declval<TestBaseOfBase>()));
 RETURNS_FALSE(testBaseOf(std::declval<TestBaseOfBaseBase>()));
 
 
+// Test EqualityComparable:
+
+struct TestEqualityComparable {};
+struct TestEqualityComparable2 {
+    bool operator==(TestEqualityComparable2 const &) const;
+};
+struct TestEqualityComparable3 {
+    bool operator==(TestEqualityComparable3 const &);
+};
+struct TestEqualityComparable4 {
+    bool operator==(TestEqualityComparable4 const &) = delete;
+    bool operator==(TestEqualityComparable4 const &) const;
+};
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(EqualityComparable(T))>
+std::true_type testEqualityComparable(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(EqualityComparable(T)))>
+std::false_type testEqualityComparable(T && t);
+RETURNS_TRUE(testEqualityComparable(42));
+RETURNS_FALSE(testEqualityComparable(std::declval<TestEqualityComparable>()));
+RETURNS_TRUE(testEqualityComparable(std::declval<TestEqualityComparable2>()));
+RETURNS_FALSE(testEqualityComparable(std::declval<TestEqualityComparable3>()));
+RETURNS_FALSE(testEqualityComparable(std::declval<TestEqualityComparable4>()));
+
+
 // Test Iterator:
 
 /// \todo Improve Iterator tests
