@@ -147,6 +147,31 @@ SHAREMIND_DEFINE_CONCEPT(Destructible) {
             -> SHAREMIND_REQUIRE(std::is_destructible<T>::value);
 };
 
+
+namespace Detail {
+namespace Concepts {
+
+using ::std::swap;
+
+template <typename T, typename U>
+auto adl_swap(T && t, U && u)
+        -> decltype(swap(std::forward<T>(t), std::forward<U>(u)));
+
+} /* namespace Concepts { */
+} /* namespace Detail { */
+
+SHAREMIND_DEFINE_CONCEPT(Swappable) {
+    template <typename T>
+    auto check(T && t)
+            -> decltype(Detail::Concepts::adl_swap(t, t));
+
+    template <typename T, typename U>
+    auto check(T && t, U && u) -> ValidTypes<
+                decltype(Detail::Concepts::adl_swap(t, u)),
+                decltype(Detail::Concepts::adl_swap(u, t))
+            >;
+};
+
 } /* namespace Sharemind { */
 
 #endif /* SHAREMIND_CONCEPTS_H */
