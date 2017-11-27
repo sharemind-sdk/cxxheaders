@@ -93,6 +93,60 @@ SHAREMIND_DEFINE_CONCEPT(Callable) {
             -> decltype(t(std::forward<Args>(args)...));
 };
 
+SHAREMIND_DEFINE_CONCEPT(MoveConstructible) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(std::is_move_constructible<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(NothrowMoveConstructible) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(std::is_nothrow_move_constructible<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(MoveAssignable) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(std::is_move_assignable<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(NothrowMoveAssignable) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(std::is_nothrow_move_assignable<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(CopyConstructible) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(std::is_copy_constructible<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(NothrowCopyConstructible) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(std::is_nothrow_copy_constructible<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(CopyAssignable) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(std::is_copy_assignable<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(NothrowCopyAssignable) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(std::is_nothrow_copy_assignable<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(Destructible) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(std::is_destructible<T>::value);
+};
+
 } /* namespace Sharemind { */
 
 #endif /* SHAREMIND_CONCEPTS_H */
