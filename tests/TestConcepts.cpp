@@ -23,6 +23,7 @@
 #include <type_traits>
 #include <utility>
 #include <unordered_map>
+#include <vector>
 
 
 using namespace sharemind;
@@ -212,5 +213,26 @@ using TestIterator =
         std::unordered_map<std::string, char>::const_local_iterator;
 RETURNS_TRUE(testIterator(std::declval<TestIterator>()));
 RETURNS_FALSE(testIterator(std::declval<int>()));
+
+
+// Test ValueSwappable:
+
+/// \todo Improve ValueSwappable tests
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(ValueSwappable(T))>
+std::true_type testValueSwappable(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(ValueSwappable(T)))>
+std::false_type testValueSwappable(T && t);
+struct TestValueSwappable { int value; };
+struct TestValueSwappable2 { int const value; };
+using TestValueSwappableIt = std::vector<TestValueSwappable>::iterator;
+using TestValueSwappableIt2 = std::vector<TestValueSwappable2>::iterator;
+using TestValueSwappableIt3 = std::vector<TestValueSwappable>::const_iterator;
+using TestValueSwappableIt4 = std::vector<TestValueSwappable2>::const_iterator;
+RETURNS_TRUE(testValueSwappable(std::declval<TestValueSwappableIt>()));
+RETURNS_FALSE(testValueSwappable(std::declval<TestValueSwappableIt2>()));
+RETURNS_FALSE(testValueSwappable(std::declval<TestValueSwappableIt3>()));
+RETURNS_FALSE(testValueSwappable(std::declval<TestValueSwappableIt4>()));
+RETURNS_FALSE(testValueSwappable(std::declval<int>()));
+
 
 int main() {}

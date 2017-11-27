@@ -228,6 +228,14 @@ SHAREMIND_DEFINE_CONCEPT(Iterator) {
             >;
 };
 
+SHAREMIND_DEFINE_CONCEPT(ValueSwappable) {
+    template <typename T>
+    auto check(T && t) -> ValidTypes<
+                SHAREMIND_REQUIRE_CONCEPTS(Iterator(T)),
+                SHAREMIND_REQUIRE_CONCEPTS(Swappable(decltype(*t)))
+            >;
+};
+
 } /* namespace Sharemind { */
 
 #endif /* SHAREMIND_CONCEPTS_H */
