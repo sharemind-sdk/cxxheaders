@@ -139,6 +139,18 @@ RETURNS_TRUE(testBaseOf(std::declval<TestBaseOfBase>()));
 RETURNS_FALSE(testBaseOf(std::declval<TestBaseOfBaseBase>()));
 
 
+// Test Swappable:
+
+/// \todo Improve Swappable tests:
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Swappable(T))>
+std::true_type testSwappable(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(Swappable(T)))>
+std::false_type testSwappable(T && t);
+RETURNS_TRUE(testSwappable(42));
+struct TestSwappable { int const value; };
+RETURNS_FALSE(testSwappable(TestSwappable{42}));
+
+
 // Test EqualityComparable:
 
 struct TestEqualityComparable {};
