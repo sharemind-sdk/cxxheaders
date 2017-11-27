@@ -21,6 +21,7 @@
 
 #include <type_traits>
 #include <utility>
+#include <unordered_map>
 
 
 using namespace sharemind;
@@ -136,5 +137,19 @@ RETURNS_TRUE(testBaseOf(std::declval<TestBaseOf>()));
 RETURNS_TRUE(testBaseOf(std::declval<TestBaseOfDerived>()));
 RETURNS_TRUE(testBaseOf(std::declval<TestBaseOfBase>()));
 RETURNS_FALSE(testBaseOf(std::declval<TestBaseOfBaseBase>()));
+
+
+// Test Iterator:
+
+/// \todo Improve Iterator tests
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Iterator(T))>
+std::true_type testIterator(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(Iterator(T)))>
+std::false_type testIterator(T && t);
+RETURNS_TRUE(testIterator(std::declval<char const *>()));
+using TestIterator =
+        std::unordered_map<std::string, char>::const_local_iterator;
+RETURNS_TRUE(testIterator(std::declval<TestIterator>()));
+RETURNS_FALSE(testIterator(std::declval<int>()));
 
 int main() {}

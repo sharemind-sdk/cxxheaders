@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_CONCEPTS_H
 #define SHAREMIND_CONCEPTS_H
 
+#include <iterator>
 #include <type_traits>
 #include <utility>
 #include "TemplateAll.h"
@@ -169,6 +170,27 @@ SHAREMIND_DEFINE_CONCEPT(Swappable) {
     auto check(T && t, U && u) -> ValidTypes<
                 decltype(Detail::Concepts::adl_swap(t, u)),
                 decltype(Detail::Concepts::adl_swap(u, t))
+            >;
+};
+
+SHAREMIND_DEFINE_CONCEPT(Iterator) {
+    template <typename T>
+    auto check(T && t) -> ValidTypes<
+                SHAREMIND_REQUIRE_CONCEPTS(CopyConstructible(T)),
+                SHAREMIND_REQUIRE_CONCEPTS(CopyAssignable(T)),
+                SHAREMIND_REQUIRE_CONCEPTS(Destructible(T)),
+                SHAREMIND_REQUIRE_CONCEPTS(Swappable(T &)),
+                typename std::iterator_traits<T>::value_type,
+                typename std::iterator_traits<T>::difference_type,
+                typename std::iterator_traits<T>::reference,
+                typename std::iterator_traits<T>::pointer,
+                typename std::iterator_traits<T>::iterator_category,
+                SHAREMIND_REQUIRE(
+                        std::is_same<
+                            decltype(*t),
+                            typename std::iterator_traits<T>::reference
+                        >::value),
+                SHAREMIND_REQUIRE(std::is_same<decltype(++t), T &>::value)
             >;
 };
 
