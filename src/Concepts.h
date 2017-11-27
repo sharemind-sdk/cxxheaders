@@ -94,6 +94,19 @@ SHAREMIND_DEFINE_CONCEPT(Callable) {
             -> decltype(t(std::forward<Args>(args)...));
 };
 
+SHAREMIND_DEFINE_CONCEPT(DefaultConstructible) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(std::is_default_constructible<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(NothrowDefaultConstructible) {
+    template <typename T>
+    auto check(T && t)
+            -> SHAREMIND_REQUIRE(
+                    std::is_nothrow_default_constructible<T>::value);
+};
+
 SHAREMIND_DEFINE_CONCEPT(MoveConstructible) {
     template <typename T>
     auto check(T && t)

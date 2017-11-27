@@ -153,6 +153,9 @@ struct TestSwappable { int const value; };
 RETURNS_FALSE(testSwappable(TestSwappable{42}));
 
 
+/// \todo Add tests for *Constructible, *Assignable and Destructible
+
+
 // Test EqualityComparable:
 
 struct TestEqualityComparable {};
