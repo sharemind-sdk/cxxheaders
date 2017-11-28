@@ -201,6 +201,16 @@ RETURNS_FALSE(testSwappable(TestSwappable{42}));
         bool operator op(Test ## Name ## Comparable4 const &) = delete; \
         bool operator op(Test ## Name ## Comparable4 const &) const; \
     }; \
+    struct Test ## Name ## ComparableB2 { \
+        bool operator op(Test ## Name ## Comparable const &) const; \
+    }; \
+    struct Test ## Name ## ComparableB3 { \
+        bool operator op(Test ## Name ## Comparable const &); \
+    }; \
+    struct Test ## Name ## ComparableB4 { \
+        bool operator op(Test ## Name ## Comparable const &) = delete; \
+        bool operator op(Test ## Name ## Comparable const &) const; \
+    }; \
     template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Name ## Comparable(T))> \
     std::true_type test ## Name ## Comparable(T && t); \
     template <typename T,  \
@@ -214,7 +224,43 @@ RETURNS_FALSE(testSwappable(TestSwappable{42}));
     RETURNS_FALSE(test ## Name ## Comparable( \
                         std::declval<Test ## Name ## Comparable3>())); \
     RETURNS_FALSE(test ## Name ## Comparable( \
-                        std::declval<Test ## Name ## Comparable4>()));
+                        std::declval<Test ## Name ## Comparable4>())); \
+    template <typename A, \
+              typename B, \
+              SHAREMIND_REQUIRES_CONCEPTS(Name ## Comparable(A, B))> \
+    std::true_type test ## Name ## Comparable2(A && a, B && b); \
+    template <typename A, \
+              typename B, \
+              SHAREMIND_REQUIRES_CONCEPTS(Not(Name ## Comparable(A, B)))> \
+    std::false_type test ## Name ## Comparable2(A && a, B && b); \
+    RETURNS_TRUE(test ## Name ## Comparable2(42, 123.0)); \
+    RETURNS_FALSE(test ## Name ## Comparable2( \
+                        42, \
+                        std::declval<Test ## Name ## Comparable>())); \
+    RETURNS_FALSE(test ## Name ## Comparable2( \
+                        std::declval<Test ## Name ## Comparable>(), \
+                        42)); \
+    RETURNS_FALSE(test ## Name ## Comparable2( \
+                        std::declval<Test ## Name ## Comparable>(), \
+                        std::declval<Test ## Name ## Comparable>())); \
+    RETURNS_FALSE(test ## Name ## Comparable2( \
+                        std::declval<Test ## Name ## Comparable>(), \
+                        std::declval<Test ## Name ## ComparableB2>())); \
+    RETURNS_FALSE(test ## Name ## Comparable2( \
+                        std::declval<Test ## Name ## Comparable>(), \
+                        std::declval<Test ## Name ## ComparableB3>())); \
+    RETURNS_FALSE(test ## Name ## Comparable2( \
+                        std::declval<Test ## Name ## Comparable>(), \
+                        std::declval<Test ## Name ## ComparableB4>())); \
+    RETURNS_TRUE(test ## Name ## Comparable2( \
+                        std::declval<Test ## Name ## ComparableB2>(), \
+                        std::declval<Test ## Name ## Comparable>())); \
+    RETURNS_FALSE(test ## Name ## Comparable2( \
+                        std::declval<Test ## Name ## ComparableB3>(), \
+                        std::declval<Test ## Name ## Comparable>())); \
+    RETURNS_FALSE(test ## Name ## Comparable2( \
+                        std::declval<Test ## Name ## ComparableB4>(), \
+                        std::declval<Test ## Name ## Comparable>()));
 TEST_COMPARISION_CONCEPT(Equality,==)
 TEST_COMPARISION_CONCEPT(Inequality,!=)
 TEST_COMPARISION_CONCEPT(LessThan,<)

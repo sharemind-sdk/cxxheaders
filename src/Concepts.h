@@ -218,14 +218,18 @@ SHAREMIND_DEFINE_CONCEPT(Swappable) {
 
 #define SHAREMIND_CONCEPTS_H_(Name,op) \
     SHAREMIND_DEFINE_CONCEPT(Name ## Comparable) { \
-        template <typename T> \
-        auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS( \
-            ConvertibleTo(decltype(t op t), bool), \
-            ConvertibleTo(decltype(t op std::declval<T const>()), bool), \
-            ConvertibleTo(decltype(std::declval<T const>() op t), bool), \
-            ConvertibleTo(decltype(std::declval<T const>() \
-                                   op std::declval<T const>()), bool) \
+        template <typename LHS, typename RHS> \
+        auto check(LHS && l, RHS && r) -> SHAREMIND_REQUIRE_CONCEPTS( \
+            ConvertibleTo(decltype(l op r), bool), \
+            ConvertibleTo(decltype(l op std::declval<RHS const>()), bool), \
+            ConvertibleTo(decltype(std::declval<LHS const>() op r), bool), \
+            ConvertibleTo(decltype(std::declval<LHS const>() \
+                                   op std::declval<RHS const>()), bool) \
         ); \
+        template <typename T> \
+        auto check(T && t) \
+                -> decltype(check<T, T>(std::forward<T>(t), \
+                                        std::forward<T>(t))); \
     };
 SHAREMIND_CONCEPTS_H_(Equality,==)
 SHAREMIND_CONCEPTS_H_(Inequality,!=)
