@@ -859,6 +859,121 @@ RETURNS_FALSE(testBidirectionalRangeTo(std::declval<std::vector<long> const &>()
 RETURNS_FALSE(testBidirectionalRangeTo(42));
 
 
+// Test RandomAccessRange:
+
+template <typename T>
+struct TestRandomAccessRangeIterator: TestRandomAccessIterator<T> {
+    using TestRandomAccessIterator<T>::TestRandomAccessIterator;
+    TestRandomAccessRangeIterator & operator++();
+    TestRandomAccessRangeIterator operator++(int);
+    TestRandomAccessRangeIterator & operator--();
+    TestRandomAccessRangeIterator operator--(int);
+    TestRandomAccessRangeIterator & operator+=(
+            typename TestRandomAccessIterator<T>::difference_type);
+    TestRandomAccessRangeIterator & operator-=(
+            typename TestRandomAccessIterator<T>::difference_type);
+};
+template <typename T>
+void swap(TestRandomAccessRangeIterator<T> &,
+          TestRandomAccessRangeIterator<T> &);
+template <typename T>
+bool operator==(TestRandomAccessRangeIterator<T> const &,
+                decltype(nullptr) const &);
+template <typename T>
+bool operator==(decltype(nullptr) const &,
+                TestRandomAccessRangeIterator<T> const &);
+template <typename T>
+bool operator!=(TestRandomAccessRangeIterator<T> const &,
+                decltype(nullptr) const &);
+template <typename T>
+bool operator!=(decltype(nullptr) const &,
+                TestRandomAccessRangeIterator<T> const &);
+template <typename T>
+TestRandomAccessRangeIterator<T> operator+(
+        TestRandomAccessRangeIterator<T> const &,
+        typename TestRandomAccessRangeIterator<T>::difference_type const &);
+template <typename T>
+TestRandomAccessRangeIterator<T> operator+(
+        typename TestRandomAccessRangeIterator<T>::difference_type const &,
+        TestRandomAccessRangeIterator<T> const &);
+template <typename T>
+TestRandomAccessRangeIterator<T> operator-(
+        TestRandomAccessRangeIterator<T> const &,
+        typename TestRandomAccessRangeIterator<T>::difference_type const &);
+template <typename T>
+typename TestRandomAccessRangeIterator<T>::difference_type operator-(
+        TestRandomAccessRangeIterator<T> const &,
+        TestRandomAccessRangeIterator<T> const &);
+template <typename T>
+struct TestRandomAccessRange
+        : TestRange<
+            T,
+            TestRandomAccessRangeIterator<T>,
+            TestRandomAccessRangeIterator<T const>
+        >
+{};
+template <typename T>
+struct TestRandomAccessRangeBounded
+        : TestRangeBounded<
+            T,
+            TestRandomAccessRangeIterator<T>,
+            TestRandomAccessRangeIterator<T const>
+        >
+{};
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(RandomAccessRange(T))>
+std::true_type testRandomAccessRange(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(RandomAccessRange(T)))>
+std::false_type testRandomAccessRange(T && t);
+RETURNS_TRUE(testRandomAccessRange(std::declval<TestRange<int> &>()));
+RETURNS_TRUE(testRandomAccessRange(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testRandomAccessRange(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testRandomAccessRange(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testRandomAccessRange(std::declval<TestRandomAccessRange<int> &>()));
+RETURNS_TRUE(testRandomAccessRange(std::declval<TestRandomAccessRange<int> const &>()));
+RETURNS_TRUE(testRandomAccessRange(std::declval<TestRandomAccessRangeBounded<int> &>()));
+RETURNS_TRUE(testRandomAccessRange(
+                 std::declval<TestRandomAccessRangeBounded<int> const &>()));
+RETURNS_TRUE(testRandomAccessRange(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testRandomAccessRange(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testRandomAccessRange(42));
+
+
+// Test RandomAccessRangeTo:
+
+/// \todo Improve RandomAccessRangeTo tests
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(RandomAccessRangeTo(T, int))>
+std::true_type testRandomAccessRangeTo(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(RandomAccessRangeTo(T, int)))>
+std::false_type testRandomAccessRangeTo(T && t);
+RETURNS_TRUE(testRandomAccessRangeTo(std::declval<TestRange<int> &>()));
+RETURNS_TRUE(testRandomAccessRangeTo(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testRandomAccessRangeTo(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testRandomAccessRangeTo(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testRandomAccessRangeTo(std::declval<TestRandomAccessRange<int> &>()));
+RETURNS_TRUE(testRandomAccessRangeTo(std::declval<TestRandomAccessRange<int> const &>()));
+RETURNS_TRUE(testRandomAccessRangeTo(
+                 std::declval<TestRandomAccessRangeBounded<int> &>()));
+RETURNS_TRUE(testRandomAccessRangeTo(
+                 std::declval<TestRandomAccessRangeBounded<int> const &>()));
+RETURNS_TRUE(testRandomAccessRangeTo(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testRandomAccessRangeTo(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testRandomAccessRangeTo(std::declval<TestRange<long> &>()));
+RETURNS_FALSE(testRandomAccessRangeTo(std::declval<TestRange<long> const &>()));
+RETURNS_FALSE(testRandomAccessRangeTo(std::declval<TestRangeBounded<long> &>()));
+RETURNS_FALSE(testRandomAccessRangeTo(
+                  std::declval<TestRangeBounded<long> const &>()));
+RETURNS_FALSE(testRandomAccessRangeTo(std::declval<TestRandomAccessRange<long> &>()));
+RETURNS_FALSE(testRandomAccessRangeTo(
+                  std::declval<TestRandomAccessRange<long> const &>()));
+RETURNS_FALSE(testRandomAccessRangeTo(
+                  std::declval<TestRandomAccessRangeBounded<long> &>()));
+RETURNS_FALSE(testRandomAccessRangeTo(
+                  std::declval<TestRandomAccessRangeBounded<long> const &>()));
+RETURNS_FALSE(testRandomAccessRangeTo(std::declval<std::vector<long> &>()));
+RETURNS_FALSE(testRandomAccessRangeTo(std::declval<std::vector<long> const &>()));
+RETURNS_FALSE(testRandomAccessRangeTo(42));
+
+
 // Test ValueSwappable:
 
 /// \todo Improve ValueSwappable tests

@@ -490,6 +490,22 @@ SHAREMIND_DEFINE_CONCEPT(BidirectionalRangeTo) {
                 );
 };
 
+SHAREMIND_DEFINE_CONCEPT(RandomAccessRange) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                    BidirectionalRange(T),
+                    RandomAccessIterator(Detail::IteratorT<T>)
+                );
+};
+
+SHAREMIND_DEFINE_CONCEPT(RandomAccessRangeTo) {
+    template <typename T, typename ValueType>
+    auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
+                    BidirectionalRangeTo(T, ValueType),
+                    RandomAccessIterator(Detail::IteratorT<T>)
+                );
+};
+
 SHAREMIND_DEFINE_CONCEPT(ValueSwappable) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
