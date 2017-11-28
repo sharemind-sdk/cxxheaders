@@ -40,13 +40,6 @@ namespace sharemind {
 namespace Detail {
 namespace SimpleUnorderedStringMap {
 
-template <typename T>
-using DecaysToString =
-        std::integral_constant<
-            bool,
-            std::is_same<typename std::decay<T>::type, std::string>::value
-        >;
-
 struct Hasher {
 
     template <typename T>
@@ -270,7 +263,9 @@ public: /* Methods: */
     auto find(Range && key) const
             -> SHAREMIND_REQUIRE_CONCEPTS_R(
                     typename SimpleUnorderedStringMap::const_iterator,
-                    ForwardRangeTo(Range, char))
+                    ForwardRangeTo(Range, char),
+                    Not(DecaysTo(Range, std::string))
+                )
     { return find(this->hash_function()(key), this->key_eq(), key); }
 
     using SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE::find;
@@ -283,7 +278,8 @@ public: /* Methods: */
     auto count(Range && key) const
             -> SHAREMIND_REQUIRE_CONCEPTS_R(
                     typename SimpleUnorderedStringMap::size_type,
-                    ForwardRangeTo(Range, char)
+                    ForwardRangeTo(Range, char),
+                    Not(DecaysTo(Range, std::string))
                 )
     { return this->count(this->hash_function()(key), this->key_eq(), key); }
 
@@ -304,7 +300,8 @@ public: /* Methods: */
     template <typename Range>
     auto equal_range(Range && key)
             -> SHAREMIND_REQUIRE_CONCEPTS_R(EqualRangeReturnType,
-                                            ForwardRangeTo(Range, char))
+                                            ForwardRangeTo(Range, char),
+                                            Not(DecaysTo(Range, std::string)))
     {
         return this->equal_range(this->hash_function()(key),
                                  this->key_eq(),
@@ -314,7 +311,8 @@ public: /* Methods: */
     template <typename Range>
     auto equal_range(Range && key) const
         -> SHAREMIND_REQUIRE_CONCEPTS_R(EqualRangeConstReturnType,
-                                        ForwardRangeTo(Range, char))
+                                        ForwardRangeTo(Range, char),
+                                        Not(DecaysTo(Range, std::string)))
     {
         return this->equal_range(this->hash_function()(key),
                                  this->key_eq(),
@@ -334,7 +332,8 @@ public: /* Methods: */
     auto bucket(Range && key) const
             -> SHAREMIND_REQUIRE_CONCEPTS_R(
                     typename SimpleUnorderedStringMap::size_type,
-                    ForwardRangeTo(Range, char))
+                    ForwardRangeTo(Range, char),
+                    Not(DecaysTo(Range, std::string)))
     { return this->bucket(this->hash_function()(key)); }
 
     using SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE::bucket;
