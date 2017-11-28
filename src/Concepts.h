@@ -95,6 +95,12 @@ SHAREMIND_DEFINE_CONCEPT(DerivedFrom) {
     auto check(A &&, B &&) -> SHAREMIND_REQUIRE(std::is_base_of<B, A>::value);
 };
 
+SHAREMIND_DEFINE_CONCEPT(ConvertibleTo) {
+    template <typename From, typename To>
+    auto check(From &&, To &&)
+            -> SHAREMIND_REQUIRE(std::is_convertible<From, To>::value);
+};
+
 SHAREMIND_DEFINE_CONCEPT(Callable) {
     template <typename T, typename ... Args>
     auto check(T && t, Args && ... args)

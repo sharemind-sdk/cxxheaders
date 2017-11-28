@@ -155,6 +155,23 @@ RETURNS_TRUE(testDerivedFrom(std::declval<TestBaseOfBase>()));
 RETURNS_FALSE(testDerivedFrom(std::declval<TestBaseOfBaseBase>()));
 
 
+// Test ConvertibleTo:
+
+struct TestConvertibleToTarget {};
+struct TestConvertibleToSource1 { operator TestConvertibleToTarget(); };
+struct TestConvertibleToSource2 {};
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                ConvertibleTo(T, TestConvertibleToTarget))>
+std::true_type testConvertibleTo(T && t);
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                Not(ConvertibleTo(T, TestConvertibleToTarget)))>
+std::false_type testConvertibleTo(T && t);
+RETURNS_TRUE(testConvertibleTo(std::declval<TestConvertibleToSource1>()));
+RETURNS_FALSE(testConvertibleTo(std::declval<TestConvertibleToSource2>()));
+
+
 // Test Swappable:
 
 /// \todo Improve Swappable tests:
