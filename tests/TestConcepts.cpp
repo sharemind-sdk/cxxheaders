@@ -200,15 +200,13 @@ using TestIteratorTag = std::input_iterator_tag;
 struct TestIteratorTag {};
 #endif
 template <typename T>
-struct TestIteratorBase
-        : std::iterator<
-            TestIteratorTag,
-            typename std::remove_const<T>::type,
-            std::ptrdiff_t,
-            T *,
-            T &
-        >
-{};
+struct TestIteratorBase {
+    using iterator_category = TestIteratorTag;
+    using value_type = typename std::remove_const<T>::type;
+    using difference_type = std::ptrdiff_t;
+    using pointer = T *;
+    using reference = T &;
+};
 template <typename T>
 struct TestIterator: TestIteratorBase<T> {
     using iterator_category = TestIteratorTag;
