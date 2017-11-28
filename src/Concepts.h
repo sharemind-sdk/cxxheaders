@@ -283,6 +283,14 @@ SHAREMIND_DEFINE_CONCEPT(Iterator) {
             >;
 };
 
+SHAREMIND_DEFINE_CONCEPT(IteratorTo) {
+    template <typename It, typename ValueType>
+    auto check(It && it, ValueType && valueType) -> SHAREMIND_REQUIRE_CONCEPTS(
+                Iterator(It),
+                Same(typename std::iterator_traits<It>::value_type, ValueType)
+            );
+};
+
 SHAREMIND_DEFINE_CONCEPT(InputIterator) {
     template <typename T>
     auto check(T && t) -> ValidTypes<

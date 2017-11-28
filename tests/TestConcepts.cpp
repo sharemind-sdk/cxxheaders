@@ -310,6 +310,16 @@ RETURNS_TRUE(testIterator(std::declval<TestIterator<int> >()));
 RETURNS_FALSE(testIterator(42));
 
 
+// Test IteratorTo:
+
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(IteratorTo(T, double))>
+std::true_type testIteratorTo(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(IteratorTo(T, double)))>
+std::false_type testIteratorTo(T && t);
+RETURNS_TRUE(testIteratorTo(std::declval<TestIterator<double> >()));
+RETURNS_FALSE(testIteratorTo(std::declval<TestIterator<float> >()));
+RETURNS_FALSE(testIteratorTo(42));
+
 
 // Test InputIterator:
 
