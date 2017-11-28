@@ -35,23 +35,11 @@
 #include <unordered_map>
 #include <utility>
 #include <type_traits>
+#include "Concepts.h"
 #include "Void.h"
 
 
 namespace sharemind {
-namespace Detail {
-
-template <typename F, typename T, typename = void>
-struct IsUnaryPredicateOn: std::false_type {};
-
-template <typename F, typename T>
-struct IsUnaryPredicateOn<
-        T,
-        F,
-        Void_t<decltype(std::declval<F &>()(std::declval<T const &>()))>
->: std::true_type {};
-
-} /* namespace Detail { */
 
 /**
     \brief Similar to std::unordered_map, except that it allows explicit lookup,
@@ -449,10 +437,8 @@ public: /* Methods: */
 
     /** \note not in std::unordered_map */
     template <typename Key_,
-              typename =
-                    typename std::enable_if<
-                        ! Detail::IsUnaryPredicateOn<Key_, key_type>::value
-                    >::type>
+              SHAREMIND_REQUIRES_CONCEPTS(
+                    Not(UnaryPredicate(Key_, key_type const &)))>
     iterator find(hash_type hash, Key_ const & key) {
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
@@ -464,10 +450,8 @@ public: /* Methods: */
 
     /** \note not in std::unordered_map */
     template <typename Key_,
-              typename =
-                    typename std::enable_if<
-                        ! Detail::IsUnaryPredicateOn<Key_, key_type>::value
-                    >::type>
+              SHAREMIND_REQUIRES_CONCEPTS(
+                    Not(UnaryPredicate(Key_, key_type const &)))>
     const_iterator find(hash_type hash, Key_ const & key) const {
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
@@ -478,12 +462,10 @@ public: /* Methods: */
     }
 
     /** \note not in std::unordered_map */
-    template <typename UnaryPredicate,
-              typename =
-                typename std::enable_if<
-                    Detail::IsUnaryPredicateOn<UnaryPredicate, key_type>::value
-                >::type>
-    iterator find(hash_type hash, UnaryPredicate pred) {
+    template <typename Pred,
+              SHAREMIND_REQUIRES_CONCEPTS(
+                    UnaryPredicate(Pred, key_type const &))>
+    iterator find(hash_type hash, Pred pred) {
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
              ++er.first)
@@ -493,11 +475,9 @@ public: /* Methods: */
     }
 
     /** \note not in std::unordered_map */
-    template <typename UnaryPredicate,
-              typename =
-                typename std::enable_if<
-                    Detail::IsUnaryPredicateOn<UnaryPredicate, key_type>::value
-                >::type>
+    template <typename Pred,
+              SHAREMIND_REQUIRES_CONCEPTS(
+                    UnaryPredicate(Pred, key_type const &))>
     const_iterator find(hash_type hash, UnaryPredicate pred) const {
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
@@ -508,8 +488,11 @@ public: /* Methods: */
     }
 
     /** \note not in std::unordered_map */
-    template <typename BinaryPredicate, typename Key_>
-    iterator find(hash_type hash, BinaryPredicate pred, Key_ const & key) {
+    template <typename Pred,
+              typename Key_,
+              SHAREMIND_REQUIRES_CONCEPTS(
+                    BinaryPredicate(Pred, key_type const &, Key_ const &))>
+    iterator find(hash_type hash, Pred pred, Key_ const & key) {
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
              ++er.first)
@@ -519,8 +502,11 @@ public: /* Methods: */
     }
 
     /** \note not in std::unordered_map */
-    template <typename BinaryPredicate, typename Key_>
-    const_iterator find(hash_type hash, BinaryPredicate pred, Key_ const & key)
+    template <typename Pred,
+              typename Key_,
+              SHAREMIND_REQUIRES_CONCEPTS(
+                    BinaryPredicate(Pred, key_type const &, Key_ const &))>
+    const_iterator find(hash_type hash, Pred pred, Key_ const & key)
             const
     {
         for (auto er(m_container.equal_range(hash));
@@ -543,12 +529,10 @@ public: /* Methods: */
     }
 
     /** \note not in std::unordered_map */
-    template <typename UnaryPredicate,
-              typename =
-                typename std::enable_if<
-                    Detail::IsUnaryPredicateOn<UnaryPredicate, key_type>::value
-                >::type>
-    size_type count(hash_type hash, UnaryPredicate pred) const {
+    template <typename Pred,
+              SHAREMIND_REQUIRES_CONCEPTS(
+                    UnaryPredicate(Pred, key_type const &))>
+    size_type count(hash_type hash, Pred pred) const {
         size_type count = 0u;
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
@@ -559,8 +543,11 @@ public: /* Methods: */
     }
 
     /** \note not in std::unordered_map */
-    template <typename BinaryPredicate, typename Key_>
-    size_type count(hash_type hash, BinaryPredicate pred, Key_ const & key)
+    template <typename Pred,
+              typename Key_,
+              SHAREMIND_REQUIRES_CONCEPTS(
+                    BinaryPredicate(Pred, key_type const &, Key_ const &))>
+    size_type count(hash_type hash, Pred pred, Key_ const & key)
             const
     {
         size_type count = 0u;
