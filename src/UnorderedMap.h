@@ -348,10 +348,7 @@ public: /* Methods: */
     { return emplace(obj); }
 
     template <typename P,
-              typename =
-                    typename std::enable_if<
-                        std::is_constructible<value_type, P &&>::value
-                    >::type>
+              SHAREMIND_REQUIRES_CONCEPTS(Constructible(value_type, P &&))>
     std::pair<iterator, bool> insert(P && obj)
     { return emplace(std::forward<P>(obj)); }
 
@@ -359,10 +356,7 @@ public: /* Methods: */
     { return emplace_hint(std::move(hint), obj); }
 
     template <typename P,
-              typename =
-                    typename std::enable_if<
-                        std::is_constructible<value_type, P &&>::value
-                    >::type>
+              SHAREMIND_REQUIRES_CONCEPTS(Constructible(value_type, P &&))>
     iterator insert(const_iterator hint, P && obj)
     { return emplace_hint(std::move(hint), std::forward<P>(obj)); }
 
