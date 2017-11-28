@@ -202,7 +202,7 @@ struct TestIteratorTag {};
 template <typename T>
 struct TestIteratorBase {
     using iterator_category = TestIteratorTag;
-    using value_type = typename std::remove_const<T>::type;
+    using value_type = typename std::remove_cv<T>::type;
     using difference_type = std::ptrdiff_t;
     using pointer = T *;
     using reference = T &;
