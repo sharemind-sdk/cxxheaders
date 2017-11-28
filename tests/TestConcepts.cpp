@@ -595,6 +595,45 @@ RETURNS_FALSE(testBoundedRangeTo(std::declval<std::vector<long> &>()));
 RETURNS_FALSE(testBoundedRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testBoundedRangeTo(42));
 
+
+// Test InputRange:
+
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(InputRange(T))>
+std::true_type testInputRange(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(InputRange(T)))>
+std::false_type testInputRange(T && t);
+RETURNS_TRUE(testInputRange(std::declval<TestRange<int> &>()));
+RETURNS_TRUE(testInputRange(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testInputRange(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testInputRange(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testInputRange(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testInputRange(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testInputRange(42));
+
+
+// Test InputRangeTo:
+
+/// \todo Improve InputRangeTo tests
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(InputRangeTo(T, int))>
+std::true_type testInputRangeTo(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(InputRangeTo(T, int)))>
+std::false_type testInputRangeTo(T && t);
+RETURNS_TRUE(testInputRangeTo(std::declval<TestRange<int> &>()));
+RETURNS_TRUE(testInputRangeTo(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testInputRangeTo(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testInputRangeTo(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testInputRangeTo(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testInputRangeTo(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testInputRangeTo(std::declval<TestRange<long> &>()));
+RETURNS_FALSE(testInputRangeTo(std::declval<TestRange<long> const &>()));
+RETURNS_FALSE(testInputRangeTo(std::declval<TestRangeBounded<long> &>()));
+RETURNS_FALSE(testInputRangeTo(
+                  std::declval<TestRangeBounded<long> const &>()));
+RETURNS_FALSE(testInputRangeTo(std::declval<std::vector<long> &>()));
+RETURNS_FALSE(testInputRangeTo(std::declval<std::vector<long> const &>()));
+RETURNS_FALSE(testInputRangeTo(42));
+
+
 // Test ValueSwappable:
 
 /// \todo Improve ValueSwappable tests
