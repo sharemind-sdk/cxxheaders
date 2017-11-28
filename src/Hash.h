@@ -30,11 +30,11 @@
 
 namespace sharemind {
 
-using Hash = std::size_t;
+using HashValue = std::size_t;
 
-inline Hash hashCombineRawData(Hash seed,
-                               void const * const data,
-                               std::size_t const size) noexcept
+inline HashValue hashCombineRawData(HashValue seed,
+                                    void const * const data,
+                                    std::size_t const size) noexcept
 {
     boost::hash_range(seed,
                       static_cast<char const *>(data),
@@ -43,17 +43,17 @@ inline Hash hashCombineRawData(Hash seed,
 }
 
 template <typename ... Args>
-inline Hash hashCombineRawData(Hash seed,
-                               void const * const data,
-                               std::size_t const size,
-                               Args && ... args) noexcept
+inline HashValue hashCombineRawData(HashValue seed,
+                                    void const * const data,
+                                    std::size_t const size,
+                                    Args && ... args) noexcept
 {
     return hashCombineRawData(hashCombineRawData(seed, data, size),
                               std::forward<Args>(args)...);
 }
 
 template <typename ... Args>
-inline Hash hashRawData(Args && ... args) noexcept
+inline HashValue hashRawData(Args && ... args) noexcept
 { return hashCombineRawData(0u, std::forward<Args>(args)...); }
 
 struct HashMemberCaller {
@@ -72,13 +72,13 @@ struct HashMemberCallerT {
 
 struct RawHasher {
     template <typename T>
-    sharemind::Hash operator()(T const & t) const noexcept
+    HashValue operator()(T const & t) const noexcept
     { return hashRawData(&t, sizeof(t)); }
 };
 
 template <typename T>
 struct RawHasherT {
-    sharemind::Hash operator()(T const & t) const noexcept
+    HashValue operator()(T const & t) const noexcept
     { return hashRawData(&t, sizeof(t)); }
 };
 
