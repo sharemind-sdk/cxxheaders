@@ -510,18 +510,22 @@ RETURNS_FALSE(testRandomAccessIterator(42));
 // Test Range:
 
 /// \todo Improve Range tests
-template <typename T>
+template <typename T,
+          typename Iterator = T *,
+          typename ConstIterator = T const *>
 struct TestRange {
-    T * begin();
-    T const * begin() const;
-    constexpr decltype(nullptr) end() const noexcept { return nullptr; }
+    Iterator begin();
+    ConstIterator begin() const;
+    constexpr decltype(nullptr) end() const noexcept;
 };
-template <typename T>
+template <typename T,
+          typename Iterator = T *,
+          typename ConstIterator = T const *>
 struct TestRangeBounded {
-    T * begin();
-    T const * begin() const;
-    T * end();
-    T const * end() const;
+    Iterator begin();
+    ConstIterator begin() const;
+    Iterator end();
+    ConstIterator end() const;
 };
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Range(T))>
 std::true_type testRange(T && t);
@@ -670,6 +674,94 @@ RETURNS_FALSE(testOutputRangeTo(
 RETURNS_FALSE(testOutputRangeTo(std::declval<std::vector<long> &>()));
 RETURNS_FALSE(testOutputRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testOutputRangeTo(42));
+
+
+// Test ForwardRange:
+
+template <typename T>
+struct TestForwardRangeIterator: TestForwardIterator<T> {
+    using TestForwardIterator<T>::TestForwardIterator;
+    TestForwardRangeIterator & operator++();
+    TestForwardRangeIterator operator++(int);
+};
+template <typename T>
+void swap(TestForwardRangeIterator<T> &, TestForwardRangeIterator<T> &);
+template <typename T>
+bool operator==(TestForwardRangeIterator<T> const &, decltype(nullptr) const &);
+template <typename T>
+bool operator==(decltype(nullptr) const &, TestForwardRangeIterator<T> const &);
+template <typename T>
+bool operator!=(TestForwardRangeIterator<T> const &, decltype(nullptr) const &);
+template <typename T>
+bool operator!=(decltype(nullptr) const &, TestForwardRangeIterator<T> const &);
+template <typename T>
+struct TestForwardRange
+        : TestRange<
+            T,
+            TestForwardRangeIterator<T>,
+            TestForwardRangeIterator<T const>
+        >
+{};
+template <typename T>
+struct TestForwardRangeBounded
+        : TestRangeBounded<
+            T,
+            TestForwardRangeIterator<T>,
+            TestForwardRangeIterator<T const>
+        >
+{};
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(ForwardRange(T))>
+std::true_type testForwardRange(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(ForwardRange(T)))>
+std::false_type testForwardRange(T && t);
+RETURNS_TRUE(testForwardRange(std::declval<TestRange<int> &>()));
+RETURNS_TRUE(testForwardRange(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testForwardRange(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testForwardRange(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testForwardRange(std::declval<TestForwardRange<int> &>()));
+RETURNS_TRUE(testForwardRange(std::declval<TestForwardRange<int> const &>()));
+RETURNS_TRUE(testForwardRange(std::declval<TestForwardRangeBounded<int> &>()));
+RETURNS_TRUE(testForwardRange(
+                 std::declval<TestForwardRangeBounded<int> const &>()));
+RETURNS_TRUE(testForwardRange(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testForwardRange(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testForwardRange(42));
+
+
+// Test ForwardRangeTo:
+
+/// \todo Improve ForwardRangeTo tests
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(ForwardRangeTo(T, int))>
+std::true_type testForwardRangeTo(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(ForwardRangeTo(T, int)))>
+std::false_type testForwardRangeTo(T && t);
+RETURNS_TRUE(testForwardRangeTo(std::declval<TestRange<int> &>()));
+RETURNS_TRUE(testForwardRangeTo(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testForwardRangeTo(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testForwardRangeTo(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testForwardRangeTo(std::declval<TestForwardRange<int> &>()));
+RETURNS_TRUE(testForwardRangeTo(std::declval<TestForwardRange<int> const &>()));
+RETURNS_TRUE(testForwardRangeTo(
+                 std::declval<TestForwardRangeBounded<int> &>()));
+RETURNS_TRUE(testForwardRangeTo(
+                 std::declval<TestForwardRangeBounded<int> const &>()));
+RETURNS_TRUE(testForwardRangeTo(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testForwardRangeTo(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testForwardRangeTo(std::declval<TestRange<long> &>()));
+RETURNS_FALSE(testForwardRangeTo(std::declval<TestRange<long> const &>()));
+RETURNS_FALSE(testForwardRangeTo(std::declval<TestRangeBounded<long> &>()));
+RETURNS_FALSE(testForwardRangeTo(
+                  std::declval<TestRangeBounded<long> const &>()));
+RETURNS_FALSE(testForwardRangeTo(std::declval<TestForwardRange<long> &>()));
+RETURNS_FALSE(testForwardRangeTo(
+                  std::declval<TestForwardRange<long> const &>()));
+RETURNS_FALSE(testForwardRangeTo(
+                  std::declval<TestForwardRangeBounded<long> &>()));
+RETURNS_FALSE(testForwardRangeTo(
+                  std::declval<TestForwardRangeBounded<long> const &>()));
+RETURNS_FALSE(testForwardRangeTo(std::declval<std::vector<long> &>()));
+RETURNS_FALSE(testForwardRangeTo(std::declval<std::vector<long> const &>()));
+RETURNS_FALSE(testForwardRangeTo(42));
 
 
 // Test ValueSwappable:
