@@ -30,6 +30,7 @@
 #include <iterator>
 #include <type_traits>
 #include <utility>
+#include "Concepts.h"
 #if __cplusplus < 201402L
 #include "IntegralComparisons.h"
 #endif
@@ -61,7 +62,7 @@ using IsIteratorOverSomeCharIterator =
 template <typename T>
 using BeginIterator = decltype(std::begin(std::declval<T>()));
 template <typename T>
-using EndIterator = decltype(std::begin(std::declval<T>()));
+using EndIterator = decltype(std::end(std::declval<T>()));
 
 template <typename T>
 using IsCharRange =
