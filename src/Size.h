@@ -20,10 +20,20 @@
 #ifndef SHAREMIND_SIZE_H
 #define SHAREMIND_SIZE_H
 
+#if __cplusplus >= 201703L
+#include <iterator>
+#else /* __cplusplus >= 201703L */
 #include <cstddef>
+#endif /* __cplusplus >= 201703L */
 
 
 namespace sharemind {
+
+#if __cplusplus >= 201703L
+
+using std::size;
+
+#else /* __cplusplus >= 201703L */
 
 template <typename T>
 constexpr auto size(T const & t) noexcept(noexcept(t.size()))
@@ -33,6 +43,9 @@ constexpr auto size(T const & t) noexcept(noexcept(t.size()))
 template <typename T, std::size_t N>
 constexpr inline std::size_t size(T const (&)[N]) noexcept { return N; }
 
+#endif /* __cplusplus >= 201703L */
+
 } /* namespace Sharemind { */
+
 
 #endif /* SHAREMIND_SIZE_H */
