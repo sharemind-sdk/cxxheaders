@@ -60,17 +60,20 @@ struct ModelsConcept<
 template <typename ... Cs>
 using Models = TemplateAll<Detail::ModelsConcept<Cs>::value...>;
 
+#define SHAREMIND_REQUIRE_R(r,...) \
+    typename ::std::enable_if<(__VA_ARGS__), r>::type
+
 #define SHAREMIND_REQUIRE(...) \
-    typename ::std::enable_if< \
-        __VA_ARGS__, \
-        ::sharemind::Detail::RequiresConceptResult \
-    >::type
+    SHAREMIND_REQUIRE_R(::sharemind::Detail::RequiresConceptResult,__VA_ARGS__)
 
 #define SHAREMIND_REQUIRE_DEFAULTVALUE \
     ::sharemind::Detail::RequiresConceptResult::Succeed
 
 #define SHAREMIND_REQUIRE_CONCEPTS(...) \
     SHAREMIND_REQUIRE(Models<__VA_ARGS__>::value)
+
+#define SHAREMIND_REQUIRE_CONCEPTS_R(r,...) \
+    SHAREMIND_REQUIRE_R(r, Models<__VA_ARGS__>::value)
 
 #define SHAREMIND_REQUIRES(...) \
     SHAREMIND_REQUIRE(__VA_ARGS__) = SHAREMIND_REQUIRE_DEFAULTVALUE
