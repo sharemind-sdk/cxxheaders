@@ -25,6 +25,7 @@
 #include <sharemind/compiler-support/GccVersion.h>
 #include <type_traits>
 #include <utility>
+#include "Size.h"
 #include "TemplateAll.h"
 #include "Void.h"
 
@@ -424,6 +425,34 @@ SHAREMIND_DEFINE_CONCEPT(BoundedRangeTo) {
                     RangeTo(T, ValueType),
                     Same(Detail::IteratorT<T>, Detail::SentinelT<T>)
                 );
+};
+
+SHAREMIND_DEFINE_CONCEPT(SizedRange) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+        Range(T),
+        ConvertibleTo(
+            decltype(
+                size(std::declval<
+                        typename std::remove_reference<T>::type const &>())),
+            typename std::iterator_traits<
+                    Detail::IteratorT<T>
+            >::difference_type)
+    );
+};
+
+SHAREMIND_DEFINE_CONCEPT(SizedRangeTo) {
+    template <typename T, typename ValueType>
+    auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
+        RangeTo(T, ValueType),
+        ConvertibleTo(
+            decltype(
+                size(std::declval<
+                        typename std::remove_reference<T>::type const &>())),
+            typename std::iterator_traits<
+                    Detail::IteratorT<T>
+            >::difference_type)
+    );
 };
 
 SHAREMIND_DEFINE_CONCEPT(InputRange) {

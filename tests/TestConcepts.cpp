@@ -600,6 +600,64 @@ RETURNS_FALSE(testBoundedRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testBoundedRangeTo(42));
 
 
+// Test SizedRange:
+
+/// \todo Improve Range tests
+template <typename ... Ts>
+struct TestSizedRange: TestRange<Ts...> {
+    std::size_t size() const;
+};
+template <typename ... Ts>
+struct TestSizedRangeBounded: TestRangeBounded<Ts...> {
+    std::size_t size() const;
+};
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(SizedRange(T))>
+std::true_type testSizedRange(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(SizedRange(T)))>
+std::false_type testSizedRange(T && t);
+RETURNS_FALSE(testSizedRange(std::declval<TestRange<int> &>()));
+RETURNS_FALSE(testSizedRange(std::declval<TestRange<int> const &>()));
+RETURNS_FALSE(testSizedRange(std::declval<TestRangeBounded<int> &>()));
+RETURNS_FALSE(testSizedRange(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testSizedRange(std::declval<TestSizedRange<int> &>()));
+RETURNS_TRUE(testSizedRange(std::declval<TestSizedRange<int> const &>()));
+RETURNS_TRUE(testSizedRange(std::declval<TestSizedRangeBounded<int> &>()));
+RETURNS_TRUE(testSizedRange(std::declval<TestSizedRangeBounded<int> const &>()));
+RETURNS_TRUE(testSizedRange(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testSizedRange(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testSizedRange(42));
+
+
+// Test SizedRangeTo:
+
+/// \todo Improve RangeTo tests
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(SizedRangeTo(T, int))>
+std::true_type testSizedRangeTo(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(SizedRangeTo(T, int)))>
+std::false_type testSizedRangeTo(T && t);
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestRange<int> &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestRange<int> const &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestRangeBounded<int> &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testSizedRangeTo(std::declval<TestSizedRange<int> &>()));
+RETURNS_TRUE(testSizedRangeTo(std::declval<TestSizedRange<int> const &>()));
+RETURNS_TRUE(testSizedRangeTo(std::declval<TestSizedRangeBounded<int> &>()));
+RETURNS_TRUE(testSizedRangeTo(std::declval<TestSizedRangeBounded<int> const &>()));
+RETURNS_TRUE(testSizedRangeTo(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testSizedRangeTo(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestRange<long> &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestRange<long> const &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestRangeBounded<long> &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestRangeBounded<long> const &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestSizedRange<long> &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestSizedRange<long> const &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestSizedRangeBounded<long> &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<TestSizedRangeBounded<long> const &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<std::vector<long> &>()));
+RETURNS_FALSE(testSizedRangeTo(std::declval<std::vector<long> const &>()));
+RETURNS_FALSE(testSizedRangeTo(42));
+
+
 // Test InputRange:
 
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(InputRange(T))>
