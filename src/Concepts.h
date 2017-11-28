@@ -442,6 +442,22 @@ SHAREMIND_DEFINE_CONCEPT(InputRangeTo) {
                 );
 };
 
+SHAREMIND_DEFINE_CONCEPT(OutputRange) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                    Range(T),
+                    OutputIterator(Detail::IteratorT<T>)
+                );
+};
+
+SHAREMIND_DEFINE_CONCEPT(OutputRangeTo) {
+    template <typename T, typename ValueType>
+    auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
+                    RangeTo(T, ValueType),
+                    OutputIterator(Detail::IteratorT<T>)
+                );
+};
+
 SHAREMIND_DEFINE_CONCEPT(ValueSwappable) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
