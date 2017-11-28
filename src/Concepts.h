@@ -188,9 +188,11 @@ auto adl_swap(T && t, U && u) ->
 /* Work around GCC PR 63860: */
 template <typename T, typename U>
 auto adl_swap(T && t, U && u) -> ValidTypes<
-            decltype(swap(std::forward<T>(t), std::forward<U>(u))),
-            SHAREMIND_REQUIRE(std::is_move_constructible<T>::value),
-            SHAREMIND_REQUIRE(std::is_move_assignable<T>::value)
+            SHAREMIND_REQUIRE_CONCEPTS( \
+                MoveConstructible(T), \
+                MoveAssignable(T) \
+            ), \
+            decltype(swap(std::forward<T>(t), std::forward<U>(u)))
         >;
 template <typename T, std::size_t N, typename U>
 auto adl_swap(T (&t)[N], U (&u)[N]) -> ValidTypes<
@@ -217,21 +219,13 @@ SHAREMIND_DEFINE_CONCEPT(Swappable) {
 #define SHAREMIND_CONCEPTS_H_(Name,op) \
     SHAREMIND_DEFINE_CONCEPT(Name ## Comparable) { \
         template <typename T> \
-        auto check(T && t) \
-                -> SHAREMIND_REQUIRE( \
-                        std::is_convertible<decltype(t op t), bool>::value \
-                        && std::is_convertible< \
-                            decltype(t op std::declval<T const>()),  \
-                            bool>::value \
-                        && std::is_convertible< \
-                            decltype(std::declval<T const>() op t),  \
-                            bool>::value \
-                        && std::is_convertible< \
-                            decltype(std::declval<T const>() \
-                                     op std::declval<T const>()), \
-                            bool \
-                        >::value \
-                    ); \
+        auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS( \
+            ConvertibleTo(decltype(t op t), bool), \
+            ConvertibleTo(decltype(t op std::declval<T const>()), bool), \
+            ConvertibleTo(decltype(std::declval<T const>() op t), bool), \
+            ConvertibleTo(decltype(std::declval<T const>() \
+                                   op std::declval<T const>()), bool) \
+        ); \
     };
 SHAREMIND_CONCEPTS_H_(Equality,==)
 SHAREMIND_CONCEPTS_H_(Inequality,!=)
@@ -244,58 +238,48 @@ SHAREMIND_CONCEPTS_H_(GreaterOrEqual,>=)
 SHAREMIND_DEFINE_CONCEPT(Iterator) {
     template <typename T>
     auto check(T && t) -> ValidTypes<
-                SHAREMIND_REQUIRE_CONCEPTS(CopyConstructible(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(CopyAssignable(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(Destructible(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(Swappable(T &)),
+                SHAREMIND_REQUIRE_CONCEPTS(
+                    CopyConstructible(T),
+                    CopyAssignable(T),
+                    Destructible(T),
+                    Swappable(T &),
+                    Same(decltype(*t),
+                         typename std::iterator_traits<T>::reference),
+                    Same(decltype(++t), T &)),
                 typename std::iterator_traits<T>::value_type,
                 typename std::iterator_traits<T>::difference_type,
                 typename std::iterator_traits<T>::reference,
                 typename std::iterator_traits<T>::pointer,
-                typename std::iterator_traits<T>::iterator_category,
-                SHAREMIND_REQUIRE(
-                        std::is_same<
-                            decltype(*t),
-                            typename std::iterator_traits<T>::reference
-                        >::value),
-                SHAREMIND_REQUIRE(std::is_same<decltype(++t), T &>::value)
+                typename std::iterator_traits<T>::iterator_category
             >;
 };
 
 SHAREMIND_DEFINE_CONCEPT(InputIterator) {
     template <typename T>
     auto check(T && t) -> ValidTypes<
-                SHAREMIND_REQUIRE_CONCEPTS(Iterator(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(EqualityComparable(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(InequalityComparable(T)),
-                SHAREMIND_REQUIRE(
-                        std::is_same<
-                            decltype(*t),
-                            typename std::iterator_traits<T>::reference
-                        >::value),
-                SHAREMIND_REQUIRE(
-                        std::is_convertible<
-                            decltype(*t),
-                            typename std::iterator_traits<T>::value_type
-                        >::value),
-                decltype((void)t++),
-                SHAREMIND_REQUIRE(
-                        std::is_convertible<
-                            decltype(*t++),
-                            typename std::iterator_traits<T>::value_type
-                        >::value)
+                SHAREMIND_REQUIRE_CONCEPTS(
+                    Iterator(T),
+                    EqualityComparable(T),
+                    InequalityComparable(T),
+                    ConvertibleTo(decltype(*t),
+                                  typename std::iterator_traits<T>::value_type),
+                    ConvertibleTo(decltype(*t++),
+                                  typename std::iterator_traits<T>::value_type),
+                    Same(decltype(*t),
+                         typename std::iterator_traits<T>::reference)),
+                decltype((void)t++)
             >;
 };
 
 SHAREMIND_DEFINE_CONCEPT(OutputIterator) {
     template <typename T>
     auto check(T && t) -> ValidTypes<
-            SHAREMIND_REQUIRE_CONCEPTS(Iterator(T)),
+            SHAREMIND_REQUIRE_CONCEPTS(
+                Iterator(T),
+                ConvertibleTo(decltype(t++), T const &),
+                Same(decltype(++t), T &)),
             decltype(*t =
                 std::declval<typename std::iterator_traits<T>::value_type>()),
-            SHAREMIND_REQUIRE(std::is_same<decltype(++t), T &>::value),
-            SHAREMIND_REQUIRE(
-                    std::is_convertible<decltype(t++), T const &>::value),
             decltype(*t++ =
                 std::declval<typename std::iterator_traits<T>::value_type>())
         >;
@@ -303,68 +287,55 @@ SHAREMIND_DEFINE_CONCEPT(OutputIterator) {
 
 SHAREMIND_DEFINE_CONCEPT(ForwardIterator) {
     template <typename T>
-    auto check(T && t) -> ValidTypes<
-                SHAREMIND_REQUIRE_CONCEPTS(InputIterator(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(DefaultConstructible(T)),
-                SHAREMIND_REQUIRE(
-                        std::is_convertible<decltype(t++), T const &>::value),
-                SHAREMIND_REQUIRE(
-                        std::is_same<
-                            decltype(*t++),
-                            typename std::iterator_traits<T>::reference
-                        >::value),
-                SHAREMIND_REQUIRE(
-                        std::is_same<
-                            typename std::iterator_traits<T>::reference,
-                            typename std::conditional<
-                                Models<OutputIterator(T)>::value,
-                                typename std::iterator_traits<T>::value_type &,
-                                typename std::iterator_traits<T>::value_type
-                                    const &
-                            >::type
-                        >::value)
-            >;
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                InputIterator(T),
+                DefaultConstructible(T),
+                ConvertibleTo(decltype(t++), T const &),
+                Same(decltype(*t++),
+                     typename std::iterator_traits<T>::reference),
+                Same(typename std::iterator_traits<T>::reference,
+                     typename std::conditional<
+                         Models<OutputIterator(T)>::value,
+                         typename std::iterator_traits<T>::value_type &,
+                         typename std::iterator_traits<T>::value_type
+                             const &
+                     >::type)
+            );
 };
 
 SHAREMIND_DEFINE_CONCEPT(BidirectionalIterator) {
     template <typename T>
-    auto check(T && t) -> ValidTypes<
-                SHAREMIND_REQUIRE_CONCEPTS(ForwardIterator(T)),
-                SHAREMIND_REQUIRE(std::is_same<decltype(--t), T &>::value),
-                SHAREMIND_REQUIRE(
-                        std::is_convertible<decltype(t--), T const &>::value),
-                SHAREMIND_REQUIRE(
-                        std::is_same<
-                            decltype(*t--),
-                            typename std::iterator_traits<T>::reference
-                        >::value)
-            >;
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                ForwardIterator(T),
+                ConvertibleTo(decltype(t--), T const &),
+                Same(decltype(--t), T &),
+                Same(decltype(*t--),
+                     typename std::iterator_traits<T>::reference)
+            );
 };
 
 SHAREMIND_DEFINE_CONCEPT(RandomAccessIterator) {
 
     template <typename T, typename DiffT>
-    auto check_(T && t, DiffT n) -> ValidTypes<
-                SHAREMIND_REQUIRE(std::is_same<decltype(t += n), T &>::value),
-                SHAREMIND_REQUIRE(std::is_same<decltype(t -= n), T &>::value),
-                SHAREMIND_REQUIRE(std::is_same<decltype(t + n), T>::value),
-                SHAREMIND_REQUIRE(std::is_same<decltype(n + t), T>::value),
-                SHAREMIND_REQUIRE(std::is_same<decltype(t - n), T>::value),
-                SHAREMIND_REQUIRE(std::is_same<decltype(t - t), DiffT>::value),
-                SHAREMIND_REQUIRE(
-                        std::is_convertible<
-                            decltype(t[n]),
-                            typename std::iterator_traits<T>::reference
-                        >::value)
-            >;
+    auto check_(T && t, DiffT n) -> SHAREMIND_REQUIRE_CONCEPTS(
+                ConvertibleTo(decltype(t[n]),
+                              typename std::iterator_traits<T>::reference),
+                Same(decltype(t += n), T &),
+                Same(decltype(t -= n), T &),
+                Same(decltype(t + n), T),
+                Same(decltype(n + t), T),
+                Same(decltype(t - n), T),
+                Same(decltype(t - t), DiffT)
+            );
 
     template <typename T>
     auto check(T && t) -> ValidTypes<
-        SHAREMIND_REQUIRE_CONCEPTS(BidirectionalIterator(T)),
-        SHAREMIND_REQUIRE_CONCEPTS(LessThanComparable(T)),
-        SHAREMIND_REQUIRE_CONCEPTS(LessOrEqualComparable(T)),
-        SHAREMIND_REQUIRE_CONCEPTS(GreaterThanComparable(T)),
-        SHAREMIND_REQUIRE_CONCEPTS(GreaterOrEqualComparable(T)),
+        SHAREMIND_REQUIRE_CONCEPTS(
+                BidirectionalIterator(T),
+                LessThanComparable(T),
+                LessOrEqualComparable(T),
+                GreaterThanComparable(T),
+                GreaterOrEqualComparable(T)),
         decltype(check_(std::forward<T>(t),
                         std::declval<
                           typename std::iterator_traits<T>::difference_type>()))
@@ -374,70 +345,50 @@ SHAREMIND_DEFINE_CONCEPT(RandomAccessIterator) {
 
 SHAREMIND_DEFINE_CONCEPT(ValueSwappable) {
     template <typename T>
-    auto check(T && t) -> ValidTypes<
-                SHAREMIND_REQUIRE_CONCEPTS(Iterator(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(Swappable(decltype(*t)))
-            >;
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                Iterator(T),
+                Swappable(decltype(*t))
+            );
 };
 
 SHAREMIND_DEFINE_CONCEPT(NullablePointer) {
     template <typename T>
-    auto check(T && t) -> ValidTypes<
-                SHAREMIND_REQUIRE_CONCEPTS(EqualityComparable(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(DefaultConstructible(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(CopyConstructible(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(CopyAssignable(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(Destructible(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(Swappable(T &)),
-                SHAREMIND_REQUIRE(std::is_convertible<T, bool>::value),
-                SHAREMIND_REQUIRE(
-                        std::is_same<decltype(t = nullptr), T &>::value),
-                SHAREMIND_REQUIRE(
-                        std::is_convertible<decltype(t != t), bool>::value),
-                SHAREMIND_REQUIRE(
-                        std::is_convertible<decltype(t == nullptr),
-                                            bool>::value),
-                SHAREMIND_REQUIRE(
-                        std::is_convertible<decltype(nullptr == t),
-                                            bool>::value),
-                SHAREMIND_REQUIRE(
-                        std::is_convertible<decltype(t != nullptr),
-                                            bool>::value),
-                SHAREMIND_REQUIRE(
-                        std::is_convertible<decltype(nullptr != t),
-                                            bool>::value)
-            >;
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                EqualityComparable(T),
+                InequalityComparable(T),
+                DefaultConstructible(T),
+                CopyConstructible(T),
+                CopyAssignable(T),
+                Destructible(T),
+                Swappable(T &),
+                ConvertibleTo(T, bool),
+                ConvertibleTo(decltype(t == nullptr), bool),
+                ConvertibleTo(decltype(nullptr == t), bool),
+                ConvertibleTo(decltype(t != nullptr), bool),
+                ConvertibleTo(decltype(nullptr != t), bool),
+                Same(decltype(t = nullptr), T &)
+            );
 };
 
 SHAREMIND_DEFINE_CONCEPT(Hash) {
     template <typename T, typename Key>
     auto check(T && t, Key && key) -> ValidTypes<
                 SHAREMIND_REQUIRE(std::is_object<T>::value),
-                SHAREMIND_REQUIRE_CONCEPTS(CopyConstructible(T)),
-                SHAREMIND_REQUIRE_CONCEPTS(Destructible(T)),
-                SHAREMIND_REQUIRE(
-                        std::is_same<
-                            decltype(std::declval<T &>()(std::declval<Key>())),
-                            std::size_t
-                        >::value),
-                SHAREMIND_REQUIRE(
-                        std::is_same<
-                            decltype(std::declval<T&>()(
-                                         std::declval<Key const>())),
-                            std::size_t
-                        >::value),
-                SHAREMIND_REQUIRE(
-                        std::is_same<
-                            decltype(std::declval<T const &>()(
-                                         std::declval<Key>())),
-                            std::size_t
-                        >::value),
-                SHAREMIND_REQUIRE(
-                        std::is_same<
-                            decltype(std::declval<T const &>()(
-                                         std::declval<Key const>())),
-                            std::size_t
-                        >::value)
+                SHAREMIND_REQUIRE_CONCEPTS(
+                    CopyConstructible(T),
+                    Destructible(T),
+                    Same(decltype(std::declval<T &>()(std::declval<Key>())),
+                         std::size_t),
+                    Same(decltype(std::declval<T&>()(
+                                      std::declval<Key const>())),
+                         std::size_t),
+                    Same(decltype(std::declval<T const &>()(
+                                      std::declval<Key>())),
+                         std::size_t),
+                    Same(decltype(std::declval<T const &>()(
+                                      std::declval<Key const>())),
+                         std::size_t)
+                )
             >;
 };
 
