@@ -235,6 +235,31 @@ SHAREMIND_CONCEPTS_H_(GreaterThan,>)
 SHAREMIND_CONCEPTS_H_(GreaterOrEqual,>=)
 #undef SHAREMIND_CONCEPTS_H_
 
+SHAREMIND_DEFINE_CONCEPT(Integral) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE(std::is_integral<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(Signed) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE(std::is_signed<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(Unsigned) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE(std::is_unsigned<T>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(SignedIntegral) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(Integral(T), Signed(T));
+};
+
+SHAREMIND_DEFINE_CONCEPT(UnsignedIntegral) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(Integral(T), Unsigned(T));
+};
+
 SHAREMIND_DEFINE_CONCEPT(Iterator) {
     template <typename T>
     auto check(T && t) -> ValidTypes<

@@ -223,6 +223,9 @@ TEST_COMPARISION_CONCEPT(GreaterThan,>)
 TEST_COMPARISION_CONCEPT(GreaterOrEqual,>=)
 
 
+/// \todo Add tests for Integral, Signed, Unsigned, (Signed|Unsigned)Integral
+
+
 // Test Iterator:
 
 #ifdef _LIBCPP_VERSION
