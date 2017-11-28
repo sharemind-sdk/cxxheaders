@@ -37,6 +37,11 @@ template <typename ...> struct ValidTypes;
 
 namespace Detail {
 
+template <typename T>
+using IteratorT = decltype(std::begin(std::declval<T &>()));
+template <typename T>
+using SentinelT = decltype(std::end(std::declval<T &>()));
+
 enum class RequiresConceptResult { Succeed };
 
 template <typename Concept, typename = void>
@@ -378,6 +383,31 @@ SHAREMIND_DEFINE_CONCEPT(RandomAccessIterator) {
                           typename std::iterator_traits<T>::difference_type>()))
     >;
 
+};
+
+SHAREMIND_DEFINE_CONCEPT(Range) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                ForwardIterator(Detail::IteratorT<T>),
+                EqualityComparable(Detail::IteratorT<T>,
+                                   Detail::SentinelT<T>),
+                EqualityComparable(Detail::SentinelT<T>,
+                                   Detail::IteratorT<T>),
+                InequalityComparable(Detail::IteratorT<T>,
+                                     Detail::SentinelT<T>),
+                InequalityComparable(Detail::SentinelT<T>,
+                                     Detail::IteratorT<T>)
+            );
+};
+
+SHAREMIND_DEFINE_CONCEPT(RangeTo) {
+    template <typename T, typename ValueType>
+    auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
+                    Range(T),
+                    Same(typename std::iterator_traits<
+                                typename Detail::IteratorT<T> >::value_type,
+                         ValueType)
+                );
 };
 
 SHAREMIND_DEFINE_CONCEPT(ValueSwappable) {

@@ -507,6 +507,57 @@ RETURNS_TRUE(testRandomAccessIterator(
 RETURNS_FALSE(testRandomAccessIterator(42));
 
 
+// Test Range:
+
+/// \todo Improve Range tests
+template <typename T>
+struct TestRange {
+    T * begin();
+    T const * begin() const;
+    constexpr decltype(nullptr) end() const noexcept { return nullptr; }
+};
+template <typename T>
+struct TestRangeBounded {
+    T * begin();
+    T const * begin() const;
+    T * end();
+    T const * end() const;
+};
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Range(T))>
+std::true_type testRange(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(Range(T)))>
+std::false_type testRange(T && t);
+RETURNS_TRUE(testRange(std::declval<TestRange<int> &>()));
+RETURNS_TRUE(testRange(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testRange(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testRange(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testRange(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testRange(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testRange(42));
+
+
+// Test RangeTo:
+
+/// \todo Improve RangeTo tests
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(RangeTo(T, int))>
+std::true_type testRangeTo(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(RangeTo(T, int)))>
+std::false_type testRangeTo(T && t);
+RETURNS_TRUE(testRangeTo(std::declval<TestRange<int> &>()));
+RETURNS_TRUE(testRangeTo(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testRangeTo(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testRangeTo(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testRangeTo(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testRangeTo(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testRangeTo(std::declval<TestRange<long> &>()));
+RETURNS_FALSE(testRangeTo(std::declval<TestRange<long> const &>()));
+RETURNS_FALSE(testRangeTo(std::declval<TestRangeBounded<long> &>()));
+RETURNS_FALSE(testRangeTo(std::declval<TestRangeBounded<long> const &>()));
+RETURNS_FALSE(testRangeTo(std::declval<std::vector<long> &>()));
+RETURNS_FALSE(testRangeTo(std::declval<std::vector<long> const &>()));
+RETURNS_FALSE(testRangeTo(42));
+
+
 // Test ValueSwappable:
 
 /// \todo Improve ValueSwappable tests
