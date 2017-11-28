@@ -474,6 +474,22 @@ SHAREMIND_DEFINE_CONCEPT(ForwardRangeTo) {
                 );
 };
 
+SHAREMIND_DEFINE_CONCEPT(BidirectionalRange) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                    ForwardRange(T),
+                    BidirectionalIterator(Detail::IteratorT<T>)
+                );
+};
+
+SHAREMIND_DEFINE_CONCEPT(BidirectionalRangeTo) {
+    template <typename T, typename ValueType>
+    auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
+                    ForwardRangeTo(T, ValueType),
+                    BidirectionalIterator(Detail::IteratorT<T>)
+                );
+};
+
 SHAREMIND_DEFINE_CONCEPT(ValueSwappable) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(

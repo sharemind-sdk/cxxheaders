@@ -764,6 +764,101 @@ RETURNS_FALSE(testForwardRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testForwardRangeTo(42));
 
 
+// Test BidirectionalRange:
+
+template <typename T>
+struct TestBidirectionalRangeIterator: TestBidirectionalIterator<T> {
+    using TestBidirectionalIterator<T>::TestBidirectionalIterator;
+    TestBidirectionalRangeIterator & operator++();
+    TestBidirectionalRangeIterator operator++(int);
+    TestBidirectionalRangeIterator & operator--();
+    TestBidirectionalRangeIterator operator--(int);
+};
+template <typename T>
+void swap(TestBidirectionalRangeIterator<T> &,
+          TestBidirectionalRangeIterator<T> &);
+template <typename T>
+bool operator==(TestBidirectionalRangeIterator<T> const &,
+                decltype(nullptr) const &);
+template <typename T>
+bool operator==(decltype(nullptr) const &,
+                TestBidirectionalRangeIterator<T> const &);
+template <typename T>
+bool operator!=(TestBidirectionalRangeIterator<T> const &,
+                decltype(nullptr) const &);
+template <typename T>
+bool operator!=(decltype(nullptr) const &,
+                TestBidirectionalRangeIterator<T> const &);
+template <typename T>
+struct TestBidirectionalRange
+        : TestRange<
+            T,
+            TestBidirectionalRangeIterator<T>,
+            TestBidirectionalRangeIterator<T const>
+        >
+{};
+template <typename T>
+struct TestBidirectionalRangeBounded
+        : TestRangeBounded<
+            T,
+            TestBidirectionalRangeIterator<T>,
+            TestBidirectionalRangeIterator<T const>
+        >
+{};
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(BidirectionalRange(T))>
+std::true_type testBidirectionalRange(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(BidirectionalRange(T)))>
+std::false_type testBidirectionalRange(T && t);
+RETURNS_TRUE(testBidirectionalRange(std::declval<TestRange<int> &>()));
+RETURNS_TRUE(testBidirectionalRange(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testBidirectionalRange(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testBidirectionalRange(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testBidirectionalRange(std::declval<TestBidirectionalRange<int> &>()));
+RETURNS_TRUE(testBidirectionalRange(std::declval<TestBidirectionalRange<int> const &>()));
+RETURNS_TRUE(testBidirectionalRange(std::declval<TestBidirectionalRangeBounded<int> &>()));
+RETURNS_TRUE(testBidirectionalRange(
+                 std::declval<TestBidirectionalRangeBounded<int> const &>()));
+RETURNS_TRUE(testBidirectionalRange(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testBidirectionalRange(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testBidirectionalRange(42));
+
+
+// Test BidirectionalRangeTo:
+
+/// \todo Improve BidirectionalRangeTo tests
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(BidirectionalRangeTo(T, int))>
+std::true_type testBidirectionalRangeTo(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(BidirectionalRangeTo(T, int)))>
+std::false_type testBidirectionalRangeTo(T && t);
+RETURNS_TRUE(testBidirectionalRangeTo(std::declval<TestRange<int> &>()));
+RETURNS_TRUE(testBidirectionalRangeTo(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testBidirectionalRangeTo(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testBidirectionalRangeTo(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testBidirectionalRangeTo(std::declval<TestBidirectionalRange<int> &>()));
+RETURNS_TRUE(testBidirectionalRangeTo(std::declval<TestBidirectionalRange<int> const &>()));
+RETURNS_TRUE(testBidirectionalRangeTo(
+                 std::declval<TestBidirectionalRangeBounded<int> &>()));
+RETURNS_TRUE(testBidirectionalRangeTo(
+                 std::declval<TestBidirectionalRangeBounded<int> const &>()));
+RETURNS_TRUE(testBidirectionalRangeTo(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testBidirectionalRangeTo(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testBidirectionalRangeTo(std::declval<TestRange<long> &>()));
+RETURNS_FALSE(testBidirectionalRangeTo(std::declval<TestRange<long> const &>()));
+RETURNS_FALSE(testBidirectionalRangeTo(std::declval<TestRangeBounded<long> &>()));
+RETURNS_FALSE(testBidirectionalRangeTo(
+                  std::declval<TestRangeBounded<long> const &>()));
+RETURNS_FALSE(testBidirectionalRangeTo(std::declval<TestBidirectionalRange<long> &>()));
+RETURNS_FALSE(testBidirectionalRangeTo(
+                  std::declval<TestBidirectionalRange<long> const &>()));
+RETURNS_FALSE(testBidirectionalRangeTo(
+                  std::declval<TestBidirectionalRangeBounded<long> &>()));
+RETURNS_FALSE(testBidirectionalRangeTo(
+                  std::declval<TestBidirectionalRangeBounded<long> const &>()));
+RETURNS_FALSE(testBidirectionalRangeTo(std::declval<std::vector<long> &>()));
+RETURNS_FALSE(testBidirectionalRangeTo(std::declval<std::vector<long> const &>()));
+RETURNS_FALSE(testBidirectionalRangeTo(42));
+
+
 // Test ValueSwappable:
 
 /// \todo Improve ValueSwappable tests
