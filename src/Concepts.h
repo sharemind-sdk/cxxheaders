@@ -137,6 +137,19 @@ SHAREMIND_DEFINE_CONCEPT(BinaryPredicate) {
             );
 };
 
+SHAREMIND_DEFINE_CONCEPT(Constructible) {
+    template <typename T, typename ... Args>
+    auto check(T && t, Args && ... args)
+            -> SHAREMIND_REQUIRE(std::is_constructible<T, Args...>::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(NothrowConstructible) {
+    template <typename T, typename ... Args>
+    auto check(T && t, Args && ... args)
+            -> SHAREMIND_REQUIRE(
+                    std::is_nothrow_constructible<T, Args...>::value);
+};
+
 SHAREMIND_DEFINE_CONCEPT(DefaultConstructible) {
     template <typename T>
     auto check(T && t)
