@@ -103,6 +103,48 @@ struct NotNoexceptPrefixIncrementableCallable: WeirdCallable {
 RETURNS_FALSE(g(std::declval<NotNoexceptPrefixIncrementableCallable>()));
 
 
+// Test UnaryPredicate:
+
+struct TestUnaryPredicate {
+    bool operator()(int const);
+    static bool check(int const);
+    static bool check2(long const);
+};
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(UnaryPredicate(T, int))>
+std::true_type testUnaryPredicate(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(UnaryPredicate(T, int)))>
+std::false_type testUnaryPredicate(T && t);
+RETURNS_TRUE(testUnaryPredicate(std::declval<TestUnaryPredicate>()));
+RETURNS_TRUE(testUnaryPredicate(std::declval<TestUnaryPredicate &>()));
+RETURNS_TRUE(testUnaryPredicate(TestUnaryPredicate::check));
+RETURNS_TRUE(testUnaryPredicate(&TestUnaryPredicate::check));
+RETURNS_TRUE(testUnaryPredicate(TestUnaryPredicate::check2));
+RETURNS_TRUE(testUnaryPredicate(&TestUnaryPredicate::check2));
+RETURNS_FALSE(testUnaryPredicate(0));
+
+
+// Test BinaryPredicate:
+
+struct TestBinaryPredicate {
+    bool operator()(int const, int *);
+    static bool check(int const, int *);
+    static bool check2(long const, int *);
+};
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(BinaryPredicate(T, int, int *))>
+std::true_type testBinaryPredicate(T && t);
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(Not(BinaryPredicate(T, int, int *)))>
+std::false_type testBinaryPredicate(T && t);
+RETURNS_TRUE(testBinaryPredicate(std::declval<TestBinaryPredicate>()));
+RETURNS_TRUE(testBinaryPredicate(std::declval<TestBinaryPredicate &>()));
+RETURNS_TRUE(testBinaryPredicate(TestBinaryPredicate::check));
+RETURNS_TRUE(testBinaryPredicate(&TestBinaryPredicate::check));
+RETURNS_TRUE(testBinaryPredicate(TestBinaryPredicate::check2));
+RETURNS_TRUE(testBinaryPredicate(&TestBinaryPredicate::check2));
+RETURNS_FALSE(testBinaryPredicate(0));
+
+
 // Test Same:
 
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Same(T, bool))>

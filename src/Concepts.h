@@ -116,6 +116,27 @@ SHAREMIND_DEFINE_CONCEPT(Callable) {
             -> decltype(t(std::forward<Args>(args)...));
 };
 
+SHAREMIND_DEFINE_CONCEPT(UnaryPredicate) {
+    template <typename T, typename Arg>
+    auto check(T && t, Arg && arg) -> SHAREMIND_REQUIRE_CONCEPTS(
+                Callable(T, Arg),
+                ConvertibleTo(
+                    decltype(std::forward<T>(t)(std::forward<Arg>(arg))),
+                    bool)
+            );
+};
+
+SHAREMIND_DEFINE_CONCEPT(BinaryPredicate) {
+    template <typename T, typename A, typename B>
+    auto check(T && t, A && a, B && b) -> SHAREMIND_REQUIRE_CONCEPTS(
+                Callable(T, A, B),
+                ConvertibleTo(
+                    decltype(std::forward<T>(t)(std::forward<A>(a),
+                                                std::forward<B>(b))),
+                    bool)
+            );
+};
+
 SHAREMIND_DEFINE_CONCEPT(DefaultConstructible) {
     template <typename T>
     auto check(T && t)
