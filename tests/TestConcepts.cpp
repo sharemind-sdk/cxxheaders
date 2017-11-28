@@ -123,7 +123,7 @@ RETURNS_TRUE(testNot(0));
 RETURNS_FALSE(testNot(true));
 
 
-// Test BaseOf, Not:
+// Test BaseOf:
 
 struct TestBaseOfBaseBase {};
 struct TestBaseOfBase: TestBaseOfBaseBase {};
@@ -139,6 +139,20 @@ RETURNS_TRUE(testBaseOf(std::declval<TestBaseOf>()));
 RETURNS_TRUE(testBaseOf(std::declval<TestBaseOfDerived>()));
 RETURNS_TRUE(testBaseOf(std::declval<TestBaseOfBase>()));
 RETURNS_FALSE(testBaseOf(std::declval<TestBaseOfBaseBase>()));
+
+
+// Test DerivedFrom:
+
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(DerivedFrom(T, TestBaseOfBase))>
+std::true_type testDerivedFrom(T && t);
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(Not(DerivedFrom(T, TestBaseOfBase)))>
+std::false_type testDerivedFrom(T && t);
+RETURNS_TRUE(testDerivedFrom(std::declval<TestBaseOf>()));
+RETURNS_TRUE(testDerivedFrom(std::declval<TestBaseOfDerived>()));
+RETURNS_TRUE(testDerivedFrom(std::declval<TestBaseOfBase>()));
+RETURNS_FALSE(testDerivedFrom(std::declval<TestBaseOfBaseBase>()));
 
 
 // Test Swappable:
