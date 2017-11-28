@@ -116,7 +116,7 @@ public: /* Methods: */
                   &m_data[0]);
     }
 
-    inline Hash hash() const noexcept
+    inline HashValue hash() const noexcept
     { return hashRawData(&m_data[0u], m_data.size()); }
 
     inline void clear() noexcept { m_data.clear(); }
@@ -212,7 +212,8 @@ private: /* Fields: */
 
 };
 
-inline Hash hash_value(Datum const & datum) noexcept { return datum.hash(); }
+inline HashValue hash_value(Datum const & datum) noexcept
+{ return datum.hash(); }
 
 } /* namespace sharemind { */
 
