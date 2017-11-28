@@ -22,6 +22,7 @@
 
 #include <cstddef>
 #include <iterator>
+#include <sharemind/compiler-support/GccVersion.h>
 #include <type_traits>
 #include <utility>
 #include "TemplateAll.h"
@@ -168,9 +169,24 @@ namespace Concepts {
 
 using ::std::swap;
 
+#if !defined(SHAREMIND_GCC_VERSION) || SHAREMIND_GCC_VERSION >= 60000
 template <typename T, typename U>
-auto adl_swap(T && t, U && u)
-        -> decltype(swap(std::forward<T>(t), std::forward<U>(u)));
+auto adl_swap(T && t, U && u) ->
+        decltype(swap(std::forward<T>(t), std::forward<U>(u)));
+#else
+/* Work around GCC PR 63860: */
+template <typename T, typename U>
+auto adl_swap(T && t, U && u) -> ValidTypes<
+            decltype(swap(std::forward<T>(t), std::forward<U>(u))),
+            SHAREMIND_REQUIRE(std::is_move_constructible<T>::value),
+            SHAREMIND_REQUIRE(std::is_move_assignable<T>::value)
+        >;
+template <typename T, std::size_t N, typename U>
+auto adl_swap(T (&t)[N], U (&u)[N]) -> ValidTypes<
+            decltype(swap(std::forward<T>(t), std::forward<U>(u))),
+            decltype(adl_swap(std::declval<T>(), std::declval<U>()))
+        >;
+#endif
 
 } /* namespace Concepts { */
 } /* namespace Detail { */
