@@ -110,6 +110,12 @@ SHAREMIND_DEFINE_CONCEPT(ConvertibleTo) {
             -> SHAREMIND_REQUIRE(std::is_convertible<From, To>::value);
 };
 
+SHAREMIND_DEFINE_CONCEPT(DecaysTo) {
+    template <typename A, typename B>
+    auto check(A &&, B &&)
+            -> SHAREMIND_REQUIRE_CONCEPTS(Same(typename std::decay<A>::type,B));
+};
+
 SHAREMIND_DEFINE_CONCEPT(Callable) {
     template <typename T, typename ... Args>
     auto check(T && t, Args && ... args)

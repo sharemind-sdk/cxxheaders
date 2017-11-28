@@ -214,6 +214,21 @@ RETURNS_TRUE(testConvertibleTo(std::declval<TestConvertibleToSource1>()));
 RETURNS_FALSE(testConvertibleTo(std::declval<TestConvertibleToSource2>()));
 
 
+// Test DecaysTo:
+
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(DecaysTo(T, int))>
+std::true_type testDecaysTo(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(DecaysTo(T, int)))>
+std::false_type testDecaysTo(T && t);
+RETURNS_TRUE(testDecaysTo(std::declval<int>()));
+RETURNS_TRUE(testDecaysTo(std::declval<int const>()));
+RETURNS_TRUE(testDecaysTo(std::declval<int &>()));
+RETURNS_TRUE(testDecaysTo(std::declval<int const &>()));
+RETURNS_TRUE(testDecaysTo(std::declval<int &&>()));
+RETURNS_TRUE(testDecaysTo(std::declval<int const &&>()));
+RETURNS_FALSE(testDecaysTo(std::declval<char>()));
+
+
 // Test Swappable:
 
 /// \todo Improve Swappable tests:
