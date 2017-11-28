@@ -558,6 +558,43 @@ RETURNS_FALSE(testRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testRangeTo(42));
 
 
+// Test BoundedRange:
+
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(BoundedRange(T))>
+std::true_type testBoundedRange(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(BoundedRange(T)))>
+std::false_type testBoundedRange(T && t);
+RETURNS_FALSE(testBoundedRange(std::declval<TestRange<int> &>()));
+RETURNS_FALSE(testBoundedRange(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testBoundedRange(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testBoundedRange(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testBoundedRange(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testBoundedRange(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testBoundedRange(42));
+
+
+// Test BoundedRangeTo:
+
+/// \todo Improve BoundedRangeTo tests
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(BoundedRangeTo(T, int))>
+std::true_type testBoundedRangeTo(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(BoundedRangeTo(T, int)))>
+std::false_type testBoundedRangeTo(T && t);
+RETURNS_FALSE(testBoundedRangeTo(std::declval<TestRange<int> &>()));
+RETURNS_FALSE(testBoundedRangeTo(std::declval<TestRange<int> const &>()));
+RETURNS_TRUE(testBoundedRangeTo(std::declval<TestRangeBounded<int> &>()));
+RETURNS_TRUE(testBoundedRangeTo(std::declval<TestRangeBounded<int> const &>()));
+RETURNS_TRUE(testBoundedRangeTo(std::declval<std::vector<int> &>()));
+RETURNS_TRUE(testBoundedRangeTo(std::declval<std::vector<int> const &>()));
+RETURNS_FALSE(testBoundedRangeTo(std::declval<TestRange<long> &>()));
+RETURNS_FALSE(testBoundedRangeTo(std::declval<TestRange<long> const &>()));
+RETURNS_FALSE(testBoundedRangeTo(std::declval<TestRangeBounded<long> &>()));
+RETURNS_FALSE(testBoundedRangeTo(
+                  std::declval<TestRangeBounded<long> const &>()));
+RETURNS_FALSE(testBoundedRangeTo(std::declval<std::vector<long> &>()));
+RETURNS_FALSE(testBoundedRangeTo(std::declval<std::vector<long> const &>()));
+RETURNS_FALSE(testBoundedRangeTo(42));
+
 // Test ValueSwappable:
 
 /// \todo Improve ValueSwappable tests

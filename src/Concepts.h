@@ -410,6 +410,22 @@ SHAREMIND_DEFINE_CONCEPT(RangeTo) {
                 );
 };
 
+SHAREMIND_DEFINE_CONCEPT(BoundedRange) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                    Range(T),
+                    Same(Detail::IteratorT<T>, Detail::SentinelT<T>)
+                );
+};
+
+SHAREMIND_DEFINE_CONCEPT(BoundedRangeTo) {
+    template <typename T, typename ValueType>
+    auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
+                    RangeTo(T, ValueType),
+                    Same(Detail::IteratorT<T>, Detail::SentinelT<T>)
+                );
+};
+
 SHAREMIND_DEFINE_CONCEPT(ValueSwappable) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
