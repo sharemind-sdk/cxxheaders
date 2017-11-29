@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Cybernetica
+ * Copyright (C) Cybernetica
  *
  * Research/Commercial License Usage
  * Licensees holding a valid Research License or Commercial License
