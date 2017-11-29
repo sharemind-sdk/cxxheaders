@@ -25,6 +25,7 @@
 #include <sharemind/compiler-support/GccVersion.h>
 #include <type_traits>
 #include <utility>
+#include "Iterator.h"
 #include "Size.h"
 #include "TemplateAll.h"
 #include "TemplateAny.h"
@@ -366,14 +367,13 @@ SHAREMIND_DEFINE_CONCEPT(Iterator) {
                     CopyAssignable(T),
                     Destructible(T),
                     Swappable(T &),
-                    Same(decltype(*t),
-                         typename std::iterator_traits<T>::reference),
+                    Same(decltype(*t), IteratorReferenceT<T>),
                     Same(decltype(++t), T &)),
-                typename std::iterator_traits<T>::value_type,
-                typename std::iterator_traits<T>::difference_type,
-                typename std::iterator_traits<T>::reference,
-                typename std::iterator_traits<T>::pointer,
-                typename std::iterator_traits<T>::iterator_category
+                IteratorCategoryT<T>,
+                IteratorValueTypeT<T>,
+                IteratorDifferenceTypeT<T>,
+                IteratorPointerT<T>,
+                IteratorReferenceT<T>
             >;
 };
 
@@ -381,7 +381,7 @@ SHAREMIND_DEFINE_CONCEPT(IteratorTo) {
     template <typename It, typename ValueType>
     auto check(It && it, ValueType && valueType) -> SHAREMIND_REQUIRE_CONCEPTS(
                 Iterator(It),
-                Same(typename std::iterator_traits<It>::value_type, ValueType)
+                Same(IteratorValueTypeT<It>, ValueType)
             );
 };
 
@@ -392,12 +392,9 @@ SHAREMIND_DEFINE_CONCEPT(InputIterator) {
                     Iterator(T),
                     EqualityComparable(T),
                     InequalityComparable(T),
-                    ConvertibleTo(decltype(*t),
-                                  typename std::iterator_traits<T>::value_type),
-                    ConvertibleTo(decltype(*t++),
-                                  typename std::iterator_traits<T>::value_type),
-                    Same(decltype(*t),
-                         typename std::iterator_traits<T>::reference)),
+                    ConvertibleTo(decltype(*t), IteratorValueTypeT<T>),
+                    ConvertibleTo(decltype(*t++), IteratorValueTypeT<T>),
+                    Same(decltype(*t), IteratorReferenceT<T>)),
                 decltype((void)t++)
             >;
 };
@@ -410,9 +407,9 @@ SHAREMIND_DEFINE_CONCEPT(OutputIterator) {
                 ConvertibleTo(decltype(t++), T const &),
                 Same(decltype(++t), T &)),
             decltype(*t =
-                std::declval<typename std::iterator_traits<T>::value_type>()),
+                std::declval<IteratorValueTypeT<T> >()),
             decltype(*t++ =
-                std::declval<typename std::iterator_traits<T>::value_type>())
+                std::declval<IteratorValueTypeT<T> >())
         >;
 };
 
@@ -422,14 +419,12 @@ SHAREMIND_DEFINE_CONCEPT(ForwardIterator) {
                 InputIterator(T),
                 DefaultConstructible(T),
                 ConvertibleTo(decltype(t++), T const &),
-                Same(decltype(*t++),
-                     typename std::iterator_traits<T>::reference),
-                Same(typename std::iterator_traits<T>::reference,
+                Same(decltype(*t++), IteratorReferenceT<T>),
+                Same(IteratorReferenceT<T>,
                      typename std::conditional<
                          Models<OutputIterator(T)>::value,
-                         typename std::iterator_traits<T>::value_type &,
-                         typename std::iterator_traits<T>::value_type
-                             const &
+                         IteratorValueTypeT<T> &,
+                         IteratorValueTypeT<T> const &
                      >::type)
             );
 };
@@ -440,8 +435,7 @@ SHAREMIND_DEFINE_CONCEPT(BidirectionalIterator) {
                 ForwardIterator(T),
                 ConvertibleTo(decltype(t--), T const &),
                 Same(decltype(--t), T &),
-                Same(decltype(*t--),
-                     typename std::iterator_traits<T>::reference)
+                Same(decltype(*t--), IteratorReferenceT<T>)
             );
 };
 
@@ -449,8 +443,7 @@ SHAREMIND_DEFINE_CONCEPT(RandomAccessIterator) {
 
     template <typename T, typename DiffT>
     auto check_(T && t, DiffT n) -> SHAREMIND_REQUIRE_CONCEPTS(
-                ConvertibleTo(decltype(t[n]),
-                              typename std::iterator_traits<T>::reference),
+                ConvertibleTo(decltype(t[n]), IteratorReferenceT<T>),
                 Same(decltype(t += n), T &),
                 Same(decltype(t -= n), T &),
                 Same(decltype(t + n), T),
@@ -468,8 +461,7 @@ SHAREMIND_DEFINE_CONCEPT(RandomAccessIterator) {
                 GreaterThanComparable(T),
                 GreaterOrEqualComparable(T)),
         decltype(check_(std::forward<T>(t),
-                        std::declval<
-                          typename std::iterator_traits<T>::difference_type>()))
+                        std::declval<IteratorDifferenceTypeT<T> >()))
     >;
 
 };
