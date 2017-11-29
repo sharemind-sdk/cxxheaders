@@ -606,22 +606,35 @@ SHAREMIND_DEFINE_CONCEPT(NullablePointer) {
 };
 
 SHAREMIND_DEFINE_CONCEPT(Hash) {
-    template <typename T, typename Key>
-    auto check(T && t, Key && key) -> ValidTypes<
-                SHAREMIND_REQUIRE(std::is_object<T>::value),
+    template <typename Key> struct ConvertibleToKey { operator Key(); };
+    template <typename Key> struct ConvertibleToCKey { operator Key const(); };
+    template <typename H, typename Key>
+    auto check(H &&, Key &&) -> ValidTypes<
+                SHAREMIND_REQUIRE(std::is_object<H>::value),
                 SHAREMIND_REQUIRE_CONCEPTS(
-                    CopyConstructible(T),
-                    Destructible(T),
-                    Same(decltype(std::declval<T &>()(std::declval<Key>())),
+                    CopyConstructible(H),
+                    Destructible(H),
+                    /* Check return type of h(u) where h is a (possibly const)
+                       value of H and u is an lvalue of type Key: */
+                    Same(decltype(std::declval<H &>()(std::declval<Key &>())),
                          std::size_t),
-                    Same(decltype(std::declval<T&>()(
-                                      std::declval<Key const>())),
+                    Same(decltype(std::declval<H const &>()(
+                                      std::declval<Key &>())),
                          std::size_t),
-                    Same(decltype(std::declval<T const &>()(
-                                      std::declval<Key>())),
+                    /* Check return type of h(u) where h is a (possibly const)
+                       value of H and k is a value of a type convertible to
+                       (possibly const) Key. */
+                    Same(decltype(std::declval<H &>()(
+                                      std::declval<ConvertibleToKey<Key> >())),
                          std::size_t),
-                    Same(decltype(std::declval<T const &>()(
-                                      std::declval<Key const>())),
+                    Same(decltype(std::declval<H const &>()(
+                                      std::declval<ConvertibleToKey<Key> >())),
+                         std::size_t),
+                    Same(decltype(std::declval<H &>()(
+                                      std::declval<ConvertibleToCKey<Key> >())),
+                         std::size_t),
+                    Same(decltype(std::declval<H const &>()(
+                                      std::declval<ConvertibleToCKey<Key> >())),
                          std::size_t)
                 )
             >;
