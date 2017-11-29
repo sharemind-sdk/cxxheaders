@@ -21,6 +21,8 @@
 #define SHAREMIND_ITERATOR_H
 
 #include <iterator>
+#include <utility>
+#include "Concepts.h"
 
 
 namespace sharemind {
@@ -40,6 +42,122 @@ using IteratorPointerT = typename std::iterator_traits<T>::pointer;
 
 template <typename T>
 using IteratorReferenceT = typename std::iterator_traits<T>::reference;
+
+
+SHAREMIND_DEFINE_CONCEPT(Iterator) {
+    template <typename T>
+    auto check(T && t) -> ValidTypes<
+                SHAREMIND_REQUIRE_CONCEPTS(
+                    CopyConstructible(T),
+                    CopyAssignable(T),
+                    Destructible(T),
+                    Swappable(T &),
+                    Same(decltype(*t), IteratorReferenceT<T>),
+                    Same(decltype(++t), T &)),
+                IteratorCategoryT<T>,
+                IteratorValueTypeT<T>,
+                IteratorDifferenceTypeT<T>,
+                IteratorPointerT<T>,
+                IteratorReferenceT<T>
+            >;
+};
+
+SHAREMIND_DEFINE_CONCEPT(IteratorTo) {
+    template <typename It, typename ValueType>
+    auto check(It && it, ValueType && valueType) -> SHAREMIND_REQUIRE_CONCEPTS(
+                Iterator(It),
+                Same(IteratorValueTypeT<It>, ValueType)
+            );
+};
+
+SHAREMIND_DEFINE_CONCEPT(InputIterator) {
+    template <typename T>
+    auto check(T && t) -> ValidTypes<
+                SHAREMIND_REQUIRE_CONCEPTS(
+                    Iterator(T),
+                    EqualityComparable(T),
+                    InequalityComparable(T),
+                    ConvertibleTo(decltype(*t), IteratorValueTypeT<T>),
+                    ConvertibleTo(decltype(*t++), IteratorValueTypeT<T>),
+                    Same(decltype(*t), IteratorReferenceT<T>)),
+                decltype((void)t++)
+            >;
+};
+
+SHAREMIND_DEFINE_CONCEPT(OutputIterator) {
+    template <typename T>
+    auto check(T && t) -> ValidTypes<
+            SHAREMIND_REQUIRE_CONCEPTS(
+                Iterator(T),
+                ConvertibleTo(decltype(t++), T const &),
+                Same(decltype(++t), T &)),
+            decltype(*t =
+                std::declval<IteratorValueTypeT<T> >()),
+            decltype(*t++ =
+                std::declval<IteratorValueTypeT<T> >())
+        >;
+};
+
+SHAREMIND_DEFINE_CONCEPT(ForwardIterator) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                InputIterator(T),
+                DefaultConstructible(T),
+                ConvertibleTo(decltype(t++), T const &),
+                Same(decltype(*t++), IteratorReferenceT<T>),
+                Same(IteratorReferenceT<T>,
+                     typename std::conditional<
+                         Models<OutputIterator(T)>::value,
+                         IteratorValueTypeT<T> &,
+                         IteratorValueTypeT<T> const &
+                     >::type)
+            );
+};
+
+SHAREMIND_DEFINE_CONCEPT(BidirectionalIterator) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                ForwardIterator(T),
+                ConvertibleTo(decltype(t--), T const &),
+                Same(decltype(--t), T &),
+                Same(decltype(*t--), IteratorReferenceT<T>)
+            );
+};
+
+SHAREMIND_DEFINE_CONCEPT(RandomAccessIterator) {
+
+    template <typename T, typename DiffT>
+    auto check_(T && t, DiffT n) -> SHAREMIND_REQUIRE_CONCEPTS(
+                ConvertibleTo(decltype(t[n]), IteratorReferenceT<T>),
+                Same(decltype(t += n), T &),
+                Same(decltype(t -= n), T &),
+                Same(decltype(t + n), T),
+                Same(decltype(n + t), T),
+                Same(decltype(t - n), T),
+                Same(decltype(t - t), DiffT)
+            );
+
+    template <typename T>
+    auto check(T && t) -> ValidTypes<
+        SHAREMIND_REQUIRE_CONCEPTS(
+                BidirectionalIterator(T),
+                LessThanComparable(T),
+                LessOrEqualComparable(T),
+                GreaterThanComparable(T),
+                GreaterOrEqualComparable(T)),
+        decltype(check_(std::forward<T>(t),
+                        std::declval<IteratorDifferenceTypeT<T> >()))
+    >;
+
+};
+
+SHAREMIND_DEFINE_CONCEPT(ValueSwappable) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+                Iterator(T),
+                Swappable(decltype(*t))
+            );
+};
 
 } /* namespace sharemind { */
 
