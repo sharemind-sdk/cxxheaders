@@ -34,6 +34,7 @@
 #if __cplusplus < 201402L
 #include "IntegralComparisons.h"
 #endif
+#include "Range.h"
 
 
 namespace sharemind {
