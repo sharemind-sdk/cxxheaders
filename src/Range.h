@@ -24,6 +24,7 @@
 #include <utility>
 #include <type_traits>
 #include "Concepts.h"
+#include "Size.h"
 
 
 namespace sharemind {

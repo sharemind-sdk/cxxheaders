@@ -26,7 +26,6 @@
 #include <type_traits>
 #include <utility>
 #include "Iterator.h"
-#include "Size.h"
 #include "TemplateAll.h"
 #include "TemplateAny.h"
 #include "TemplateNone.h"
