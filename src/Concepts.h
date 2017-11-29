@@ -25,6 +25,7 @@
 #include <sharemind/compiler-support/GccVersion.h>
 #include <type_traits>
 #include <utility>
+#include "Range.h"
 #include "Size.h"
 #include "TemplateAll.h"
 #include "TemplateAny.h"
@@ -39,11 +40,6 @@ struct Concept {};
 template <typename ...> struct ValidTypes;
 
 namespace Detail {
-
-template <typename T>
-using IteratorT = decltype(std::begin(std::declval<T &>()));
-template <typename T>
-using SentinelT = decltype(std::end(std::declval<T &>()));
 
 enum class RequiresConceptResult { Succeed };
 
@@ -482,15 +478,11 @@ SHAREMIND_DEFINE_CONCEPT(RandomAccessIterator) {
 SHAREMIND_DEFINE_CONCEPT(Range) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
-                ForwardIterator(Detail::IteratorT<T>),
-                EqualityComparable(Detail::IteratorT<T>,
-                                   Detail::SentinelT<T>),
-                EqualityComparable(Detail::SentinelT<T>,
-                                   Detail::IteratorT<T>),
-                InequalityComparable(Detail::IteratorT<T>,
-                                     Detail::SentinelT<T>),
-                InequalityComparable(Detail::SentinelT<T>,
-                                     Detail::IteratorT<T>)
+                ForwardIterator(RangeIteratorT<T>),
+                EqualityComparable(RangeIteratorT<T>, RangeSentinelT<T>),
+                EqualityComparable(RangeSentinelT<T>, RangeIteratorT<T>),
+                InequalityComparable(RangeIteratorT<T>, RangeSentinelT<T>),
+                InequalityComparable(RangeSentinelT<T>, RangeIteratorT<T>)
             );
 };
 
@@ -499,7 +491,7 @@ SHAREMIND_DEFINE_CONCEPT(RangeTo) {
     auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
                     Range(T),
                     Same(typename std::iterator_traits<
-                                typename Detail::IteratorT<T> >::value_type,
+                                RangeIteratorT<T> >::value_type,
                          ValueType)
                 );
 };
@@ -508,7 +500,7 @@ SHAREMIND_DEFINE_CONCEPT(BoundedRange) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
                     Range(T),
-                    Same(Detail::IteratorT<T>, Detail::SentinelT<T>)
+                    Same(RangeIteratorT<T>, RangeSentinelT<T>)
                 );
 };
 
@@ -516,7 +508,7 @@ SHAREMIND_DEFINE_CONCEPT(BoundedRangeTo) {
     template <typename T, typename ValueType>
     auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
                     RangeTo(T, ValueType),
-                    Same(Detail::IteratorT<T>, Detail::SentinelT<T>)
+                    Same(RangeIteratorT<T>, RangeSentinelT<T>)
                 );
 };
 
@@ -528,9 +520,7 @@ SHAREMIND_DEFINE_CONCEPT(SizedRange) {
             decltype(
                 size(std::declval<
                         typename std::remove_reference<T>::type const &>())),
-            typename std::iterator_traits<
-                    Detail::IteratorT<T>
-            >::difference_type)
+            typename std::iterator_traits<RangeIteratorT<T> >::difference_type)
     );
 };
 
@@ -542,9 +532,7 @@ SHAREMIND_DEFINE_CONCEPT(SizedRangeTo) {
             decltype(
                 size(std::declval<
                         typename std::remove_reference<T>::type const &>())),
-            typename std::iterator_traits<
-                    Detail::IteratorT<T>
-            >::difference_type)
+            typename std::iterator_traits<RangeIteratorT<T> >::difference_type)
     );
 };
 
@@ -552,7 +540,7 @@ SHAREMIND_DEFINE_CONCEPT(InputRange) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
                     Range(T),
-                    InputIterator(Detail::IteratorT<T>)
+                    InputIterator(RangeIteratorT<T>)
                 );
 };
 
@@ -560,7 +548,7 @@ SHAREMIND_DEFINE_CONCEPT(InputRangeTo) {
     template <typename T, typename ValueType>
     auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
                     RangeTo(T, ValueType),
-                    InputIterator(Detail::IteratorT<T>)
+                    InputIterator(RangeIteratorT<T>)
                 );
 };
 
@@ -568,7 +556,7 @@ SHAREMIND_DEFINE_CONCEPT(OutputRange) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
                     Range(T),
-                    OutputIterator(Detail::IteratorT<T>)
+                    OutputIterator(RangeIteratorT<T>)
                 );
 };
 
@@ -576,7 +564,7 @@ SHAREMIND_DEFINE_CONCEPT(OutputRangeTo) {
     template <typename T, typename ValueType>
     auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
                     RangeTo(T, ValueType),
-                    OutputIterator(Detail::IteratorT<T>)
+                    OutputIterator(RangeIteratorT<T>)
                 );
 };
 
@@ -584,7 +572,7 @@ SHAREMIND_DEFINE_CONCEPT(ForwardRange) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
                     InputRange(T),
-                    ForwardIterator(Detail::IteratorT<T>)
+                    ForwardIterator(RangeIteratorT<T>)
                 );
 };
 
@@ -592,7 +580,7 @@ SHAREMIND_DEFINE_CONCEPT(ForwardRangeTo) {
     template <typename T, typename ValueType>
     auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
                     InputRangeTo(T, ValueType),
-                    ForwardIterator(Detail::IteratorT<T>)
+                    ForwardIterator(RangeIteratorT<T>)
                 );
 };
 
@@ -600,7 +588,7 @@ SHAREMIND_DEFINE_CONCEPT(BidirectionalRange) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
                     ForwardRange(T),
-                    BidirectionalIterator(Detail::IteratorT<T>)
+                    BidirectionalIterator(RangeIteratorT<T>)
                 );
 };
 
@@ -608,7 +596,7 @@ SHAREMIND_DEFINE_CONCEPT(BidirectionalRangeTo) {
     template <typename T, typename ValueType>
     auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
                     ForwardRangeTo(T, ValueType),
-                    BidirectionalIterator(Detail::IteratorT<T>)
+                    BidirectionalIterator(RangeIteratorT<T>)
                 );
 };
 
@@ -616,7 +604,7 @@ SHAREMIND_DEFINE_CONCEPT(RandomAccessRange) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
                     BidirectionalRange(T),
-                    RandomAccessIterator(Detail::IteratorT<T>)
+                    RandomAccessIterator(RangeIteratorT<T>)
                 );
 };
 
@@ -624,7 +612,7 @@ SHAREMIND_DEFINE_CONCEPT(RandomAccessRangeTo) {
     template <typename T, typename ValueType>
     auto check(T && t, ValueType && v) -> SHAREMIND_REQUIRE_CONCEPTS(
                     BidirectionalRangeTo(T, ValueType),
-                    RandomAccessIterator(Detail::IteratorT<T>)
+                    RandomAccessIterator(RangeIteratorT<T>)
                 );
 };
 
