@@ -44,6 +44,16 @@ template <typename T>
 using IteratorReferenceT = typename std::iterator_traits<T>::reference;
 
 
+#define SHAREMIND_ITERATOR_H_TO(Name) \
+    SHAREMIND_DEFINE_CONCEPT(Name ## To) { \
+        template <typename It, typename ValueType> \
+        auto check(It && it, ValueType && valueType)  \
+                -> SHAREMIND_REQUIRE_CONCEPTS( \
+                    Name(It), \
+                    Same(IteratorValueTypeT<It>, ValueType) \
+                ); \
+    };
+
 SHAREMIND_DEFINE_CONCEPT(Iterator) {
     template <typename T>
     auto check(T && t) -> ValidTypes<
@@ -61,14 +71,8 @@ SHAREMIND_DEFINE_CONCEPT(Iterator) {
                 IteratorReferenceT<T>
             >;
 };
+SHAREMIND_ITERATOR_H_TO(Iterator)
 
-SHAREMIND_DEFINE_CONCEPT(IteratorTo) {
-    template <typename It, typename ValueType>
-    auto check(It && it, ValueType && valueType) -> SHAREMIND_REQUIRE_CONCEPTS(
-                Iterator(It),
-                Same(IteratorValueTypeT<It>, ValueType)
-            );
-};
 
 SHAREMIND_DEFINE_CONCEPT(InputIterator) {
     template <typename T>
@@ -83,6 +87,8 @@ SHAREMIND_DEFINE_CONCEPT(InputIterator) {
                 decltype((void)t++)
             >;
 };
+SHAREMIND_ITERATOR_H_TO(InputIterator)
+
 
 SHAREMIND_DEFINE_CONCEPT(OutputIterator) {
     template <typename T>
@@ -97,6 +103,8 @@ SHAREMIND_DEFINE_CONCEPT(OutputIterator) {
                 std::declval<IteratorValueTypeT<T> >())
         >;
 };
+SHAREMIND_ITERATOR_H_TO(OutputIterator)
+
 
 SHAREMIND_DEFINE_CONCEPT(ForwardIterator) {
     template <typename T>
@@ -113,6 +121,8 @@ SHAREMIND_DEFINE_CONCEPT(ForwardIterator) {
                      >::type)
             );
 };
+SHAREMIND_ITERATOR_H_TO(ForwardIterator)
+
 
 SHAREMIND_DEFINE_CONCEPT(BidirectionalIterator) {
     template <typename T>
@@ -123,6 +133,8 @@ SHAREMIND_DEFINE_CONCEPT(BidirectionalIterator) {
                 Same(decltype(*t--), IteratorReferenceT<T>)
             );
 };
+SHAREMIND_ITERATOR_H_TO(BidirectionalIterator)
+
 
 SHAREMIND_DEFINE_CONCEPT(RandomAccessIterator) {
 
@@ -150,6 +162,11 @@ SHAREMIND_DEFINE_CONCEPT(RandomAccessIterator) {
     >;
 
 };
+SHAREMIND_ITERATOR_H_TO(RandomAccessIterator)
+
+
+#undef SHAREMIND_ITERATOR_H_TO
+
 
 SHAREMIND_DEFINE_CONCEPT(ValueSwappable) {
     template <typename T>
