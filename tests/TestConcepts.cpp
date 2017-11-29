@@ -531,7 +531,7 @@ RETURNS_TRUE(testForwardIterator(std::declval<TestForwardIterator<int const> >()
 RETURNS_FALSE(testForwardIterator(42));
 
 
-// Test ForwardIterator:
+// Test BidirectionalIterator:
 
 template <typename T>
 struct TestBidirectionalIterator: TestIteratorBase<T> {
