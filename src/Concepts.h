@@ -72,10 +72,10 @@ using Models = TemplateAll<Detail::ModelsConcept<Cs>::value...>;
     ::sharemind::Detail::RequiresConceptResult::Succeed
 
 #define SHAREMIND_REQUIRE_CONCEPTS(...) \
-    SHAREMIND_REQUIRE(Models<__VA_ARGS__>::value)
+    SHAREMIND_REQUIRE(::sharemind::Models<__VA_ARGS__>::value)
 
 #define SHAREMIND_REQUIRE_CONCEPTS_R(r,...) \
-    SHAREMIND_REQUIRE_R(r, Models<__VA_ARGS__>::value)
+    SHAREMIND_REQUIRE_R(r, ::sharemind::Models<__VA_ARGS__>::value)
 
 #define SHAREMIND_REQUIRES(...) \
     SHAREMIND_REQUIRE(__VA_ARGS__) = SHAREMIND_REQUIRE_DEFAULTVALUE
