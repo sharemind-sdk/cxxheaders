@@ -27,6 +27,8 @@
 #include <utility>
 #include "Size.h"
 #include "TemplateAll.h"
+#include "TemplateAny.h"
+#include "TemplateNone.h"
 #include "Void.h"
 
 
@@ -89,9 +91,57 @@ SHAREMIND_DEFINE_CONCEPT(Same) {
     auto check(A &&, B &&) -> SHAREMIND_REQUIRE(std::is_same<A, B>::value);
 };
 
+namespace Detail {
+namespace Concepts {
+
+template <typename T> struct UnpointerFunction;
+template <typename C, typename ... Ts> struct UnpointerFunction<C(*)(Ts...)>
+{ using type = C(Ts...); };
+
+template <typename T>
+using NormalizedConceptT =
+        typename UnpointerFunction<typename std::decay<T>::type>::type;
+
+} /* namespace Concepts { */
+} /* namespace Detail { */
+
+
 SHAREMIND_DEFINE_CONCEPT(Not) {
-    template <typename C, typename ... Ts>
-    auto check(C(Ts...)) -> SHAREMIND_REQUIRE(!Models<C(Ts...)>::value);
+    template <typename Cs>
+    auto check(Cs &&) -> SHAREMIND_REQUIRE(
+                !Detail::ModelsConcept<
+                    Detail::Concepts::NormalizedConceptT<Cs>
+                >::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(All) {
+    template <typename ... Cs>
+    auto check(Cs && ...) -> SHAREMIND_REQUIRE(
+                TemplateAll<
+                    Detail::ModelsConcept<
+                        Detail::Concepts::NormalizedConceptT<Cs>
+                    >::value...
+                >::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(Any) {
+    template <typename ... Cs>
+    auto check(Cs && ...) -> SHAREMIND_REQUIRE(
+                TemplateAny<
+                    Detail::ModelsConcept<
+                        Detail::Concepts::NormalizedConceptT<Cs>
+                    >::value...
+                >::value);
+};
+
+SHAREMIND_DEFINE_CONCEPT(None) {
+    template <typename ... Cs>
+    auto check(Cs && ...) -> SHAREMIND_REQUIRE(
+                TemplateNone<
+                    Detail::ModelsConcept<
+                        Detail::Concepts::NormalizedConceptT<Cs>
+                    >::value...
+                >::value);
 };
 
 SHAREMIND_DEFINE_CONCEPT(BaseOf) {

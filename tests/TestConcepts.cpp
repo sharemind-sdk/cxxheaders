@@ -155,7 +155,7 @@ RETURNS_TRUE(testSame(true));
 RETURNS_FALSE(testSame(0));
 
 
-// Test Not, Same:
+// Test Not:
 
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Same(T, int))>
 std::true_type testNot(T && t);
@@ -163,6 +163,72 @@ template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(Same(T, int)))>
 std::false_type testNot(T && t);
 RETURNS_TRUE(testNot(0));
 RETURNS_FALSE(testNot(true));
+
+
+// Test All:
+
+template <typename A, typename B, typename C,
+          SHAREMIND_REQUIRES_CONCEPTS(All(Same(A, int),
+                                          Same(B, int),
+                                          Same(C, int)))>
+std::true_type testAll(A && a, B && b, C && c);
+template <typename A, typename B, typename C,
+          SHAREMIND_REQUIRES_CONCEPTS(Not(All(Same(A, int),
+                                              Same(B, int),
+                                              Same(C, int))))>
+std::false_type testAll(A && a, B && b, C && c);
+RETURNS_TRUE(testAll(0, 0, 0));
+RETURNS_FALSE(testAll(0, 0, 0l));
+RETURNS_FALSE(testAll(0, 0l, 0));
+RETURNS_FALSE(testAll(0, 0l, 0l));
+RETURNS_FALSE(testAll(0l, 0, 0));
+RETURNS_FALSE(testAll(0l, 0, 0l));
+RETURNS_FALSE(testAll(0l, 0l, 0));
+RETURNS_FALSE(testAll(0l, 0l, 0l));
+
+
+// Test Any:
+
+template <typename A, typename B, typename C,
+          SHAREMIND_REQUIRES_CONCEPTS(Any(Same(A, int),
+                                          Same(B, int),
+                                          Same(C, int)))>
+std::true_type testAny(A && a, B && b, C && c);
+template <typename A, typename B, typename C,
+          SHAREMIND_REQUIRES_CONCEPTS(Not(Any(Same(A, int),
+                                              Same(B, int),
+                                              Same(C, int))))>
+std::false_type testAny(A && a, B && b, C && c);
+RETURNS_TRUE(testAny(0, 0, 0));
+RETURNS_TRUE(testAny(0, 0, 0l));
+RETURNS_TRUE(testAny(0, 0l, 0));
+RETURNS_TRUE(testAny(0, 0l, 0l));
+RETURNS_TRUE(testAny(0l, 0, 0));
+RETURNS_TRUE(testAny(0l, 0, 0l));
+RETURNS_TRUE(testAny(0l, 0l, 0));
+RETURNS_FALSE(testAny(0l, 0l, 0l));
+
+
+// Test None:
+
+template <typename A, typename B, typename C,
+          SHAREMIND_REQUIRES_CONCEPTS(None(Same(A, int),
+                                           Same(B, int),
+                                           Same(C, int)))>
+std::true_type testNone(A && a, B && b, C && c);
+template <typename A, typename B, typename C,
+          SHAREMIND_REQUIRES_CONCEPTS(Not(None(Same(A, int),
+                                               Same(B, int),
+                                               Same(C, int))))>
+std::false_type testNone(A && a, B && b, C && c);
+RETURNS_FALSE(testNone(0, 0, 0));
+RETURNS_FALSE(testNone(0, 0, 0l));
+RETURNS_FALSE(testNone(0, 0l, 0));
+RETURNS_FALSE(testNone(0, 0l, 0l));
+RETURNS_FALSE(testNone(0l, 0, 0));
+RETURNS_FALSE(testNone(0l, 0, 0l));
+RETURNS_FALSE(testNone(0l, 0l, 0));
+RETURNS_TRUE(testNone(0l, 0l, 0l));
 
 
 // Test BaseOf:
