@@ -99,6 +99,13 @@ SHAREMIND_RANGE_H_CHAIN(Forward, InputRange);
 SHAREMIND_RANGE_H_CHAIN(Bidirectional, ForwardRange);
 SHAREMIND_RANGE_H_CHAIN(RandomAccess, BidirectionalRange);
 
+SHAREMIND_DEFINE_CONCEPT(MeasurableRange) {
+    template <typename T>
+    auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
+        Any(All(BoundedRange(T), RandomAccessRange(T)), SizedRange(T)));
+};
+SHAREMIND_RANGE_H_TO(MeasurableRange);
+
 #undef SHAREMIND_RANGE_H_CHAIN
 #undef SHAREMIND_RANGE_H_TO
 

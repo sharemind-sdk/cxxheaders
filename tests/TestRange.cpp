@@ -600,6 +600,8 @@ RETURNS_TRUE(testRandomAccessRangeToChar(
                  "This is a fixed-length char const array"));
 
 
+/// \todo Test MeasurableRange
+
 // Test asLiteralRange():
 
 template <typename T,
