@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_RANGE_H
 #define SHAREMIND_RANGE_H
 
+#include <cstddef>
 #include <iterator>
 #include <utility>
 #include <type_traits>
@@ -100,6 +101,33 @@ SHAREMIND_RANGE_H_CHAIN(RandomAccess, BidirectionalRange);
 
 #undef SHAREMIND_RANGE_H_CHAIN
 #undef SHAREMIND_RANGE_H_TO
+
+template <typename CharT, std::size_t N>
+class LiteralStringRange {
+
+    static_assert(N > 0u, "");
+    static_assert(std::is_const<CharT>::value, "");
+
+public: /* Methods: */
+
+    LiteralStringRange(CharT (& begin)[N]) : m_begin(begin) {}
+
+    CharT * begin()  const noexcept { return m_begin; }
+    CharT * cbegin() const noexcept { return m_begin; }
+    CharT * end()  const noexcept   { return m_begin + size(); }
+    CharT * cend() const noexcept   { return m_begin + size(); }
+    constexpr static std::size_t size() noexcept { return N - 1u; }
+
+private: /* Types: */
+
+    CharT * m_begin;
+
+};
+
+template <typename CharT, std::size_t N>
+constexpr LiteralStringRange<CharT, N> asLiteralStringRange(
+        CharT (& literal)[N]) noexcept
+{ return LiteralStringRange<CharT const, N>(literal); }
 
 } /* namespace Sharemind { */
 

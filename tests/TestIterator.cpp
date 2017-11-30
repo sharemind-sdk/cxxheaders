@@ -288,4 +288,6 @@ RETURNS_FALSE(testValueSwappable(std::declval<TestValueSwappableIt3>()));
 RETURNS_FALSE(testValueSwappable(std::declval<TestValueSwappableIt4>()));
 RETURNS_FALSE(testValueSwappable(42));
 
+#ifndef SHAREMIND_CXXHEADERS_TEST_NO_MAIN
 int main() {}
+#endif

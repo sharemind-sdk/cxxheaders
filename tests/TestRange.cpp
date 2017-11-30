@@ -19,11 +19,18 @@
 
 #include "../src/Range.h"
 
+#include <sharemind/TestAssert.h>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
+#ifdef SHAREMIND_CXXHEADERS_TEST_NO_MAIN
 #include "TestIterator.cpp"
+#else
+#define SHAREMIND_CXXHEADERS_TEST_NO_MAIN
+#include "TestIterator.cpp"
+#undef SHAREMIND_CXXHEADERS_TEST_NO_MAIN
+#endif
 
 
 // Test Range:
@@ -591,3 +598,70 @@ template <typename T,
 std::false_type testRandomAccessRangeToChar(T && t);
 RETURNS_TRUE(testRandomAccessRangeToChar(
                  "This is a fixed-length char const array"));
+
+
+// Test asLiteralRange():
+
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(RandomAccessRangeTo(T, char))>
+std::true_type testRangeReference(T && t);
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(Not(RandomAccessRangeTo(T, char)))>
+std::false_type testRandomAccessRangeToChar(T && t);
+
+static_assert(decltype(asLiteralStringRange("Test"))::size() == 4u, "");
+void testAsLiteralStringRange() {
+    static_assert(noexcept(asLiteralStringRange("Test")), "");
+    auto const t(asLiteralStringRange("Test"));
+    using T = decltype(t);
+    RETURNS_TRUE(testBoundedRangeToChar(t));
+    RETURNS_TRUE(testSizedRange(t));
+    RETURNS_TRUE(testRandomAccessRange(t));
+    static_assert(std::is_same<RangeIteratorT<T>, char const *>::value, "");
+    SHAREMIND_TESTASSERT(t.size() == 4u);
+    SHAREMIND_TESTASSERT(t.end() == t.begin() + 4u);
+
+    static char const another[] = "AnotherTest";
+    static_assert(sizeof(another) == 12u, "");
+
+    static_assert(noexcept(asLiteralStringRange(another)), "");
+    auto const t2(asLiteralStringRange(another));
+    using T2 = decltype(t2);
+    RETURNS_TRUE(testBoundedRangeToChar(t2));
+    RETURNS_TRUE(testSizedRange(t2));
+    RETURNS_TRUE(testRandomAccessRange(t2));
+    static_assert(std::is_same<RangeIteratorT<T2>, char const *>::value, "");
+    SHAREMIND_TESTASSERT(t2.size() == sizeof(another) - 1u);
+    SHAREMIND_TESTASSERT(t2.begin() == another);
+    SHAREMIND_TESTASSERT(t2.end() == another + (sizeof(another) - 1u));
+
+    static char yetAnother[] = "YetAnotherTest";
+    static_assert(sizeof(yetAnother) == 15u, "");
+    auto const t3(asLiteralStringRange(another));
+    using T3 = decltype(t3);
+    RETURNS_TRUE(testBoundedRangeToChar(t3));
+    RETURNS_TRUE(testSizedRange(t3));
+    RETURNS_TRUE(testRandomAccessRangeToChar(t3));
+    static_assert(std::is_same<RangeIteratorT<T3>, char const *>::value, "");
+    SHAREMIND_TESTASSERT(t3.size() == sizeof(another) - 1u);
+    SHAREMIND_TESTASSERT(t3.begin() == another);
+    SHAREMIND_TESTASSERT(t3.end() == another + (sizeof(another) - 1u));
+
+    static_assert(std::is_same<
+                        IteratorValueTypeT<RangeIteratorT<T> >,
+                        char
+                  >::value, "");
+    static_assert(std::is_same<
+                        IteratorValueTypeT<RangeIteratorT<T2> >,
+                        char
+                  >::value, "");
+    static_assert(std::is_same<
+                        IteratorValueTypeT<RangeIteratorT<T3> >,
+                        char
+                  >::value, "");
+}
+
+
+int main() {
+    testAsLiteralStringRange();
+}
