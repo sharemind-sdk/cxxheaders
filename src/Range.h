@@ -136,6 +136,22 @@ constexpr LiteralStringRange<CharT, N> asLiteralStringRange(
         CharT (& literal)[N]) noexcept
 { return LiteralStringRange<CharT const, N>(literal); }
 
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(SizedRange(T))>
+auto measureRange(T && t) noexcept(noexcept(size(std::declval<T &&>())))
+        -> decltype(size(std::forward<T>(t)))
+{ return size(std::forward<T>(t)); }
+
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                Not(SizedRange(T)),
+                BoundedRange(T),
+                RandomAccessRange(T))>
+auto measureRange(T && t)
+    noexcept(noexcept(std::end(std::declval<T &>())
+                      - std::begin(std::declval<T &>())))
+        -> decltype(std::end(t) - std::begin(t))
+{ return std::end(t) - std::begin(t); }
+
 } /* namespace Sharemind { */
 
 

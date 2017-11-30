@@ -664,6 +664,8 @@ void testAsLiteralStringRange() {
 }
 
 
+/// \todo Test measureRange()
+
 int main() {
     testAsLiteralStringRange();
 }
