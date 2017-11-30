@@ -120,6 +120,8 @@ RETURNS_TRUE(testUnaryPredicate(&TestUnaryPredicate::check2));
 RETURNS_FALSE(testUnaryPredicate(0));
 
 
+// Test Predicate(s):
+
 // Test BinaryPredicate:
 
 struct TestBinaryPredicate {
@@ -140,6 +142,30 @@ RETURNS_TRUE(testBinaryPredicate(&TestBinaryPredicate::check));
 RETURNS_TRUE(testBinaryPredicate(TestBinaryPredicate::check2));
 RETURNS_TRUE(testBinaryPredicate(&TestBinaryPredicate::check2));
 RETURNS_FALSE(testBinaryPredicate(0));
+
+
+// Test TrinaryPredicate:
+
+struct TestTrinaryPredicate {
+    bool operator()(int const, int *, double *&);
+    static bool check(int const, int *, double *&);
+    static bool check2(long const, int *, double *&);
+};
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                TrinaryPredicate(T, int, int *, double *&))>
+std::true_type testTrinaryPredicate(T && t);
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                Not(TrinaryPredicate(T, int, int *, double *&)))>
+std::false_type testTrinaryPredicate(T && t);
+RETURNS_TRUE(testTrinaryPredicate(std::declval<TestTrinaryPredicate>()));
+RETURNS_TRUE(testTrinaryPredicate(std::declval<TestTrinaryPredicate &>()));
+RETURNS_TRUE(testTrinaryPredicate(TestTrinaryPredicate::check));
+RETURNS_TRUE(testTrinaryPredicate(&TestTrinaryPredicate::check));
+RETURNS_TRUE(testTrinaryPredicate(TestTrinaryPredicate::check2));
+RETURNS_TRUE(testTrinaryPredicate(&TestTrinaryPredicate::check2));
+RETURNS_FALSE(testTrinaryPredicate(0));
 
 
 // Test Same:
