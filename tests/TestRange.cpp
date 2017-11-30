@@ -605,13 +605,6 @@ RETURNS_TRUE(testRandomAccessRangeToChar(
 
 // Test asLiteralRange():
 
-template <typename T,
-          SHAREMIND_REQUIRES_CONCEPTS(RandomAccessRangeTo(T, char))>
-std::true_type testRangeReference(T && t);
-template <typename T,
-          SHAREMIND_REQUIRES_CONCEPTS(Not(RandomAccessRangeTo(T, char)))>
-std::false_type testRandomAccessRangeToChar(T && t);
-
 static_assert(decltype(asLiteralStringRange("Test"))::size() == 4u, "");
 void testAsLiteralStringRange() {
     static_assert(noexcept(asLiteralStringRange("Test")), "");
