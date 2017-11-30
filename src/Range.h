@@ -30,6 +30,17 @@
 
 
 namespace sharemind {
+namespace Detail {
+
+template <typename T>
+using DecayRangeT =
+        typename std::conditional<
+            std::is_array<typename std::remove_reference<T>::type>::value,
+            T,
+            typename std::decay<T>::type
+        >::type;
+
+} /* namespace Detail { */
 
 template <typename T>
 using RangeIteratorT = decltype(std::begin(std::declval<T &>()));
@@ -151,6 +162,119 @@ auto measureRange(T && t)
                       - std::begin(std::declval<T &>())))
         -> decltype(std::end(t) - std::begin(t))
 { return std::end(t) - std::begin(t); }
+
+template <
+        typename A,
+        typename B,
+        SHAREMIND_REQUIRES_CONCEPTS(
+            InputRange(Detail::DecayRangeT<A>),
+            InputRange(Detail::DecayRangeT<B>),
+            EqualityComparable(
+                IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<A> > >,
+                IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<B> > >),
+            None(MeasurableRange(Detail::DecayRangeT<A>),
+                 MeasurableRange(Detail::DecayRangeT<B>))
+        )>
+bool rangeEqual(A && a, B && b) {
+    auto aIt(std::begin(a));
+    auto aEnd(std::end(a));
+    auto bIt(std::begin(b));
+    auto bEnd(std::end(b));
+    while (!static_cast<bool>(aIt == aEnd)) {
+        if (static_cast<bool>(bIt == bEnd) || !static_cast<bool>(*aIt == *bIt))
+            return false;
+        ++aIt;
+        ++bIt;
+    }
+    return bIt == bEnd;
+}
+
+template <
+        typename A,
+        typename B,
+        SHAREMIND_REQUIRES_CONCEPTS(
+            InputRange(Detail::DecayRangeT<A>),
+            InputRange(Detail::DecayRangeT<B>),
+            EqualityComparable(
+                IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<A> > >,
+                IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<B> > >),
+            MeasurableRange(Detail::DecayRangeT<A>),
+            Not(MeasurableRange(Detail::DecayRangeT<B>))
+        )>
+bool rangeEqual(A && a, B && b) {
+    auto bIt(std::begin(b));
+    auto bEnd(std::end(b));
+    auto s = measureRange(a);
+    if (bIt == bEnd)
+        return s <= 0u;
+    if (s > 0u) {
+        for (auto aIt = std::begin(a); *aIt == *bIt; ++aIt) {
+            if (++bIt == bEnd)
+                return --s <= 0u;
+            if (--s <= 0u)
+                return false;
+        }
+    }
+    return false;
+}
+
+template <
+        typename A,
+        typename B,
+        SHAREMIND_REQUIRES_CONCEPTS(
+            InputRange(Detail::DecayRangeT<A>),
+            InputRange(Detail::DecayRangeT<B>),
+            EqualityComparable(
+                IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<A> > >,
+                IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<B> > >),
+            Not(MeasurableRange(Detail::DecayRangeT<A>)),
+            MeasurableRange(Detail::DecayRangeT<B>)
+        )>
+bool rangeEqual(A && a, B && b) {
+    auto aIt(std::begin(a));
+    auto aEnd(std::end(a));
+    auto s = measureRange(b);
+    if (aIt == aEnd)
+        return s <= 0u;
+    if (s > 0u) {
+        for (auto bIt = std::begin(b); *aIt == *bIt; ++bIt) {
+            if (++aIt == aEnd)
+                return --s <= 0u;
+            if (--s <= 0u)
+                return false;
+        }
+    }
+    return false;
+}
+
+template <
+        typename A,
+        typename B,
+        SHAREMIND_REQUIRES_CONCEPTS(
+            InputRange(Detail::DecayRangeT<A>),
+            InputRange(Detail::DecayRangeT<B>),
+            EqualityComparable(
+                IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<A> > >,
+                IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<B> > >),
+            MeasurableRange(Detail::DecayRangeT<A>),
+            MeasurableRange(Detail::DecayRangeT<B>)
+        )>
+bool rangeEqual(A && a, B && b) {
+    auto s = measureRange(a);
+    if (s != measureRange(b))
+        return false;
+    if (s <= 0u)
+        return true;
+    auto aIt(std::begin(a));
+    auto bIt(std::begin(b));
+    do {
+        if (!static_cast<bool>(*aIt == *bIt))
+            return false;
+        ++aIt;
+        ++bIt;
+    } while (--s > 0u);
+    return true;
+}
 
 } /* namespace Sharemind { */
 
