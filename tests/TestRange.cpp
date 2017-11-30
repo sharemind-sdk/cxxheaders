@@ -600,7 +600,8 @@ RETURNS_TRUE(testRandomAccessRangeToChar(
                  "This is a fixed-length char const array"));
 
 
-/// \todo Test MeasurableRange
+/// \todo Test ConstantTimeMeasurableRange
+
 
 // Test asLiteralRange():
 

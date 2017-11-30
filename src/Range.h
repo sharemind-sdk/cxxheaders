@@ -110,12 +110,12 @@ SHAREMIND_RANGE_H_CHAIN(Forward, InputRange);
 SHAREMIND_RANGE_H_CHAIN(Bidirectional, ForwardRange);
 SHAREMIND_RANGE_H_CHAIN(RandomAccess, BidirectionalRange);
 
-SHAREMIND_DEFINE_CONCEPT(MeasurableRange) {
+SHAREMIND_DEFINE_CONCEPT(ConstantTimeMeasurableRange) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
         Any(All(BoundedRange(T), RandomAccessRange(T)), SizedRange(T)));
 };
-SHAREMIND_RANGE_H_TO(MeasurableRange);
+SHAREMIND_RANGE_H_TO(ConstantTimeMeasurableRange);
 
 #undef SHAREMIND_RANGE_H_CHAIN
 #undef SHAREMIND_RANGE_H_TO
@@ -172,8 +172,8 @@ template <
             EqualityComparable(
                 IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<A> > >,
                 IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<B> > >),
-            None(MeasurableRange(Detail::DecayRangeT<A>),
-                 MeasurableRange(Detail::DecayRangeT<B>))
+            None(ConstantTimeMeasurableRange(Detail::DecayRangeT<A>),
+                 ConstantTimeMeasurableRange(Detail::DecayRangeT<B>))
         )>
 bool rangeEqual(A && a, B && b) {
     auto aIt(std::begin(a));
@@ -198,8 +198,8 @@ template <
             EqualityComparable(
                 IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<A> > >,
                 IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<B> > >),
-            MeasurableRange(Detail::DecayRangeT<A>),
-            Not(MeasurableRange(Detail::DecayRangeT<B>))
+            ConstantTimeMeasurableRange(Detail::DecayRangeT<A>),
+            Not(ConstantTimeMeasurableRange(Detail::DecayRangeT<B>))
         )>
 bool rangeEqual(A && a, B && b) {
     auto bIt(std::begin(b));
@@ -227,8 +227,8 @@ template <
             EqualityComparable(
                 IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<A> > >,
                 IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<B> > >),
-            Not(MeasurableRange(Detail::DecayRangeT<A>)),
-            MeasurableRange(Detail::DecayRangeT<B>)
+            Not(ConstantTimeMeasurableRange(Detail::DecayRangeT<A>)),
+            ConstantTimeMeasurableRange(Detail::DecayRangeT<B>)
         )>
 bool rangeEqual(A && a, B && b) {
     auto aIt(std::begin(a));
@@ -256,8 +256,8 @@ template <
             EqualityComparable(
                 IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<A> > >,
                 IteratorValueTypeT<RangeIteratorT<Detail::DecayRangeT<B> > >),
-            MeasurableRange(Detail::DecayRangeT<A>),
-            MeasurableRange(Detail::DecayRangeT<B>)
+            ConstantTimeMeasurableRange(Detail::DecayRangeT<A>),
+            ConstantTimeMeasurableRange(Detail::DecayRangeT<B>)
         )>
 bool rangeEqual(A && a, B && b) {
     auto s = measureRange(a);
