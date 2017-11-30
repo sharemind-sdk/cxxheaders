@@ -50,6 +50,7 @@ template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Range(T))>
 std::true_type testRange(T && t);
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(Range(T)))>
 std::false_type testRange(T && t);
+RETURNS_TRUE(testRange("This is a fixed-length char const array"));
 RETURNS_TRUE(testRange(std::declval<TestRange<int> &>()));
 RETURNS_TRUE(testRange(std::declval<TestRange<int> const &>()));
 RETURNS_TRUE(testRange(std::declval<TestRangeBounded<int> &>()));
@@ -79,6 +80,11 @@ RETURNS_FALSE(testRangeTo(std::declval<TestRangeBounded<long> const &>()));
 RETURNS_FALSE(testRangeTo(std::declval<std::vector<long> &>()));
 RETURNS_FALSE(testRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testRangeTo(42));
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(RangeTo(T, char))>
+std::true_type testRangeToChar(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(RangeTo(T, char)))>
+std::false_type testRangeToChar(T && t);
+RETURNS_TRUE(testRangeToChar("This is a fixed-length char const array"));
 
 
 // Test BoundedRange:
@@ -87,6 +93,7 @@ template <typename T, SHAREMIND_REQUIRES_CONCEPTS(BoundedRange(T))>
 std::true_type testBoundedRange(T && t);
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(BoundedRange(T)))>
 std::false_type testBoundedRange(T && t);
+RETURNS_TRUE(testBoundedRange("This is a fixed-length char const array"));
 RETURNS_FALSE(testBoundedRange(std::declval<TestRange<int> &>()));
 RETURNS_FALSE(testBoundedRange(std::declval<TestRange<int> const &>()));
 RETURNS_TRUE(testBoundedRange(std::declval<TestRangeBounded<int> &>()));
@@ -117,6 +124,11 @@ RETURNS_FALSE(testBoundedRangeTo(
 RETURNS_FALSE(testBoundedRangeTo(std::declval<std::vector<long> &>()));
 RETURNS_FALSE(testBoundedRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testBoundedRangeTo(42));
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(BoundedRangeTo(T, char))>
+std::true_type testBoundedRangeToChar(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(BoundedRangeTo(T, char)))>
+std::false_type testBoundedRangeToChar(T && t);
+RETURNS_TRUE(testBoundedRangeToChar("This is a fixed-length char const array"));
 
 
 // Test SizedRange:
@@ -183,6 +195,7 @@ template <typename T, SHAREMIND_REQUIRES_CONCEPTS(InputRange(T))>
 std::true_type testInputRange(T && t);
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(InputRange(T)))>
 std::false_type testInputRange(T && t);
+RETURNS_TRUE(testInputRange("This is a fixed-length char const array"));
 RETURNS_TRUE(testInputRange(std::declval<TestRange<int> &>()));
 RETURNS_TRUE(testInputRange(std::declval<TestRange<int> const &>()));
 RETURNS_TRUE(testInputRange(std::declval<TestRangeBounded<int> &>()));
@@ -213,6 +226,11 @@ RETURNS_FALSE(testInputRangeTo(
 RETURNS_FALSE(testInputRangeTo(std::declval<std::vector<long> &>()));
 RETURNS_FALSE(testInputRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testInputRangeTo(42));
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(InputRangeTo(T, char))>
+std::true_type testInputRangeToChar(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(InputRangeTo(T, char)))>
+std::false_type testInputRangeToChar(T && t);
+RETURNS_TRUE(testInputRangeToChar("This is a fixed-length char const array"));
 
 
 // Test OutputRange:
@@ -291,6 +309,7 @@ template <typename T, SHAREMIND_REQUIRES_CONCEPTS(ForwardRange(T))>
 std::true_type testForwardRange(T && t);
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(ForwardRange(T)))>
 std::false_type testForwardRange(T && t);
+RETURNS_TRUE(testForwardRange("This is a fixed-length char const array"));
 RETURNS_TRUE(testForwardRange(std::declval<TestRange<int> &>()));
 RETURNS_TRUE(testForwardRange(std::declval<TestRange<int> const &>()));
 RETURNS_TRUE(testForwardRange(std::declval<TestRangeBounded<int> &>()));
@@ -339,6 +358,11 @@ RETURNS_FALSE(testForwardRangeTo(
 RETURNS_FALSE(testForwardRangeTo(std::declval<std::vector<long> &>()));
 RETURNS_FALSE(testForwardRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testForwardRangeTo(42));
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(ForwardRangeTo(T, char))>
+std::true_type testForwardRangeToChar(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(ForwardRangeTo(T, char)))>
+std::false_type testForwardRangeToChar(T && t);
+RETURNS_TRUE(testForwardRangeToChar("This is a fixed-length char const array"));
 
 
 // Test BidirectionalRange:
@@ -386,6 +410,7 @@ template <typename T, SHAREMIND_REQUIRES_CONCEPTS(BidirectionalRange(T))>
 std::true_type testBidirectionalRange(T && t);
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(BidirectionalRange(T)))>
 std::false_type testBidirectionalRange(T && t);
+RETURNS_TRUE(testBidirectionalRange("This is a fixed-length char const array"));
 RETURNS_TRUE(testBidirectionalRange(std::declval<TestRange<int> &>()));
 RETURNS_TRUE(testBidirectionalRange(std::declval<TestRange<int> const &>()));
 RETURNS_TRUE(testBidirectionalRange(std::declval<TestRangeBounded<int> &>()));
@@ -434,6 +459,14 @@ RETURNS_FALSE(testBidirectionalRangeTo(
 RETURNS_FALSE(testBidirectionalRangeTo(std::declval<std::vector<long> &>()));
 RETURNS_FALSE(testBidirectionalRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testBidirectionalRangeTo(42));
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(BidirectionalRangeTo(T, char))>
+std::true_type testBidirectionalRangeToChar(T && t);
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(Not(BidirectionalRangeTo(T, char)))>
+std::false_type testBidirectionalRangeToChar(T && t);
+RETURNS_TRUE(testBidirectionalRangeToChar(
+                 "This is a fixed-length char const array"));
 
 
 // Test RandomAccessRange:
@@ -501,6 +534,7 @@ template <typename T, SHAREMIND_REQUIRES_CONCEPTS(RandomAccessRange(T))>
 std::true_type testRandomAccessRange(T && t);
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(RandomAccessRange(T)))>
 std::false_type testRandomAccessRange(T && t);
+RETURNS_TRUE(testRandomAccessRange("This is a fixed-length char const array"));
 RETURNS_TRUE(testRandomAccessRange(std::declval<TestRange<int> &>()));
 RETURNS_TRUE(testRandomAccessRange(std::declval<TestRange<int> const &>()));
 RETURNS_TRUE(testRandomAccessRange(std::declval<TestRangeBounded<int> &>()));
@@ -549,3 +583,11 @@ RETURNS_FALSE(testRandomAccessRangeTo(
 RETURNS_FALSE(testRandomAccessRangeTo(std::declval<std::vector<long> &>()));
 RETURNS_FALSE(testRandomAccessRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testRandomAccessRangeTo(42));
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(RandomAccessRangeTo(T, char))>
+std::true_type testRandomAccessRangeToChar(T && t);
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(Not(RandomAccessRangeTo(T, char)))>
+std::false_type testRandomAccessRangeToChar(T && t);
+RETURNS_TRUE(testRandomAccessRangeToChar(
+                 "This is a fixed-length char const array"));
