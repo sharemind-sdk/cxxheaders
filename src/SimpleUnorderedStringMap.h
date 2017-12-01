@@ -45,10 +45,7 @@ struct Hasher {
 
     template <typename T>
     auto operator()(T && v) const noexcept
-            -> SHAREMIND_REQUIRE_CONCEPTS_R(
-                    std::size_t,
-                    ForwardRangeTo(T, char)
-                )
+            -> SHAREMIND_REQUIRE_CONCEPTS_R(std::size_t, InputRangeTo(T, char))
     { return boost::hash_range(std::begin(v), std::end(v)); }
 
     std::size_t operator()(char const * const v) const noexcept
@@ -60,30 +57,23 @@ struct KeyEqual {
 
     template <typename T>
     auto operator()(std::string const & a, T && b) const noexcept
-        #if __cplusplus >= 201402L
-        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, ForwardRangeTo(T, char))
-        #else
-        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, RandomAccessRangeTo(T, char))
-        #endif
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool,
+                                        RandomAccessRangeTo(T, char),
+                                        BoundedRange(T))
     {
-        #if __cplusplus >= 201402L
-        return std::equal(a.begin(), a.end(), b.begin(), b.end());
-        #else
         auto bIt(std::begin(b));
         auto const bEnd(std::end(b));
         if (!integralEqual(a.size(), std::distance(bIt, bEnd)))
             return false;
         return std::equal(bIt, bEnd, a.begin());
-        #endif
     }
 
-    #if __cplusplus < 201402L
     template <typename T>
     auto operator()(std::string const & a, T && b) const noexcept
             -> SHAREMIND_REQUIRE_CONCEPTS_R(
                     bool,
-                    ForwardRangeTo(T, char),
-                    Not(RandomAccessRange(T))
+                    InputRangeTo(T, char),
+                    Not(All(RandomAccessRange(T), BoundedRange(T)))
             )
     {
         auto aIt(a.begin());
@@ -95,11 +85,10 @@ struct KeyEqual {
                 return false;
         return bIt == bEnd;
     }
-    #endif
 
     template <typename T>
     auto operator()(T && a, std::string const & b) const noexcept
-            -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, ForwardRangeTo(T, char))
+            -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, InputRangeTo(T, char))
     { return this->operator()(b, std::forward<T>(a)); }
 
     bool operator()(std::string const & a, std::string const & b)
@@ -264,7 +253,7 @@ public: /* Methods: */
     auto find(Range && key) const
             -> SHAREMIND_REQUIRE_CONCEPTS_R(
                     typename SimpleUnorderedStringMap::const_iterator,
-                    ForwardRangeTo(Range, char),
+                    InputRangeTo(Range, char),
                     Not(DecaysTo(Range, std::string))
                 )
     { return find(this->hash_function()(key), this->key_eq(), key); }
@@ -279,7 +268,7 @@ public: /* Methods: */
     auto count(Range && key) const
             -> SHAREMIND_REQUIRE_CONCEPTS_R(
                     typename SimpleUnorderedStringMap::size_type,
-                    ForwardRangeTo(Range, char),
+                    InputRangeTo(Range, char),
                     Not(DecaysTo(Range, std::string))
                 )
     { return this->count(this->hash_function()(key), this->key_eq(), key); }
@@ -301,7 +290,7 @@ public: /* Methods: */
     template <typename Range>
     auto equal_range(Range && key)
             -> SHAREMIND_REQUIRE_CONCEPTS_R(EqualRangeReturnType,
-                                            ForwardRangeTo(Range, char),
+                                            InputRangeTo(Range, char),
                                             Not(DecaysTo(Range, std::string)))
     {
         return this->equal_range(this->hash_function()(key),
@@ -312,7 +301,7 @@ public: /* Methods: */
     template <typename Range>
     auto equal_range(Range && key) const
         -> SHAREMIND_REQUIRE_CONCEPTS_R(EqualRangeConstReturnType,
-                                        ForwardRangeTo(Range, char),
+                                        InputRangeTo(Range, char),
                                         Not(DecaysTo(Range, std::string)))
     {
         return this->equal_range(this->hash_function()(key),
@@ -333,7 +322,7 @@ public: /* Methods: */
     auto bucket(Range && key) const
             -> SHAREMIND_REQUIRE_CONCEPTS_R(
                     typename SimpleUnorderedStringMap::size_type,
-                    ForwardRangeTo(Range, char),
+                    InputRangeTo(Range, char),
                     Not(DecaysTo(Range, std::string)))
     { return this->bucket(this->hash_function()(key)); }
 
