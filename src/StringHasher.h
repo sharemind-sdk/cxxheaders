@@ -22,14 +22,43 @@
 
 #include <boost/functional/hash.hpp>
 #include <cstddef>
-#include <cstring>
 #include <iterator>
 #include <string>
+#include <utility>
 #include "Concepts.h"
 #include "Range.h"
 
 
 namespace sharemind {
+namespace Detail {
+
+struct TerminatingNullCharacterSentinel {};
+
+template <typename Iter>
+auto operator==(TerminatingNullCharacterSentinel const &, Iter const & it)
+        noexcept(noexcept((*std::declval<Iter const &>()) == '\0'))
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, InputIterator(Iter))
+{ return (*it) == '\0'; }
+
+template <typename Iter>
+auto operator==(Iter const & it, TerminatingNullCharacterSentinel const &)
+        noexcept(noexcept((*std::declval<Iter const &>()) == '\0'))
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, InputIterator(Iter))
+{ return (*it) == '\0'; }
+
+template <typename Iter>
+auto operator!=(TerminatingNullCharacterSentinel const &, Iter const & it)
+        noexcept(noexcept((*std::declval<Iter const &>()) == '\0'))
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, InputIterator(Iter))
+{ return (*it) != '\0'; }
+
+template <typename Iter>
+auto operator!=(Iter const & it, TerminatingNullCharacterSentinel const &)
+        noexcept(noexcept((*std::declval<Iter const &>()) == '\0'))
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, InputIterator(Iter))
+{ return (*it) != '\0'; }
+
+} /* namespace Detail { */
 
 struct StringHasher {
 
@@ -38,20 +67,25 @@ struct StringHasher {
             -> SHAREMIND_REQUIRE_CONCEPTS_R(std::size_t,
                                             InputRangeTo(T, char),
                                             Not(DecaysTo(T, std::string)))
-    {
-        std::size_t seed = 0u;
-        auto first(std::begin(v));
-        auto last(std::end(v)); // Don't change to const, might break stuff
-        for (; first != last; ++first)
-            boost::hash_combine(seed, *first);
-        return seed;
-    }
+    { return this->operator()(std::begin(v), std::end(v)); }
 
     std::size_t operator()(std::string const & v) const noexcept
     { return boost::hash_range(v.begin(), v.end()); }
 
     std::size_t operator()(char const * const v) const noexcept
-    { return boost::hash_range(v, v + std::strlen(v)); }
+    { return this->operator()(v, Detail::TerminatingNullCharacterSentinel()); }
+
+    template <typename Iterator_, typename Sentinel_>
+    auto operator()(Iterator_ first, Sentinel_ last) const noexcept
+            -> SHAREMIND_REQUIRE_CONCEPTS_R(std::size_t,
+                                            InputIteratorTo(Iterator_, char),
+                                            Sentinel(Sentinel_, Iterator_))
+    {
+        std::size_t seed = 0u;
+        for (; first != last; ++first)
+            boost::hash_combine(seed, *first);
+        return seed;
+    }
 
 };
 
