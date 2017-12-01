@@ -46,7 +46,14 @@ struct Hasher {
     template <typename T>
     auto operator()(T && v) const noexcept
             -> SHAREMIND_REQUIRE_CONCEPTS_R(std::size_t, InputRangeTo(T, char))
-    { return boost::hash_range(std::begin(v), std::end(v)); }
+    {
+        std::size_t seed = 0u;
+        auto first(std::begin(v));
+        auto last(std::end(v)); // Don't change to const, might break stuff
+        for (; first != last; ++first)
+            boost::hash_combine(seed, *first);
+        return seed;
+    }
 
     std::size_t operator()(char const * const v) const noexcept
     { return boost::hash_range(v, v + std::strlen(v)); }
