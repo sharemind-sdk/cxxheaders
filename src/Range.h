@@ -48,6 +48,18 @@ using RangeIteratorT = decltype(std::begin(std::declval<T &>()));
 template <typename T>
 using RangeSentinelT = decltype(std::end(std::declval<T &>()));
 
+SHAREMIND_DEFINE_CONCEPT(Sentinel) {
+    template <typename T, typename I>
+    auto check(T && t, I && i) -> SHAREMIND_REQUIRE_CONCEPTS(
+                    DefaultConstructible(T),
+                    CopyConstructible(T),
+                    CopyAssignable(T),
+                    EqualityComparable(T, I),
+                    EqualityComparable(I, T),
+                    InequalityComparable(T, I),
+                    InequalityComparable(I, T)
+                );
+};
 
 #define SHAREMIND_RANGE_H_TO(Name) \
     SHAREMIND_DEFINE_CONCEPT(Name ## To) { \
@@ -64,10 +76,7 @@ SHAREMIND_DEFINE_CONCEPT(Range) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
                 Iterator(RangeIteratorT<T>),
-                EqualityComparable(RangeIteratorT<T>, RangeSentinelT<T>),
-                EqualityComparable(RangeSentinelT<T>, RangeIteratorT<T>),
-                InequalityComparable(RangeIteratorT<T>, RangeSentinelT<T>),
-                InequalityComparable(RangeSentinelT<T>, RangeIteratorT<T>)
+                Sentinel(RangeSentinelT<T>, RangeIteratorT<T>)
             );
 };
 SHAREMIND_RANGE_H_TO(Range);
