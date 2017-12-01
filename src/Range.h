@@ -63,7 +63,7 @@ using RangeSentinelT = decltype(std::end(std::declval<T &>()));
 SHAREMIND_DEFINE_CONCEPT(Range) {
     template <typename T>
     auto check(T && t) -> SHAREMIND_REQUIRE_CONCEPTS(
-                ForwardIterator(RangeIteratorT<T>),
+                Iterator(RangeIteratorT<T>),
                 EqualityComparable(RangeIteratorT<T>, RangeSentinelT<T>),
                 EqualityComparable(RangeSentinelT<T>, RangeIteratorT<T>),
                 InequalityComparable(RangeIteratorT<T>, RangeSentinelT<T>),
