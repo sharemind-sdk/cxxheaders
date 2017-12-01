@@ -69,7 +69,7 @@ struct KeyEqual {
                                         BoundedRange(T))
     {
         auto bIt(std::begin(b));
-        auto const bEnd(std::end(b));
+        auto bEnd(std::end(b)); // Don't change to const, might break stuff
         if (!integralEqual(a.size(), std::distance(bIt, bEnd)))
             return false;
         return std::equal(bIt, bEnd, a.begin());
@@ -84,9 +84,9 @@ struct KeyEqual {
             )
     {
         auto aIt(a.begin());
-        auto const aEnd(a.end());
+        auto aEnd(a.end()); // Don't change to const, might break stuff
         auto bIt(std::begin(b));
-        auto const bEnd(std::end(b));
+        auto bEnd(std::end(b)); // Don't change to const, might break stuff
         for (; aIt != aEnd; ++aIt, ++bIt)
             if ((bIt == bEnd) || (*aIt != *bIt))
                 return false;
