@@ -23,7 +23,6 @@
 #include "UnorderedMap.h"
 #include <string>
 
-#include <boost/functional/hash.hpp>
 #include <cassert>
 #include <cstring>
 #include <functional>
@@ -35,35 +34,12 @@
 #include "IntegralComparisons.h"
 #endif
 #include "Range.h"
+#include "StringHasher.h"
 
 
 namespace sharemind {
 namespace Detail {
 namespace SimpleUnorderedStringMap {
-
-struct Hasher {
-
-    template <typename T>
-    auto operator()(T && v) const noexcept
-            -> SHAREMIND_REQUIRE_CONCEPTS_R(std::size_t,
-                                            InputRangeTo(T, char),
-                                            Not(DecaysTo(T, std::string)))
-    {
-        std::size_t seed = 0u;
-        auto first(std::begin(v));
-        auto last(std::end(v)); // Don't change to const, might break stuff
-        for (; first != last; ++first)
-            boost::hash_combine(seed, *first);
-        return seed;
-    }
-
-    std::size_t operator()(std::string const & v) const noexcept
-    { return boost::hash_range(v.begin(), v.end()); }
-
-    std::size_t operator()(char const * const v) const noexcept
-    { return boost::hash_range(v, v + std::strlen(v)); }
-
-};
 
 struct KeyEqual {
 
@@ -124,7 +100,7 @@ struct KeyEqual {
     UnorderedMap< \
         std::string, \
         T, \
-        Detail::SimpleUnorderedStringMap::Hasher, \
+        StringHasher, \
         Detail::SimpleUnorderedStringMap::KeyEqual, \
         Allocator \
     >
@@ -135,7 +111,7 @@ template <
         typename UnorderedMap<
             std::string,
             T,
-            Detail::SimpleUnorderedStringMap::Hasher,
+            StringHasher,
             Detail::SimpleUnorderedStringMap::KeyEqual
         >::allocator_type
 >
