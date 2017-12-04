@@ -28,7 +28,7 @@ namespace sharemind {
 namespace Detail {
 namespace IntegralComparisons {
 
-enum Types { Invalid, Same, SignedUnsigned, UnsignedSigned };
+enum class Types { Invalid, Same, SignedUnsigned, UnsignedSigned };
 
 template <Types TYPES>
 using TypesConstant = std::integral_constant<Types, TYPES>;
@@ -39,26 +39,26 @@ using GetTypes =
         std::is_integral<A>::value && std::is_integral<B>::value,
         typename std::conditional<
             std::is_signed<A>::value == std::is_signed<B>::value,
-            TypesConstant<Same>,
+            TypesConstant<Types::Same>,
             typename std::conditional<
                 std::is_signed<A>::value,
-                TypesConstant<SignedUnsigned>,
-                TypesConstant<UnsignedSigned>
+                TypesConstant<Types::SignedUnsigned>,
+                TypesConstant<Types::UnsignedSigned>
             >::type
         >::type,
-        TypesConstant<Invalid>
+        TypesConstant<Types::Invalid>
     >::type;
 
 #define SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(C, op, suNegResult, usNegResult) \
     template <typename A, typename B, Types = GetTypes<A, B>::value> struct C; \
-    template <typename A, typename B> struct C<A, B, Same> { \
+    template <typename A, typename B> struct C<A, B, Types::Same> { \
         constexpr inline static bool test(A a, B b) noexcept { return a op b; }\
     }; \
-    template <typename S, typename U> struct C<S, U, SignedUnsigned> { \
+    template <typename S, typename U> struct C<S, U, Types::SignedUnsigned> { \
         constexpr inline static bool test(S s, U u) noexcept \
         { return (s < 0) ? suNegResult : signedToUnsigned(s) op u; } \
     }; \
-    template <typename U, typename S> struct C<U, S, UnsignedSigned> { \
+    template <typename U, typename S> struct C<U, S, Types::UnsignedSigned> { \
         constexpr inline static bool test(U u, S s) noexcept \
         { return (s < 0) ? usNegResult : u op signedToUnsigned(s); } \
     }
