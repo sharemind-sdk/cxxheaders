@@ -41,6 +41,21 @@
 
 namespace sharemind {
 
+template <typename Key>
+SHAREMIND_DEFINE_CONCEPT(UnorderedMapPreparedPredicate) {
+    template <typename Pred>
+    auto check(Pred && pred) -> SHAREMIND_REQUIRE_CONCEPTS(
+                UnaryPredicate(Pred, Key &),
+                UnaryPredicate(Pred, Key const &),
+                ConvertibleTo(
+                    typename std::remove_cv<
+                        typename std::remove_reference<
+                            decltype(pred.hash())
+                        >::type
+                     >::type, std::size_t)
+            );
+};
+
 /**
     \brief Similar to std::unordered_map, except that it allows explicit lookup,
            manipulation etc by using hashes and predicates.
@@ -126,6 +141,8 @@ public: /* Types: */
                 const_reference,
                 value_type
             >;
+
+    using PreparedPredicate = UnorderedMapPreparedPredicate<Key>;
 
 public: /* Methods: */
 
@@ -483,6 +500,22 @@ public: /* Methods: */
 
     /** \note not in std::unordered_map */
     template <typename Pred,
+              SHAREMIND_REQUIRES_CONCEPTS(PreparedPredicate(Pred))>
+    iterator find(Pred && pred) {
+        std::size_t const hash(pred.hash());
+        return find(hash, std::forward<Pred>(pred));
+    }
+
+    /** \note not in std::unordered_map */
+    template <typename Pred,
+              SHAREMIND_REQUIRES_CONCEPTS(PreparedPredicate(Pred))>
+    const_iterator find(Pred && pred) const {
+        std::size_t const hash(pred.hash());
+        return find(hash, std::forward<Pred>(pred));
+    }
+
+    /** \note not in std::unordered_map */
+    template <typename Pred,
               typename Key_,
               SHAREMIND_REQUIRES_CONCEPTS(
                     BinaryPredicate(Pred, key_type const &, Key_ const &))>
@@ -534,6 +567,14 @@ public: /* Methods: */
             if (pred(er.first->second->first))
                 ++count;
         return count;
+    }
+
+    /** \note not in std::unordered_map */
+    template <typename Pred,
+              SHAREMIND_REQUIRES_CONCEPTS(PreparedPredicate(Pred))>
+    size_type count(Pred && pred) const {
+        std::size_t const hash(pred.hash());
+        return count(hash, std::forward<Pred>(pred));
     }
 
     /** \note not in std::unordered_map */
