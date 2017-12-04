@@ -28,6 +28,23 @@ namespace sharemind {
 namespace Detail {
 namespace IntegralComparisons {
 
+enum class Type { Invalid, Signed, Unsigned };
+
+template <Type TYPE>
+using TypeConstant = std::integral_constant<Type, TYPE>;
+
+template <typename T>
+using GetType =
+    typename std::conditional<
+        std::is_integral<T>::value,
+        typename std::conditional<
+            std::is_signed<T>::value,
+            TypeConstant<Type::Signed>,
+            TypeConstant<Type::Unsigned>
+        >::type,
+        TypeConstant<Type::Invalid>
+    >::type;
+
 enum class Types { Invalid, Same, SignedUnsigned, UnsignedSigned };
 
 template <Types TYPES>
@@ -69,6 +86,33 @@ SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(NE, !=, true,  true);
 SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(GE, >=, false, true);
 SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(GT, > , false, true);
 #undef SHAREMIND_INTEGRALCOMPARISIONS_DEFINE
+#define SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(C, sop, ...) \
+    template <typename T, Type = GetType<T>::value> struct C; \
+    template <typename S> struct C<S, Type::Signed> { \
+        constexpr inline static bool test(S s) noexcept { sop; } \
+    }; \
+    template <typename U> struct C<U, Type::Unsigned> { \
+        constexpr inline static bool test(U u) noexcept { __VA_ARGS__; } \
+    }
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Positive,
+                                      return s > 0,
+                                      return u > 0u);
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Negative,
+                                      return s < 0,
+                                      return (static_cast<void>(u), false));
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(NonNegative,
+                                      return s >= 0,
+                                      return (static_cast<void>(u), true));
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(NonPositive,
+                                      return s <= 0,
+                                      return u <= 0u);
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Zero,
+                                      return s == 0,
+                                      return u == 0u);
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(NonZero,
+                                      return s != 0,
+                                      return u != 0u);
+#undef SHAREMIND_INTEGRALCOMPARISIONS_DEFINE
 
 } /* namespace IntegralComparisons { */
 } /* namespace Detail { */
@@ -85,6 +129,17 @@ SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(NotEqual, NE)
 SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(GreaterEqual, GE)
 SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Greater, GT)
 SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(GreaterThan, GT)
+#undef SHAREMIND_INTEGRALCOMPARISIONS_DEFINE
+#define SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(C) \
+    template <typename T> \
+    constexpr inline bool integral ## C(T t) noexcept \
+    { return Detail::IntegralComparisons::C<T>::test(t); }
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Positive);
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Negative);
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(NonNegative);
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(NonPositive);
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Zero);
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(NonZero);
 #undef SHAREMIND_INTEGRALCOMPARISIONS_DEFINE
 
 } /* namespace Sharemind { */

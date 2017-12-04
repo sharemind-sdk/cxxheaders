@@ -276,4 +276,43 @@ struct DoTestMixed<TList<S, Ss...>, TList<U, Us...> >
 {};
 static_assert(DoTestMixed<STypes, UTypes>::value, "");
 
+template <typename Types, template <typename T> class Test> struct DoUnaryTest;
+template <typename ... Ts, template <typename T> class Test>
+struct DoUnaryTest<TList<Ts...>, Test>
+        : sharemind::TemplateAll<Test<Ts>::value...>
+{};
+
+#define DO_SIGNED_TEST(op, nt, zt, pt) \
+    template <typename T> \
+    using DoSignedTest ## op = \
+            sharemind::TemplateAll< \
+                sharemind::integral ## op(static_cast<T>(-42)) == nt, \
+                sharemind::integral ## op(static_cast<T>(0)) == zt, \
+                sharemind::integral ## op(static_cast<T>(42)) == pt \
+            >; \
+    static_assert(DoUnaryTest<STypes, DoSignedTest ## op>::value, "");
+DO_SIGNED_TEST(Positive, false, false, true);
+DO_SIGNED_TEST(Negative, true, false, false);
+DO_SIGNED_TEST(NonNegative, false, true, true);
+DO_SIGNED_TEST(NonPositive, true, true, false);
+DO_SIGNED_TEST(Zero, false, true, false);
+DO_SIGNED_TEST(NonZero, true, false, true);
+#undef DO_SIGNED_TEST
+
+#define DO_UNSIGNED_TEST(op, zt, pt) \
+    template <typename T> \
+    using DoUnsignedTest ## op = \
+            sharemind::TemplateAll< \
+                sharemind::integral ## op(static_cast<T>(0u)) == zt, \
+                sharemind::integral ## op(static_cast<T>(42u)) == pt \
+            >; \
+    static_assert(DoUnaryTest<UTypes, DoUnsignedTest ## op>::value, "");
+DO_UNSIGNED_TEST(Positive, false, true);
+DO_UNSIGNED_TEST(Negative, false, false);
+DO_UNSIGNED_TEST(NonNegative, true, true);
+DO_UNSIGNED_TEST(NonPositive, true, false);
+DO_UNSIGNED_TEST(Zero, true, false);
+DO_UNSIGNED_TEST(NonZero, false, true);
+#undef DO_UNSIGNED_TEST
+
 int main() {}
