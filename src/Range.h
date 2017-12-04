@@ -25,6 +25,7 @@
 #include <utility>
 #include <type_traits>
 #include "Concepts.h"
+#include "IntegralComparisons.h"
 #include "Iterator.h"
 #include "Size.h"
 
@@ -213,14 +214,16 @@ template <
 bool rangeEqual(A && a, B && b) {
     auto bIt(std::begin(b));
     auto bEnd(std::end(b));
-    auto s = measureRange(a);
+    auto const s = measureRange(a);
     if (bIt == bEnd)
-        return s <= 0u;
-    if (s > 0u) {
+        return integralZero(s);
+    if (integralPositive(s)) {
+        using USIZE = typename std::make_unsigned<decltype(s)>::type;
+        auto uSize(static_cast<USIZE>(s));
         for (auto aIt = std::begin(a); *aIt == *bIt; ++aIt) {
             if (++bIt == bEnd)
-                return --s <= 0u;
-            if (--s <= 0u)
+                return --uSize <= 0u;
+            if (--uSize <= 0u)
                 return false;
         }
     }
@@ -242,14 +245,16 @@ template <
 bool rangeEqual(A && a, B && b) {
     auto aIt(std::begin(a));
     auto aEnd(std::end(a));
-    auto s = measureRange(b);
+    auto const s = measureRange(b);
     if (aIt == aEnd)
-        return s <= 0u;
-    if (s > 0u) {
+        return integralZero(s);
+    if (integralPositive(s)) {
+        using USIZE = typename std::make_unsigned<decltype(s)>::type;
+        auto uSize(static_cast<USIZE>(s));
         for (auto bIt = std::begin(b); *aIt == *bIt; ++bIt) {
             if (++aIt == aEnd)
-                return --s <= 0u;
-            if (--s <= 0u)
+                return --uSize <= 0u;
+            if (--uSize <= 0u)
                 return false;
         }
     }
@@ -269,19 +274,21 @@ template <
             ConstantTimeMeasurableRange(Detail::DecayRangeT<B>)
         )>
 bool rangeEqual(A && a, B && b) {
-    auto s = measureRange(a);
-    if (s != measureRange(b))
+    auto const s = measureRange(a);
+    if (integralNotEqual(s, measureRange(b)))
         return false;
-    if (s <= 0u)
-        return true;
+    if (integralNonPositive(s))
+        return integralZero(s);
     auto aIt(std::begin(a));
     auto bIt(std::begin(b));
+    using USIZE = typename std::make_unsigned<decltype(s)>::type;
+    auto uSize(static_cast<USIZE>(s));
     do {
         if (!static_cast<bool>(*aIt == *bIt))
             return false;
         ++aIt;
         ++bIt;
-    } while (--s > 0u);
+    } while (--uSize > 0u);
     return true;
 }
 
