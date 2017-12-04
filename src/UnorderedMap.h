@@ -472,7 +472,7 @@ public: /* Methods: */
     template <typename Pred,
               SHAREMIND_REQUIRES_CONCEPTS(
                     UnaryPredicate(Pred, key_type const &))>
-    const_iterator find(hash_type hash, UnaryPredicate pred) const {
+    const_iterator find(hash_type hash, Pred pred) const {
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
              ++er.first)
