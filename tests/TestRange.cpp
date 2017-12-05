@@ -19,6 +19,9 @@
 
 #include "../src/Range.h"
 
+#include <boost/range/as_literal.hpp>
+#include <cstddef>
+#include <iterator>
 #include <sharemind/TestAssert.h>
 #include <type_traits>
 #include <utility>
@@ -65,6 +68,7 @@ RETURNS_TRUE(testRange(std::declval<TestRangeBounded<int> const &>()));
 RETURNS_TRUE(testRange(std::declval<std::vector<int> &>()));
 RETURNS_TRUE(testRange(std::declval<std::vector<int> const &>()));
 RETURNS_FALSE(testRange(42));
+RETURNS_TRUE(testRange("test"));
 
 
 // Test RangeTo:
@@ -108,6 +112,7 @@ RETURNS_TRUE(testBoundedRange(std::declval<TestRangeBounded<int> const &>()));
 RETURNS_TRUE(testBoundedRange(std::declval<std::vector<int> &>()));
 RETURNS_TRUE(testBoundedRange(std::declval<std::vector<int> const &>()));
 RETURNS_FALSE(testBoundedRange(42));
+RETURNS_TRUE(testBoundedRange("test"));
 
 
 // Test BoundedRangeTo:
@@ -164,6 +169,7 @@ RETURNS_TRUE(testSizedRange(std::declval<TestSizedRangeBounded<int> const &>()))
 RETURNS_TRUE(testSizedRange(std::declval<std::vector<int> &>()));
 RETURNS_TRUE(testSizedRange(std::declval<std::vector<int> const &>()));
 RETURNS_FALSE(testSizedRange(42));
+RETURNS_TRUE(testSizedRange("test"));
 
 
 // Test SizedRangeTo:
@@ -194,6 +200,11 @@ RETURNS_FALSE(testSizedRangeTo(std::declval<TestSizedRangeBounded<long> const &>
 RETURNS_FALSE(testSizedRangeTo(std::declval<std::vector<long> &>()));
 RETURNS_FALSE(testSizedRangeTo(std::declval<std::vector<long> const &>()));
 RETURNS_FALSE(testSizedRangeTo(42));
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(SizedRangeTo(T, char))>
+std::true_type testSizedRangeToChar(T && t);
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(SizedRangeTo(T, char)))>
+std::false_type testSizedRangeToChar(T && t);
+RETURNS_TRUE(testSizedRangeToChar("test"));
 
 
 // Test InputRange:
@@ -660,6 +671,218 @@ void testAsLiteralStringRange() {
 
 /// \todo Test measureRange(), rangeEqual()
 
+struct TestIt: TestIteratorBase<char const> {
+    using iterator_category = std::input_iterator_tag;
+    TestIt(char const * ptr_) noexcept : ptr(ptr_) {}
+    TestIt(TestIt &&) noexcept = default;
+    TestIt(TestIt const &) noexcept = default;
+    TestIt & operator=(TestIt &&) noexcept = default;
+    TestIt & operator=(TestIt const &) noexcept = default;
+    ~TestIt() noexcept {}
+
+    bool operator==(TestIt const & other) const noexcept
+    { return other.ptr == ptr; }
+
+    bool operator!=(TestIt const & other) const noexcept
+    { return other.ptr != ptr; }
+
+    TestIteratorBase<char const>::reference operator*() const noexcept
+    { return *ptr; }
+
+    TestIt & operator++() noexcept { ++ptr; return *this; }
+    TestIt operator++(int) noexcept { TestIt r(*this); ++ptr; return r; }
+
+    char const * ptr;
+};
+template <typename T>
+void swap(TestIt & a, TestIt & b) noexcept { return std::swap(a.ptr, b.ptr); }
+static_assert(sharemind::Models<InputIterator(TestIt)>::value, "");
+
+void testRangeEqual() {
+    using S = std::string;
+
+    S e;
+#define TESTSTRING "Hello, World!"
+    S s(TESTSTRING);
+    S s2(TESTSTRING);
+    SHAREMIND_TESTASSERT(rangeEqual("", ""));
+    SHAREMIND_TESTASSERT(rangeEqual(e, e));
+    SHAREMIND_TESTASSERT(!rangeEqual(e, ""));
+    SHAREMIND_TESTASSERT(!rangeEqual("", e));
+    SHAREMIND_TESTASSERT(rangeEqual(s, s));
+    SHAREMIND_TESTASSERT(!rangeEqual(s, ""));
+    SHAREMIND_TESTASSERT(!rangeEqual("", s));
+    SHAREMIND_TESTASSERT(!rangeEqual(s, e));
+    SHAREMIND_TESTASSERT(!rangeEqual(e, s));
+    SHAREMIND_TESTASSERT(rangeEqual(s, s2));
+    SHAREMIND_TESTASSERT(rangeEqual(s2, s));
+    SHAREMIND_TESTASSERT(rangeEqual(TESTSTRING, TESTSTRING));
+    SHAREMIND_TESTASSERT(!rangeEqual("", TESTSTRING));
+    SHAREMIND_TESTASSERT(!rangeEqual(TESTSTRING, ""));
+    SHAREMIND_TESTASSERT(!rangeEqual(e, TESTSTRING));
+    SHAREMIND_TESTASSERT(!rangeEqual(TESTSTRING, e));
+    SHAREMIND_TESTASSERT(!rangeEqual(s, TESTSTRING));
+    SHAREMIND_TESTASSERT(!rangeEqual(TESTSTRING, s));
+    SHAREMIND_TESTASSERT(rangeEqual(boost::as_literal(TESTSTRING),
+                                    boost::as_literal(TESTSTRING)));
+    SHAREMIND_TESTASSERT(!rangeEqual("", boost::as_literal(TESTSTRING)));
+    SHAREMIND_TESTASSERT(!rangeEqual(boost::as_literal(TESTSTRING), ""));
+    SHAREMIND_TESTASSERT(!rangeEqual(e, boost::as_literal(TESTSTRING)));
+    SHAREMIND_TESTASSERT(!rangeEqual(boost::as_literal(TESTSTRING), e));
+    SHAREMIND_TESTASSERT(rangeEqual(s, boost::as_literal(TESTSTRING)));
+    SHAREMIND_TESTASSERT(rangeEqual(boost::as_literal(TESTSTRING), s));
+
+    static char const staticString[] = TESTSTRING;
+    struct TestRange {
+        char const * begin() const noexcept { return m_begin; }
+        char const * end() const noexcept { return m_end; }
+        char const * m_begin;
+        char const * m_end;
+    };
+    static_assert(Models<InputRangeTo(TestRange, char)>::value, "");
+    static_assert(Models<ConstantTimeMeasurableRange(TestRange)>::value, "");
+    TestRange r1{staticString, staticString + sizeof(staticString)};
+    SHAREMIND_TESTASSERT(rangeEqual(r1, r1));
+    SHAREMIND_TESTASSERT(!rangeEqual("", r1));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1, ""));
+    SHAREMIND_TESTASSERT(!rangeEqual(e, r1));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1, e));
+    SHAREMIND_TESTASSERT(!rangeEqual(s, r1));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1, s));
+    TestRange r2{staticString, staticString + (sizeof(staticString) - 1u)};
+    SHAREMIND_TESTASSERT(rangeEqual(r2, r2));
+    SHAREMIND_TESTASSERT(!rangeEqual("", r2));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2, ""));
+    SHAREMIND_TESTASSERT(!rangeEqual(e, r2));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2, e));
+    SHAREMIND_TESTASSERT(rangeEqual(s, r2));
+    SHAREMIND_TESTASSERT(rangeEqual(r2, s));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1, r2));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2, r1));
+
+    static char const emptyStaticString[] = "";
+    TestRange r1e{emptyStaticString,
+                  emptyStaticString + sizeof(emptyStaticString)};
+    SHAREMIND_TESTASSERT(rangeEqual(r1e, r1e));
+    SHAREMIND_TESTASSERT(rangeEqual("", r1e));
+    SHAREMIND_TESTASSERT(rangeEqual(r1e, ""));
+    SHAREMIND_TESTASSERT(!rangeEqual(e, r1e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1e, e));
+    SHAREMIND_TESTASSERT(!rangeEqual(s, r1e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1e, s));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1, r1e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1e, r1));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2, r1e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1e, r2));
+    TestRange r2e{emptyStaticString,
+                  emptyStaticString + (sizeof(emptyStaticString) - 1u)};
+    SHAREMIND_TESTASSERT(rangeEqual(r2e, r2e));
+    SHAREMIND_TESTASSERT(!rangeEqual("", r2e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2e, ""));
+    SHAREMIND_TESTASSERT(rangeEqual(e, r2e));
+    SHAREMIND_TESTASSERT(rangeEqual(r2e, e));
+    SHAREMIND_TESTASSERT(!rangeEqual(s, r2e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2e, s));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1, r2e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2e, r1));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2, r2e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2e, r2));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1e, r2e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2e, r1e));
+
+    struct TestRange2 {
+        TestIt begin() const noexcept { return m_begin; }
+        TestIt end() const noexcept { return m_end; }
+        TestIt m_begin;
+        TestIt m_end;
+    };
+    static_assert(Models<InputRangeTo(TestRange2, char)>::value, "");
+    static_assert(!Models<ConstantTimeMeasurableRange(TestRange2)>::value, "");
+    TestRange2 r3{TestIt{staticString},
+                  TestIt{staticString + sizeof(staticString)}};
+    SHAREMIND_TESTASSERT(rangeEqual(r3, r3));
+    SHAREMIND_TESTASSERT(!rangeEqual("", r3));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3, ""));
+    SHAREMIND_TESTASSERT(!rangeEqual(e, r3));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3, e));
+    SHAREMIND_TESTASSERT(!rangeEqual(s, r3));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3, s));
+    SHAREMIND_TESTASSERT(rangeEqual(r1, r3));
+    SHAREMIND_TESTASSERT(rangeEqual(r3, r1));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2, r3));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3, r2));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1e, r3));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3, r1e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2e, r3));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3, r2e));
+    TestRange2 r4{TestIt{staticString},
+                  TestIt{staticString + (sizeof(staticString) - 1u)}};
+    SHAREMIND_TESTASSERT(rangeEqual(r4, r4));
+    SHAREMIND_TESTASSERT(!rangeEqual("", r4));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4, ""));
+    SHAREMIND_TESTASSERT(!rangeEqual(e, r4));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4, e));
+    SHAREMIND_TESTASSERT(rangeEqual(s, r4));
+    SHAREMIND_TESTASSERT(rangeEqual(r4, s));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1, r4));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4, r1));
+    SHAREMIND_TESTASSERT(rangeEqual(r2, r4));
+    SHAREMIND_TESTASSERT(rangeEqual(r4, r2));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1e, r4));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4, r1e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2e, r4));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4, r2e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3, r4));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4, r3));
+
+    TestRange2 r3e{TestIt{emptyStaticString},
+                   TestIt{emptyStaticString + sizeof(emptyStaticString)}};
+    SHAREMIND_TESTASSERT(rangeEqual(r3e, r3e));
+    SHAREMIND_TESTASSERT(rangeEqual("", r3e));
+    SHAREMIND_TESTASSERT(rangeEqual(r3e, ""));
+    SHAREMIND_TESTASSERT(!rangeEqual(e, r3e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3e, e));
+    SHAREMIND_TESTASSERT(!rangeEqual(s, r3e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3e, s));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1, r3e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3e, r1));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2, r3e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3e, r2));
+    SHAREMIND_TESTASSERT(rangeEqual(r1e, r3e));
+    SHAREMIND_TESTASSERT(rangeEqual(r3e, r1e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2e, r3e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3e, r2e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3, r3e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3e, r3));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4, r3e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3e, r4));
+    TestRange2 r4e{TestIt{emptyStaticString},
+                   TestIt{emptyStaticString
+                          + (sizeof(emptyStaticString) - 1u)}};
+    SHAREMIND_TESTASSERT(rangeEqual(r4e, r4e));
+    SHAREMIND_TESTASSERT(!rangeEqual("", r4e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4e, ""));
+    SHAREMIND_TESTASSERT(rangeEqual(e, r4e));
+    SHAREMIND_TESTASSERT(rangeEqual(r4e, e));
+    SHAREMIND_TESTASSERT(!rangeEqual(s, r4e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4e, s));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1, r4e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4e, r1));
+    SHAREMIND_TESTASSERT(!rangeEqual(r2, r4e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4e, r2));
+    SHAREMIND_TESTASSERT(!rangeEqual(r1e, r4e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4e, r1e));
+    SHAREMIND_TESTASSERT(rangeEqual(r2e, r4e));
+    SHAREMIND_TESTASSERT(rangeEqual(r4e, r2e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3, r4e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4e, r3));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4, r4e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4e, r4));
+    SHAREMIND_TESTASSERT(!rangeEqual(r3e, r4e));
+    SHAREMIND_TESTASSERT(!rangeEqual(r4e, r3e));
+}
+
 int main() {
     testAsLiteralStringRange();
+    testRangeEqual();
 }
