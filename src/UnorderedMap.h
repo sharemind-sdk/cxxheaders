@@ -460,7 +460,7 @@ public: /* Methods: */
     template <typename Pred,
               SHAREMIND_REQUIRES_CONCEPTS(
                     UnaryPredicate(Pred, key_type const &))>
-    iterator find(hash_type hash, Pred pred) {
+    iterator find(hash_type hash, Pred && pred) {
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
              ++er.first)
@@ -473,7 +473,7 @@ public: /* Methods: */
     template <typename Pred,
               SHAREMIND_REQUIRES_CONCEPTS(
                     UnaryPredicate(Pred, key_type const &))>
-    const_iterator find(hash_type hash, Pred pred) const {
+    const_iterator find(hash_type hash, Pred && pred) const {
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
              ++er.first)
@@ -503,7 +503,7 @@ public: /* Methods: */
               typename Key_,
               SHAREMIND_REQUIRES_CONCEPTS(
                     BinaryPredicate(Pred, key_type const &, Key_ const &))>
-    iterator find(hash_type hash, Pred pred, Key_ const & key) {
+    iterator find(hash_type hash, Pred && pred, Key_ const & key) {
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
              ++er.first)
@@ -517,7 +517,7 @@ public: /* Methods: */
               typename Key_,
               SHAREMIND_REQUIRES_CONCEPTS(
                     BinaryPredicate(Pred, key_type const &, Key_ const &))>
-    const_iterator find(hash_type hash, Pred pred, Key_ const & key)
+    const_iterator find(hash_type hash, Pred && pred, Key_ const & key)
             const
     {
         for (auto er(m_container.equal_range(hash));
@@ -543,7 +543,7 @@ public: /* Methods: */
     template <typename Pred,
               SHAREMIND_REQUIRES_CONCEPTS(
                     UnaryPredicate(Pred, key_type const &))>
-    size_type count(hash_type hash, Pred pred) const {
+    size_type count(hash_type hash, Pred && pred) const {
         size_type count = 0u;
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
@@ -566,7 +566,7 @@ public: /* Methods: */
               typename Key_,
               SHAREMIND_REQUIRES_CONCEPTS(
                     BinaryPredicate(Pred, key_type const &, Key_ const &))>
-    size_type count(hash_type hash, Pred pred, Key_ const & key)
+    size_type count(hash_type hash, Pred && pred, Key_ const & key)
             const
     {
         size_type count = 0u;
