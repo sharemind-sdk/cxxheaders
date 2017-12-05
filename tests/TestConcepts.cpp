@@ -100,6 +100,8 @@ struct NotNoexceptPrefixIncrementableCallable: WeirdCallable {
 RETURNS_FALSE(g(std::declval<NotNoexceptPrefixIncrementableCallable>()));
 
 
+// Test Predicate(s):
+
 // Test UnaryPredicate:
 
 struct TestUnaryPredicate {
@@ -107,12 +109,17 @@ struct TestUnaryPredicate {
     static bool check(int const);
     static bool check2(long const);
 };
+struct TestUnaryPredicate2 {
+    virtual ~TestUnaryPredicate2() noexcept;
+    virtual bool operator()(int const) = 0;
+};
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(UnaryPredicate(T, int))>
 std::true_type testUnaryPredicate(T && t);
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(UnaryPredicate(T, int)))>
 std::false_type testUnaryPredicate(T && t);
 RETURNS_TRUE(testUnaryPredicate(std::declval<TestUnaryPredicate>()));
 RETURNS_TRUE(testUnaryPredicate(std::declval<TestUnaryPredicate &>()));
+RETURNS_TRUE(testUnaryPredicate(std::declval<TestUnaryPredicate2 &>()));
 RETURNS_TRUE(testUnaryPredicate(TestUnaryPredicate::check));
 RETURNS_TRUE(testUnaryPredicate(&TestUnaryPredicate::check));
 RETURNS_TRUE(testUnaryPredicate(TestUnaryPredicate::check2));
@@ -120,14 +127,15 @@ RETURNS_TRUE(testUnaryPredicate(&TestUnaryPredicate::check2));
 RETURNS_FALSE(testUnaryPredicate(0));
 
 
-// Test Predicate(s):
-
 // Test BinaryPredicate:
 
 struct TestBinaryPredicate {
     bool operator()(int const, int *);
     static bool check(int const, int *);
     static bool check2(long const, int *);
+};
+struct TestBinaryPredicate2 {
+    virtual bool operator()(int const, int *) = 0;
 };
 template <typename T,
           SHAREMIND_REQUIRES_CONCEPTS(BinaryPredicate(T, int, int *))>
@@ -137,6 +145,7 @@ template <typename T,
 std::false_type testBinaryPredicate(T && t);
 RETURNS_TRUE(testBinaryPredicate(std::declval<TestBinaryPredicate>()));
 RETURNS_TRUE(testBinaryPredicate(std::declval<TestBinaryPredicate &>()));
+RETURNS_TRUE(testBinaryPredicate(std::declval<TestBinaryPredicate2 &>()));
 RETURNS_TRUE(testBinaryPredicate(TestBinaryPredicate::check));
 RETURNS_TRUE(testBinaryPredicate(&TestBinaryPredicate::check));
 RETURNS_TRUE(testBinaryPredicate(TestBinaryPredicate::check2));
@@ -151,6 +160,9 @@ struct TestTrinaryPredicate {
     static bool check(int const, int *, double *&);
     static bool check2(long const, int *, double *&);
 };
+struct TestTrinaryPredicate2 {
+    virtual bool operator()(int const, int *, double *&) = 0;
+};
 template <typename T,
           SHAREMIND_REQUIRES_CONCEPTS(
                 TrinaryPredicate(T, int, int *, double *&))>
@@ -161,6 +173,7 @@ template <typename T,
 std::false_type testTrinaryPredicate(T && t);
 RETURNS_TRUE(testTrinaryPredicate(std::declval<TestTrinaryPredicate>()));
 RETURNS_TRUE(testTrinaryPredicate(std::declval<TestTrinaryPredicate &>()));
+RETURNS_TRUE(testTrinaryPredicate(std::declval<TestTrinaryPredicate2 &>()));
 RETURNS_TRUE(testTrinaryPredicate(TestTrinaryPredicate::check));
 RETURNS_TRUE(testTrinaryPredicate(&TestTrinaryPredicate::check));
 RETURNS_TRUE(testTrinaryPredicate(TestTrinaryPredicate::check2));
