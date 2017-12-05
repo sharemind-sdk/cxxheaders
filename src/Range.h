@@ -52,7 +52,7 @@ using RangeSentinelT = decltype(std::end(std::declval<T &>()));
 SHAREMIND_DEFINE_CONCEPT(Sentinel) {
     template <typename T, typename I>
     auto check(T && t, I && i) -> SHAREMIND_REQUIRE_CONCEPTS(
-                    DefaultConstructible(T),
+                    // DefaultConstructible(T),
                     CopyConstructible(T),
                     CopyAssignable(T),
                     EqualityComparable(T, I),
