@@ -21,9 +21,10 @@
 
 #include <boost/range/as_literal.hpp>
 #include <boost/range/join.hpp>
-#include "../src/TestAssert.h"
-#include "../src/StringHasher.h"
 #include <type_traits>
+#include "../src/Range.h"
+#include "../src/StringHasher.h"
+#include "../src/TestAssert.h"
 
 
 namespace {
@@ -116,5 +117,8 @@ int main() {
 
     testGetOrCreate<RRSHTP<decltype(boost::as_literal(TESTSTRING))> >(
                 boost::as_literal(TESTSTRING));
+    testGetOrCreate<
+            RRSHTP<decltype(sharemind::asLiteralStringRange(TESTSTRING))> >(
+                sharemind::asLiteralStringRange(TESTSTRING));
     testGetOrCreate<RRSHTP<decltype(TESTSTRING)> >(TESTSTRING, false);
 }
