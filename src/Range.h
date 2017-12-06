@@ -136,14 +136,20 @@ class LiteralStringRange {
     static_assert(N > 0u, "");
     static_assert(std::is_const<CharT>::value, "");
 
+public: /* Types: */
+
+    // Exposed for compatibility with boost::join and similar:
+    using iterator = CharT *;
+    using const_iterator = CharT *;
+
 public: /* Methods: */
 
     LiteralStringRange(CharT (& begin)[N]) : m_begin(begin) {}
 
-    CharT * begin()  const noexcept { return m_begin; }
-    CharT * cbegin() const noexcept { return m_begin; }
-    CharT * end()  const noexcept   { return m_begin + size(); }
-    CharT * cend() const noexcept   { return m_begin + size(); }
+    iterator begin()  const noexcept { return m_begin; }
+    const_iterator cbegin() const noexcept { return m_begin; }
+    iterator end()  const noexcept   { return m_begin + size(); }
+    const_iterator cend() const noexcept   { return m_begin + size(); }
     constexpr static std::size_t size() noexcept { return N - 1u; }
 
 private: /* Types: */
