@@ -145,8 +145,8 @@ public: /* Types: */
 public: /* Methods: */
 
     constexpr LiteralStringRange(CharT (& begin)[N]) : m_begin(begin) {}
-    LiteralStringRange(LiteralStringRange &&) noexcept = default;
-    LiteralStringRange(LiteralStringRange const &) noexcept = default;
+    constexpr LiteralStringRange(LiteralStringRange &&) noexcept = default;
+    constexpr LiteralStringRange(LiteralStringRange const &) noexcept = default;
 
     LiteralStringRange & operator=(LiteralStringRange &&) noexcept = default;
     LiteralStringRange & operator=(LiteralStringRange const &) noexcept
