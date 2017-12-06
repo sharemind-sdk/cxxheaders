@@ -145,6 +145,12 @@ public: /* Types: */
 public: /* Methods: */
 
     LiteralStringRange(CharT (& begin)[N]) : m_begin(begin) {}
+    LiteralStringRange(LiteralStringRange &&) noexcept = default;
+    LiteralStringRange(LiteralStringRange const &) noexcept = default;
+
+    LiteralStringRange & operator=(LiteralStringRange &&) noexcept = default;
+    LiteralStringRange & operator=(LiteralStringRange const &) noexcept
+            = default;
 
     iterator begin()  const noexcept { return m_begin; }
     const_iterator cbegin() const noexcept { return m_begin; }
