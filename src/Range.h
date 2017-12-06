@@ -152,10 +152,10 @@ public: /* Methods: */
     LiteralStringRange & operator=(LiteralStringRange const &) noexcept
             = default;
 
-    iterator begin()  const noexcept { return m_begin; }
+    iterator       begin()  const noexcept { return m_begin; }
     const_iterator cbegin() const noexcept { return m_begin; }
-    iterator end()  const noexcept   { return m_begin + size(); }
-    const_iterator cend() const noexcept   { return m_begin + size(); }
+    iterator       end()    const noexcept { return m_begin + size(); }
+    const_iterator cend()   const noexcept { return m_begin + size(); }
     constexpr static std::size_t size() noexcept { return N - 1u; }
 
 private: /* Types: */
