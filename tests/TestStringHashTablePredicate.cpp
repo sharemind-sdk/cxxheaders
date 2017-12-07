@@ -64,7 +64,10 @@ void testCStringRefStringHashTablePredicate() {
 }
 
 template <typename Range>
-using RRSHTP = sharemind::Detail::RangeRefStringHashTablePredicate<Range>;
+using RRSHTP =
+        sharemind::Detail::RangeRefStringHashTablePredicate<
+            typename std::remove_reference<Range>::type
+        >;
 
 void testRangeRefStringHashTablePredicate() {
     #define RANGETEST(type,...) \
@@ -95,6 +98,8 @@ void testGetOrCreate(T && t, bool expectToSucceed = true) {
     static_assert(std::is_same<P, Expected>::value, "");
     static_assert(std::is_nothrow_copy_constructible<P>::value, "");
     static_assert(std::is_nothrow_move_constructible<P>::value, "");
+    static_assert(std::is_nothrow_copy_assignable<P>::value, "");
+    static_assert(std::is_nothrow_move_assignable<P>::value, "");
 
     SHAREMIND_TESTASSERT(pred.hash() == testStringHash);
     SHAREMIND_TESTASSERT(pred(testString) ? expectToSucceed : !expectToSucceed);
@@ -115,10 +120,33 @@ int main() {
     using C = sharemind::Detail::CStringRefStringHashTablePredicate;
     testGetOrCreate<C>(nullTerminatedString);
 
-    testGetOrCreate<RRSHTP<decltype(boost::as_literal(TESTSTRING))> >(
-                boost::as_literal(TESTSTRING));
-    testGetOrCreate<
-            RRSHTP<decltype(sharemind::asLiteralStringRange(TESTSTRING))> >(
+    auto boostAsLiteral(boost::as_literal(TESTSTRING));
+    testGetOrCreate<RRSHTP<decltype(boostAsLiteral)> >(boostAsLiteral);
+    auto const boostAsLiteralConst(boost::as_literal(TESTSTRING));
+    testGetOrCreate<RRSHTP<decltype(boostAsLiteralConst)> >(
+                boostAsLiteralConst);
+
+    auto asLiteralStringRange(sharemind::asLiteralStringRange(TESTSTRING));
+    testGetOrCreate<RRSHTP<decltype(asLiteralStringRange)> >(
+                asLiteralStringRange);
+    auto const asLiteralStringRangeConst(
                 sharemind::asLiteralStringRange(TESTSTRING));
+    testGetOrCreate<RRSHTP<decltype(asLiteralStringRange)> >(
+                asLiteralStringRange);
+    testGetOrCreate<RRSHTP<decltype(asLiteralStringRangeConst)> >(
+                asLiteralStringRangeConst);
+
     testGetOrCreate<RRSHTP<decltype(TESTSTRING)> >(TESTSTRING, false);
+
+    struct TestGetOrCreateRange {
+
+        std::string::const_iterator begin() const noexcept
+        { return m_str.begin(); }
+
+        std::string::const_iterator end() const noexcept
+        { return m_str.end(); }
+
+        std::string m_str{TESTSTRING};
+    } testGetOrCreateRange;
+    testGetOrCreate<RRSHTP<TestGetOrCreateRange> >(testGetOrCreateRange);
 }

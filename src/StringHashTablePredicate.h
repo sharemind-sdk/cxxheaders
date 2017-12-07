@@ -41,8 +41,13 @@ public: /* Methods: */
 
     StringRefStringHashTablePredicate(std::string const & s)
             noexcept(noexcept(StringHasher()(s)))
-        : m_hash(StringHasher()(s))
-        , m_string(&s)
+        : StringRefStringHashTablePredicate(s, StringHasher()(s))
+    {}
+
+    constexpr StringRefStringHashTablePredicate(std::string const & s,
+                                                std::size_t hash) noexcept
+        : m_string(&s)
+        , m_hash(hash)
     {}
 
     StringRefStringHashTablePredicate(
@@ -59,8 +64,8 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    std::size_t m_hash;
     std::string const * m_string;
+    std::size_t m_hash;
 
 };
 static_assert(
@@ -73,8 +78,13 @@ public: /* Methods: */
 
     CStringRefStringHashTablePredicate(char const * const s)
             noexcept(noexcept(StringHasher()(s)))
-        : m_hash(StringHasher()(s))
-        , m_string(s)
+        : CStringRefStringHashTablePredicate(s, StringHasher()(s))
+    {}
+
+    constexpr CStringRefStringHashTablePredicate(char const * const s,
+                                                 std::size_t hash) noexcept
+        : m_string(s)
+        , m_hash(hash)
     {}
 
     CStringRefStringHashTablePredicate(
@@ -91,8 +101,8 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    std::size_t m_hash;
     char const * m_string;
+    std::size_t m_hash;
 
 };
 static_assert(
@@ -102,12 +112,19 @@ static_assert(
 template <typename Range>
 class RangeRefStringHashTablePredicate {
 
+    static_assert(!std::is_reference<Range>::value, "");
+
 public: /* Methods: */
 
     RangeRefStringHashTablePredicate(Range & range)
             noexcept(noexcept(StringHasher()(range)))
-        : m_hash(StringHasher()(range))
-        , m_range(range)
+        : RangeRefStringHashTablePredicate(range, StringHasher()(range))
+    {}
+
+    constexpr RangeRefStringHashTablePredicate(Range & range,
+                                               std::size_t hash) noexcept
+        : m_range(&range)
+        , m_hash(hash)
     {}
 
     RangeRefStringHashTablePredicate(
@@ -115,19 +132,19 @@ public: /* Methods: */
     RangeRefStringHashTablePredicate(
             RangeRefStringHashTablePredicate const &) noexcept = default;
     RangeRefStringHashTablePredicate & operator=(
-            RangeRefStringHashTablePredicate &&) noexcept = delete;
+            RangeRefStringHashTablePredicate &&) noexcept = default;
     RangeRefStringHashTablePredicate & operator=(
-            RangeRefStringHashTablePredicate const &) noexcept = delete;
+            RangeRefStringHashTablePredicate const &) noexcept = default;
 
     std::size_t hash() const noexcept { return m_hash; }
 
     bool operator()(std::string const & s) const
-    { return rangeEqual(s, m_range); } // Might throw
+    { return rangeEqual(s, *m_range); } // Might throw
 
 private: /* Fields: */
 
+    Range * m_range;
     std::size_t m_hash;
-    Range & m_range;
 
 };
 
@@ -135,6 +152,16 @@ template <typename T, SHAREMIND_REQUIRES_CONCEPTS(DecaysTo(T, std::string))>
 StringRefStringHashTablePredicate createTemporaryStringHashTablePredicate(
         T && str) noexcept(noexcept(StringRefStringHashTablePredicate(str)))
 { return StringRefStringHashTablePredicate(str); }
+
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(DecaysTo(T, std::string))>
+constexpr
+StringRefStringHashTablePredicate createTemporaryStringHashTablePredicate(
+        T && str,
+        std::size_t hash) noexcept
+{
+    static_assert(noexcept(StringRefStringHashTablePredicate(str, hash)), "");
+    return StringRefStringHashTablePredicate(str, hash);
+}
 
 template <typename T,
           SHAREMIND_REQUIRES_CONCEPTS(
@@ -146,35 +173,99 @@ CStringRefStringHashTablePredicate createTemporaryStringHashTablePredicate(
 
 template <typename T,
           SHAREMIND_REQUIRES_CONCEPTS(
+                ConvertibleTo(typename std::decay<T>::type, char const *),
+                Not(InputRangeTo(T, char)))>
+constexpr
+CStringRefStringHashTablePredicate createTemporaryStringHashTablePredicate(
+        T && str,
+        std::size_t hash) noexcept
+{
+    static_assert(noexcept(CStringRefStringHashTablePredicate(str, hash)), "");
+    return CStringRefStringHashTablePredicate(str, hash);
+}
+
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
                 Not(DecaysTo(T, std::string)),
                 InputRangeTo(T, char))>
-RangeRefStringHashTablePredicate<T> createTemporaryStringHashTablePredicate(
-        T && range)
-        noexcept(noexcept(RangeRefStringHashTablePredicate<T>(range)))
+RangeRefStringHashTablePredicate<typename std::remove_reference<T>::type>
+createTemporaryStringHashTablePredicate(T && range)
+        noexcept(noexcept(RangeRefStringHashTablePredicate<
+                                typename std::remove_reference<T>::type
+                          >(range)))
 {
-    static_assert(Models<sharemind::StringHashTablePredicate(
-                      RangeRefStringHashTablePredicate<T>)>::value, "");
-    return RangeRefStringHashTablePredicate<T>(range);
+    using R =
+            RangeRefStringHashTablePredicate<
+                typename std::remove_reference<T>::type>;
+    static_assert(Models<sharemind::StringHashTablePredicate(R)>::value, "");
+    return R(range);
+}
+
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                Not(DecaysTo(T, std::string)),
+                InputRangeTo(T, char))>
+RangeRefStringHashTablePredicate<typename std::remove_reference<T>::type>
+constexpr createTemporaryStringHashTablePredicate(T && range,
+                                                  std::size_t hash) noexcept
+{
+    using R =
+            RangeRefStringHashTablePredicate<
+                typename std::remove_reference<T>::type>;
+    static_assert(Models<sharemind::StringHashTablePredicate(R)>::value, "");
+    static_assert(noexcept(R(range, hash)), "");
+    return R(range, hash);
 }
 
 } /* namespace Detail { */
 
+/**
+  \warning The reference passed to this function must stay valid as long as the
+           return result is alive, because no copies are made and ownership is
+           not taken. The result contains a plain pointer or a reference to the
+           argument which will otherwise become dangling.
+*/
 template <typename T,
           SHAREMIND_REQUIRES_CONCEPTS(sharemind::StringHashTablePredicate(T))>
-T && getOrCreateTemporaryStringHashTablePredicate(T && pred) noexcept
+constexpr T && getOrCreateTemporaryStringHashTablePredicate(T && pred) noexcept
 { return std::forward<T>(pred); }
 
+/**
+  \warning The reference passed to this function must stay valid as long as the
+           return result is alive, because no copies are made and ownership is
+           not taken. The result contains a plain pointer or a reference to the
+           argument which will otherwise become dangling.
+*/
 template <typename T,
           SHAREMIND_REQUIRES_CONCEPTS(
                 Not(sharemind::StringHashTablePredicate(T)))>
-auto getOrCreateTemporaryStringHashTablePredicate(T && pred)
+auto getOrCreateTemporaryStringHashTablePredicate(T && t)
         noexcept(noexcept(Detail::createTemporaryStringHashTablePredicate(
-                              std::forward<T>(pred))))
+                              std::forward<T>(t))))
         -> decltype(Detail::createTemporaryStringHashTablePredicate(
-                        std::forward<T>(pred)))
+                        std::forward<T>(t)))
+{ return Detail::createTemporaryStringHashTablePredicate(std::forward<T>(t)); }
+
+/**
+  \warning The reference passed to this function must stay valid as long as the
+           return result is alive, because no copies are made and ownership is
+           not taken. The result contains a plain pointer or a reference to the
+           argument which will otherwise become dangling.
+*/
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                Not(sharemind::StringHashTablePredicate(T)))>
+constexpr auto getOrCreateTemporaryStringHashTablePredicate(
+        T && t,
+        std::size_t hash) noexcept
+        -> decltype(Detail::createTemporaryStringHashTablePredicate(
+                        std::forward<T>(t), hash))
 {
-    return Detail::createTemporaryStringHashTablePredicate(
-                std::forward<T>(pred));
+    static_assert(noexcept(
+                      Detail::createTemporaryStringHashTablePredicate(
+                          std::forward<T>(t), hash)), "");
+    return Detail::createTemporaryStringHashTablePredicate(std::forward<T>(t),
+                                                           hash);
 }
 
 } /* namespace Sharemind { */
