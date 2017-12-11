@@ -326,8 +326,7 @@ SHAREMIND_DEFINE_CONCEPT(Swappable) {
         ); \
         template <typename T> \
         auto check(T && t) \
-                -> decltype(check<T, T>(std::forward<T>(t), \
-                                        std::forward<T>(t))); \
+                -> decltype(check(std::forward<T>(t), std::forward<T>(t))); \
     };
 SHAREMIND_CONCEPTS_H_(Equality,==)
 SHAREMIND_CONCEPTS_H_(Inequality,!=)
