@@ -191,9 +191,15 @@ public: /* Methods: */
                                                   a)
     {}
 
-    SimpleUnorderedStringMap(SimpleUnorderedStringMap const &) = default;
+    SimpleUnorderedStringMap(SimpleUnorderedStringMap const &)
+            noexcept(std::is_nothrow_copy_constructible<
+                            SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE>::value)
+            = default;
 
-    SimpleUnorderedStringMap(SimpleUnorderedStringMap &&) = default;
+    SimpleUnorderedStringMap(SimpleUnorderedStringMap &&)
+            noexcept(std::is_nothrow_move_constructible<
+                            SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE>::value)
+            = default;
 
     explicit SimpleUnorderedStringMap(
             typename SimpleUnorderedStringMap::allocator_type const & allocator)
@@ -216,9 +222,14 @@ public: /* Methods: */
     /* Modifiers: */
 
     SimpleUnorderedStringMap & operator=(SimpleUnorderedStringMap const &)
+            noexcept(std::is_nothrow_copy_assignable<
+                            SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE>::value)
             = default;
 
-    SimpleUnorderedStringMap & operator=(SimpleUnorderedStringMap &&) = default;
+    SimpleUnorderedStringMap & operator=(SimpleUnorderedStringMap &&)
+            noexcept(std::is_nothrow_move_assignable<
+                            SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE>::value)
+            = default;
 
     typename SimpleUnorderedStringMap::size_type erase(char const * const key) {
         auto it(find(key));
