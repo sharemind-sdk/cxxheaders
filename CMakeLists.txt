@@ -62,6 +62,16 @@ SharemindAddSimpleTests("${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp"
         ${SharemindCxxHeaders_INCLUDE_DIRS}
     LINK_LIBRARIES
         ${SharemindCxxHeaders_LINK_LIBRARIES}
+
+        # The following is a workaround for multithreaded test failures with GCC
+        # 4.9 and older. The error message is something like:
+        #
+        #   terminate called after throwing an instance of 'std::system_error'
+        #     what():  Enable multithreading to use std::thread: Operation not
+        #                                                        permitted
+        #   Aborted
+        #
+        -pthread
 )
 
 # Install CMake files:
