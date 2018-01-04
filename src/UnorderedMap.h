@@ -41,6 +41,34 @@
 
 
 namespace sharemind {
+namespace Detail {
+namespace UnorderedMap {
+
+template <bool T> struct PropagateAllocator {
+
+    template <typename Alloc>
+    static void copy(Alloc & to, Alloc const & from) noexcept { to = from; }
+
+    template <typename Alloc>
+    static void move(Alloc & to, Alloc && from) noexcept
+    { to = std::move(from); }
+
+    template <typename Alloc>
+    static void swap(Alloc & a1, Alloc & a2) noexcept { std::swap(a1, a2); }
+
+};
+
+template <> struct PropagateAllocator<false> {
+    template <typename Alloc>
+    static void copy(Alloc &, Alloc const &) noexcept {}
+    template <typename Alloc>
+    static void move(Alloc &, Alloc &&) noexcept {}
+    template <typename Alloc>
+    static void swap(Alloc &, Alloc &) noexcept {}
+};
+
+} /* namespace UnorderedMap { */
+} /* namespace Detail { */
 
 /**
     \brief Similar to std::unordered_map, except that it allows explicit lookup,
@@ -241,9 +269,7 @@ public: /* Methods: */
         : m_hasher(copy.m_hasher)
         , m_pred(copy.m_pred)
         , m_container(copy.m_container)
-        , m_allocator(
-            std::allocator_traits<allocator_type>
-                ::select_on_container_copy_construction(allocator))
+        , m_allocator(allocator)
     {}
 
     UnorderedMap(UnorderedMap && move, allocator_type const & allocator)
@@ -260,15 +286,26 @@ public: /* Methods: */
             m_hasher = rhs.m_hasher;
             m_pred = rhs.m_pred;
             m_container = rhs.m_container;
-            m_allocator =
-                    std::allocator_traits<allocator_type>
-                          ::select_on_container_copy_construction(
-                                rhs.m_allocator);
+            Detail::UnorderedMap::PropagateAllocator<
+                        std::allocator_traits<allocator_type>
+                            ::propagate_on_container_copy_assignment::value
+                    >::copy(m_allocator, rhs.m_allocator);
         }
         return *this;
     }
 
-    UnorderedMap & operator=(UnorderedMap && rhs) = default;
+    UnorderedMap & operator=(UnorderedMap && rhs) {
+        if (&rhs != this) {
+            m_hasher = std::move(rhs.m_hasher);
+            m_pred = std::move(rhs.m_pred);
+            m_container = std::move(rhs.m_container);
+            Detail::UnorderedMap::PropagateAllocator<
+                        std::allocator_traits<allocator_type>
+                            ::propagate_on_container_move_assignment::value
+                    >::move(m_allocator, std::move(rhs.m_allocator));
+        }
+        return *this;
+    }
 
     UnorderedMap & operator=(std::initializer_list<value_type> values) {
         InnerContainer newInner;
@@ -393,7 +430,11 @@ public: /* Methods: */
         std::swap(m_hasher, other.m_hasher);
         std::swap(m_pred, other.m_pred);
         std::swap(m_container, other.m_container);
-        std::swap(m_allocator, other.m_allocator);
+
+        Detail::UnorderedMap::PropagateAllocator<
+                    std::allocator_traits<allocator_type>
+                        ::propagate_on_container_swap::value
+                >::swap(m_allocator, other.m_allocator);
     }
 
 
