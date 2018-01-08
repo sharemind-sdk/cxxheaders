@@ -49,6 +49,9 @@ class Impl;
 
 #define SHAREMIND_OPTIONAL_H_IMPL_COMMON \
     static_assert(std::is_nothrow_destructible<T>::value, ""); \
+    static_assert(!std::is_reference<T>::value, ""); \
+    static_assert(!std::is_same<typename std::remove_cv<T>::type, InPlace>::value, ""); \
+    static_assert(!std::is_same<typename std::remove_cv<T>::type, NullOption>::value, ""); \
 public: /* Methods: */ \
     constexpr Impl() noexcept : m_valid(false) {} \
     constexpr Impl(NullOption) noexcept : m_valid(false) {} \
@@ -158,21 +161,21 @@ template <typename T>
 class Impl<T, false> {
 
     SHAREMIND_OPTIONAL_H_IMPL_COMMON
-    
+
 public: /* Methods: */
-    
+
     ~Impl() noexcept {
         if (m_valid)
             m_data.~T();
     }
-    
+
     void reset() noexcept {
         if (m_valid) {
             m_data.~T();
             m_valid = false;
         }
     }
-    
+
     template <typename ... Args>
     void emplace(Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args...>::value)
@@ -191,11 +194,11 @@ template <typename T>
 class Impl<T, true> {
 
     SHAREMIND_OPTIONAL_H_IMPL_COMMON
-    
+
 public: /* Methods: */
-    
+
     void reset() noexcept { m_valid = false; }
-    
+
     template <typename ... Args>
     void emplace(Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args...>::value)
