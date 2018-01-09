@@ -17,8 +17,8 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_CLANGPR26692_H
-#define SHAREMIND_CLANGPR26692_H
+#ifndef SHAREMIND_CLANGPR22637_H
+#define SHAREMIND_CLANGPR22637_H
 
 #include <sharemind/compiler-support/ClangVersion.h>
 
@@ -65,4 +65,4 @@
 #define SHAREMIND_CLANGPR22637_WORKAROUND(...) __VA_ARGS__
 #endif
 
-#endif /* SHAREMIND_CLANGPR26692_H */
+#endif /* SHAREMIND_CLANGPR22637_H */
