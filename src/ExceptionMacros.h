@@ -104,6 +104,50 @@
         std::shared_ptr<std::string const> m_message; \
     }
 
+#define SHAREMIND_DECLARE_EXCEPTION_CONST_STDSTRING_NOINLINE(base,name) \
+    class name: public base { \
+    public: /* Methods: */ \
+        name(std::string message); \
+        name(std::shared_ptr<std::string const> messagePtr) \
+                noexcept(std::is_nothrow_default_constructible<base>::value); \
+        name(name &&) \
+                noexcept(std::is_nothrow_move_constructible<base>::value); \
+        name(name const &) \
+                noexcept(std::is_nothrow_copy_constructible<base>::value); \
+        name & operator=(name &&) \
+                noexcept(std::is_nothrow_move_assignable<base>::value); \
+        name & operator=(name const &) \
+                noexcept(std::is_nothrow_copy_assignable<base>::value); \
+        char const * what() const noexcept final override; \
+    private: /* Methods: */ \
+        std::shared_ptr<std::string const> m_message; \
+    }
+
+#define SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING_NOINLINE(base,ns,name) \
+    ns name::name(std::string message) \
+        : m_message(std::make_shared<std::string>(std::move(message))) \
+    {} \
+    ns name::name(std::shared_ptr<std::string const> messagePtr) \
+            noexcept(std::is_nothrow_default_constructible<base>::value) \
+        : m_message(std::move(messagePtr)) \
+    {} \
+    ns name::name(name &&) \
+            noexcept(std::is_nothrow_move_constructible<base>::value) \
+            = default; \
+    ns name::name(name const &) \
+            noexcept(std::is_nothrow_copy_constructible<base>::value) \
+            = default; \
+    ns name & ns name::operator=(name &&) \
+            noexcept(std::is_nothrow_move_assignable<base>::value) \
+            = default; \
+    ns name & ns name::operator=(name const &) \
+            noexcept(std::is_nothrow_copy_assignable<base>::value) \
+            = default; \
+    char const * ns name::what() const noexcept { \
+        assert(m_message); \
+        return m_message->c_str(); \
+    }
+
 #define SHAREMIND_DEFINE_EXCEPTION_CONCAT(base,name) \
     class name: public base { \
     public: /* Methods: */ \
