@@ -38,6 +38,8 @@
         name(name const &) \
                 noexcept(std::is_nothrow_copy_constructible<base>::value); \
         ~name() noexcept override; \
+        name & operator=(name const &) \
+                noexcept(std::is_nothrow_copy_assignable<base>::value); \
     }
 #define SHAREMIND_DEFINE_EXCEPTION_NOINLINE(base,ns,name) \
     ns name::name() \
@@ -46,7 +48,9 @@
     ns name::name(name const &) \
             noexcept(std::is_nothrow_copy_constructible<base>::value) \
             = default; \
-    ns name::~name() noexcept = default
+    ns name::~name() noexcept = default; \
+    ns name & ns name::operator=(name const &) \
+            noexcept(std::is_nothrow_copy_assignable<base>::value) = default
 
 #define SHAREMIND_DEFINE_EXCEPTION_UNUSED(base,name) \
     class name: public base { \
