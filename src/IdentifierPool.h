@@ -43,7 +43,7 @@ public: /* Types: */
 
     using ValueType = T;
 
-    SHAREMIND_DEFINE_EXCEPTION(std::exception, Exception);
+    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
     /**
       \brief Signifies that ID reservation failed because the identifier space
              in type T is exhausted.
