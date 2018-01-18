@@ -55,8 +55,7 @@
 #define SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(base,name,msg) \
     class name: public base { \
     public: /* Methods: */ \
-        template <typename ... Args> \
-        inline name(Args && ... args) : base(std::forward<Args>(args)...) {} \
+        name() noexcept(std::is_nothrow_default_constructible<base>::value) {} \
         inline const char * what() const noexcept final override \
         { return (msg); } \
     }
@@ -67,10 +66,6 @@
         name(name const &) \
                 noexcept(std::is_nothrow_copy_constructible<base>::value); \
         ~name() noexcept override; \
-        template <typename ... Args> \
-        name(Args && ... args) \
-                noexcept(std::is_nothrow_constructible<base, Args...>::value) \
-            : base(std::forward<Args>(args)...) {} \
         name & operator=(name const &) \
                 noexcept(std::is_nothrow_copy_assignable<base>::value); \
         const char * what() const noexcept final override; \
@@ -107,12 +102,8 @@
         name(std::string message); \
         name(std::shared_ptr<std::string const> messagePtr) \
                 noexcept(std::is_nothrow_default_constructible<base>::value); \
-        name(name &&) \
-                noexcept(std::is_nothrow_move_constructible<base>::value); \
         name(name const &) \
                 noexcept(std::is_nothrow_copy_constructible<base>::value); \
-        name & operator=(name &&) \
-                noexcept(std::is_nothrow_move_assignable<base>::value); \
         name & operator=(name const &) \
                 noexcept(std::is_nothrow_copy_assignable<base>::value); \
         char const * what() const noexcept final override; \
@@ -128,14 +119,8 @@
             noexcept(std::is_nothrow_default_constructible<base>::value) \
         : m_message(std::move(messagePtr)) \
     {} \
-    ns name::name(name &&) \
-            noexcept(std::is_nothrow_move_constructible<base>::value) \
-            = default; \
     ns name::name(name const &) \
             noexcept(std::is_nothrow_copy_constructible<base>::value) \
-            = default; \
-    ns name & ns name::operator=(name &&) \
-            noexcept(std::is_nothrow_move_assignable<base>::value) \
             = default; \
     ns name & ns name::operator=(name const &) \
             noexcept(std::is_nothrow_copy_assignable<base>::value) \
