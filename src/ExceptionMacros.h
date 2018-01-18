@@ -28,7 +28,18 @@
 
 
 #define SHAREMIND_DEFINE_EXCEPTION(base,name) \
-    class name: public base {}
+    class name: public base { \
+    public: /* Methods: */ \
+        name() noexcept(std::is_nothrow_default_constructible<base>::value) \
+                = default; \
+        name(name const &) \
+                noexcept(std::is_nothrow_copy_constructible<base>::value) \
+                = default; \
+        ~name() noexcept override = default; \
+        name & operator=(name const &) \
+                noexcept(std::is_nothrow_copy_assignable<base>::value) \
+                = default; \
+    }
 
 #define SHAREMIND_DECLARE_EXCEPTION_NOINLINE(base,name) \
     class name: public base { \
@@ -54,7 +65,15 @@
 #define SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(base,name,msg) \
     class name: public base { \
     public: /* Methods: */ \
-        name() noexcept(std::is_nothrow_default_constructible<base>::value) {} \
+        name() noexcept(std::is_nothrow_default_constructible<base>::value) \
+                = default; \
+        name(name const &) \
+                noexcept(std::is_nothrow_copy_constructible<base>::value) \
+                = default; \
+        ~name() noexcept override = default; \
+        name & operator=(name const &) \
+                noexcept(std::is_nothrow_copy_assignable<base>::value) \
+                = default; \
         const char * what() const noexcept final override \
         { return (msg); } \
     }
@@ -87,6 +106,13 @@
         name(std::string message) \
             : m_message(std::make_shared<std::string>(std::move(message))) \
         {} \
+        name(name const &) \
+                noexcept(std::is_nothrow_copy_constructible<base>::value) \
+                = default; \
+        ~name() noexcept override = default; \
+        name & operator=(name const &) \
+                noexcept(std::is_nothrow_copy_assignable<base>::value) \
+                = default; \
         const char * what() const noexcept final override { \
             assert(m_message); \
             return m_message->c_str(); \
