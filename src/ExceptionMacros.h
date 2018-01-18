@@ -156,26 +156,4 @@
         return m_message->c_str(); \
     }
 
-#define SHAREMIND_DEFINE_EXCEPTION_CONCAT(base,name) \
-    class name: public base { \
-    public: /* Methods: */ \
-        inline name(const char * const msg) : m_msgPtr((assert(msg), msg)) {} \
-        template <typename Arg, typename ... Args> \
-        inline name(const char * const defaultMsg, \
-                    Arg && arg, Args && ... args) \
-        { \
-            try { \
-                m_msg.assign(::sharemind::concat(std::forward<Arg>(arg), \
-                                                 std::forward<Args>(args)...));\
-                m_msgPtr = m_msg.c_str(); \
-            } catch (...) { \
-                m_msgPtr = defaultMsg; \
-            } \
-        } \
-        inline const char * what() const noexcept final override \
-        { return m_msgPtr; } \
-        std::string m_msg; \
-        const char * m_msgPtr; \
-    }
-
 #endif /* SHAREMIND_EXCEPTIONMACROS_H */
