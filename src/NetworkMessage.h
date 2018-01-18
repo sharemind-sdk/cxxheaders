@@ -23,8 +23,8 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include "detail/ExceptionMacros.h"
 #include "Exception.h"
-#include "ExceptionMacros.h"
 #include "SignedToUnsigned.h"
 
 
@@ -39,17 +39,17 @@ class NetworkMessage: public NetworkMessagePayload {
 
 public: /* Types: */
 
-    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
-    SHAREMIND_DEFINE_EXCEPTION(Exception, LengthError);
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION(sharemind::Exception, Exception);
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION(Exception, LengthError);
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(
             LengthError,
             MessageLengthError,
             "Outgoing message size exceeds fundamental upper limit!");
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(
             LengthError,
             StringLengthError,
             "Outgoing message string size exceeds fundamental upper limit!");
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(
             LengthError,
             BlockLengthError,
             "Outgoing message block size exceeds fundamental upper limit!");

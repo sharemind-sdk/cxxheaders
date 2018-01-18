@@ -30,8 +30,8 @@
 #include <new>
 #include <type_traits>
 #include <utility>
+#include "detail/ExceptionMacros.h"
 #include "Exception.h"
-#include "ExceptionMacros.h"
 #include "MakeUnique.h"
 #include "StripReferenceWrapper.h"
 
@@ -40,9 +40,9 @@ namespace sharemind {
 
 template <typename T> class Future;
 
-SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                     BrokenPromiseException,
-                                     "Promise broken!");
+SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                            BrokenPromiseException,
+                                            "Promise broken!");
 
 namespace Detail {
 namespace Future {

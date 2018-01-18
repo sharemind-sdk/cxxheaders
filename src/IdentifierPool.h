@@ -26,8 +26,8 @@
 #include <stdexcept>
 #include <set>
 #include <type_traits>
+#include "detail/ExceptionMacros.h"
 #include "Exception.h"
-#include "ExceptionMacros.h"
 
 
 namespace sharemind {
@@ -43,12 +43,12 @@ public: /* Types: */
 
     using ValueType = T;
 
-    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION(sharemind::Exception, Exception);
     /**
       \brief Signifies that ID reservation failed because the identifier space
              in type T is exhausted.
     */
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(
             Exception,
             ReserveException,
             "No more identifiers can be reserved.");

@@ -33,6 +33,7 @@
 #include <utility>
 #include <vector>
 #include "Concat.h"
+#include "detail/ExceptionMacros.h"
 #include "Exception.h"
 #include "Hash.h"
 #include "PotentiallyVoidTypeInfo.h"
@@ -51,14 +52,14 @@ public: /* Types: */
     using size_type = Container::size_type;
     using value_type = Container::value_type;
 
-    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
-    SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING(Exception, LoadException);
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         FileTypeNotSupportedException,
-                                         "File type not supported!");
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         FileSizeChangedException,
-                                         "File size changed!");
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION(sharemind::Exception, Exception);
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_STDSTRING(Exception, LoadException);
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                                FileTypeNotSupportedException,
+                                                "File type not supported!");
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                                FileSizeChangedException,
+                                                "File size changed!");
 
 public: /* Methods: */
 

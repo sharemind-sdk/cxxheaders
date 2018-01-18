@@ -27,20 +27,6 @@
 #include <utility>
 
 
-#define SHAREMIND_DEFINE_EXCEPTION(base,name) \
-    class name: public base { \
-    public: /* Methods: */ \
-        name() noexcept(std::is_nothrow_default_constructible<base>::value) \
-                = default; \
-        name(name const &) \
-                noexcept(std::is_nothrow_copy_constructible<base>::value) \
-                = default; \
-        ~name() noexcept override = default; \
-        name & operator=(name const &) \
-                noexcept(std::is_nothrow_copy_assignable<base>::value) \
-                = default; \
-    }
-
 #define SHAREMIND_DECLARE_EXCEPTION_NOINLINE(base,name) \
     class name: public base { \
     public: /* Methods: */ \
@@ -62,21 +48,6 @@
     ns name & ns name::operator=(name const &) \
             noexcept(std::is_nothrow_copy_assignable<base>::value) = default
 
-#define SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(base,name,msg) \
-    class name: public base { \
-    public: /* Methods: */ \
-        name() noexcept(std::is_nothrow_default_constructible<base>::value) \
-                = default; \
-        name(name const &) \
-                noexcept(std::is_nothrow_copy_constructible<base>::value) \
-                = default; \
-        ~name() noexcept override = default; \
-        name & operator=(name const &) \
-                noexcept(std::is_nothrow_copy_assignable<base>::value) \
-                = default; \
-        const char * what() const noexcept final override \
-        { return (msg); } \
-    }
 #define SHAREMIND_DECLARE_EXCEPTION_CONST_MSG_NOINLINE(base,name) \
     class name: public base { \
     public: /* Methods: */ \
@@ -99,27 +70,6 @@
     ns name & ns name::operator=(name const &) \
             noexcept(std::is_nothrow_copy_assignable<base>::value) = default; \
     const char * ns name::what() const noexcept { return (msg); }
-
-#define SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING(base,name) \
-    class name: public base { \
-    public: /* Methods: */ \
-        name(std::string message) \
-            : m_message(std::make_shared<std::string>(std::move(message))) \
-        {} \
-        name(name const &) \
-                noexcept(std::is_nothrow_copy_constructible<base>::value) \
-                = default; \
-        ~name() noexcept override = default; \
-        name & operator=(name const &) \
-                noexcept(std::is_nothrow_copy_assignable<base>::value) \
-                = default; \
-        const char * what() const noexcept final override { \
-            assert(m_message); \
-            return m_message->c_str(); \
-        } \
-    private: /* Methods: */ \
-        std::shared_ptr<std::string const> m_message; \
-    }
 
 #define SHAREMIND_DECLARE_EXCEPTION_CONST_STDSTRING_NOINLINE(base,name) \
     class name: public base { \

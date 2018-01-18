@@ -11,6 +11,7 @@
 
 #include <unistd.h>
 #include <sharemind/Posix.h>
+#include "detail/ExceptionMacros.h"
 #include "Exception.h"
 
 
@@ -18,9 +19,8 @@ namespace sharemind {
 
 class FileDescriptor {
 
-    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
-
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION(sharemind::Exception, Exception);
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(
             Exception,
             FailedToDuplicateException,
             "Failed to duplicate file descriptor!");

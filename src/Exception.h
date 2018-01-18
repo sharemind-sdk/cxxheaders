@@ -32,7 +32,7 @@
 #endif
 #include <utility>
 #include "compiler-support/GccNoreturn.h"
-#include "ExceptionMacros.h"
+#include "detail/ExceptionMacros.h"
 
 
 namespace sharemind {
@@ -70,7 +70,7 @@ namespace sharemind {
         } while(0)
 #endif
 
-SHAREMIND_DEFINE_EXCEPTION(std::exception, Exception);
+SHAREMIND_DETAIL_DEFINE_EXCEPTION(std::exception, Exception);
 
 class ErrnoException: public Exception {
 

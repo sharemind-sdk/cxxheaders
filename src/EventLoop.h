@@ -14,8 +14,8 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include "detail/ExceptionMacros.h"
 #include "Exception.h"
-#include "ExceptionMacros.h"
 #include "Posix.h"
 #include "ScopeExit.h"
 #include "Spinwait.h"
@@ -79,32 +79,32 @@ public: /* Constants: */
 
 public: /* Types: */
 
-    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION(sharemind::Exception, Exception);
 
     #if defined(__linux__) || defined(__NetBSD__) \
         || defined(__OpenBSD__) || defined(__FreeBSD__)
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         PipeCreateException,
-                                        "pipe2() failed!");
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                                PipeCreateException,
+                                                "pipe2() failed!");
     #else
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         PipeCreateException,
-                                        "pipe() failed!");
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                                PipeCreateException,
+                                                "pipe() failed!");
     #endif
     #if defined(__linux__)
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         EpollCreateException,
-                                         "epoll_create1() failed!");
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         EpollCtlException,
-                                         "epoll_ctl() failed!");
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         EpollWaitException,
-                                         "epoll_wait() failed!");
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                                EpollCreateException,
+                                                "epoll_create1() failed!");
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                                EpollCtlException,
+                                                "epoll_ctl() failed!");
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                                EpollWaitException,
+                                                "epoll_wait() failed!");
     #else
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         FcntlException,
-                                         "fcntl() failed!");
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                                FcntlException,
+                                                "fcntl() failed!");
     #endif
 
     struct EventHandler {
