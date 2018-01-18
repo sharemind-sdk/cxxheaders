@@ -55,7 +55,7 @@
     class name: public base { \
     public: /* Methods: */ \
         name() noexcept(std::is_nothrow_default_constructible<base>::value) {} \
-        inline const char * what() const noexcept final override \
+        const char * what() const noexcept final override \
         { return (msg); } \
     }
 #define SHAREMIND_DECLARE_EXCEPTION_CONST_MSG_NOINLINE(base,name) \
@@ -84,10 +84,10 @@
 #define SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING(base,name) \
     class name: public base { \
     public: /* Methods: */ \
-        inline name(std::string message) \
+        name(std::string message) \
             : m_message(std::make_shared<std::string>(std::move(message))) \
         {} \
-        inline const char * what() const noexcept final override { \
+        const char * what() const noexcept final override { \
             assert(m_message); \
             return m_message->c_str(); \
         } \
