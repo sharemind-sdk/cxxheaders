@@ -82,6 +82,8 @@
         name(Args && ... args) \
                 noexcept(std::is_nothrow_constructible<base, Args...>::value) \
             : base(std::forward<Args>(args)...) {} \
+        name & operator=(name const &) \
+                noexcept(std::is_nothrow_copy_assignable<base>::value); \
         const char * what() const noexcept final override; \
     }
 #define SHAREMIND_DEFINE_EXCEPTION_CONST_MSG_NOINLINE(base,ns,name,msg) \
@@ -92,6 +94,8 @@
             noexcept(std::is_nothrow_copy_constructible<base>::value) \
             = default; \
     ns name::~name() noexcept = default; \
+    ns name & ns name::operator=(name const &) \
+            noexcept(std::is_nothrow_copy_assignable<base>::value) = default; \
     const char * ns name::what() const noexcept { return (msg); }
 
 #define SHAREMIND_DEFINE_EXCEPTION_CONST_STDSTRING(base,name) \
