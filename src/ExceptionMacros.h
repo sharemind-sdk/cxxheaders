@@ -52,17 +52,6 @@
     ns name & ns name::operator=(name const &) \
             noexcept(std::is_nothrow_copy_assignable<base>::value) = default
 
-#define SHAREMIND_DEFINE_EXCEPTION_UNUSED(base,name) \
-    class name: public base { \
-    private: /* Methods: */ \
-        name() = delete; \
-        name(name &&) = delete; \
-        name(name const &) = delete; \
-        name & operator=(name &&) = delete; \
-        name & operator=(name const &) = delete; \
-    }
-
-
 #define SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(base,name,msg) \
     class name: public base { \
     public: /* Methods: */ \
