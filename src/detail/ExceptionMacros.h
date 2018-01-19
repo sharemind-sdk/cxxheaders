@@ -25,103 +25,46 @@
 #include <string>
 #include <type_traits>
 #include <utility>
-#include "../compiler-support/ClangPR23383.h"
 
 
 #define SHAREMIND_DETAIL_DEFINE_EXCEPTION(base,name) \
     class name: public base { \
-        SHAREMIND_CLANGPR23383_WORKAROUND_STATIC_PRIVATE_CONSTEXPR_DEF( \
-            baseIsNothrowDefaultConstructible, \
-            std::is_nothrow_default_constructible<base>::value) \
-        SHAREMIND_CLANGPR23383_WORKAROUND_STATIC_PRIVATE_CONSTEXPR_DEF( \
-            baseIsNothrowCopyConstructible, \
-            std::is_nothrow_copy_constructible<base>::value) \
-        SHAREMIND_CLANGPR23383_WORKAROUND_STATIC_PRIVATE_CONSTEXPR_DEF( \
-            baseIsNothrowCopyAssignable, \
-            std::is_nothrow_copy_assignable<base>::value) \
+        static_assert(std::is_nothrow_default_constructible<base>::value, ""); \
+        static_assert(std::is_nothrow_copy_constructible<base>::value, ""); \
+        static_assert(std::is_nothrow_copy_assignable<base>::value, ""); \
     public: /* Methods: */ \
-        name() noexcept( \
-                    SHAREMIND_CLANGPR23383_WORKAROUND( \
-                        baseIsNothrowDefaultConstructible, \
-                        std::is_nothrow_default_constructible<base>::value)) \
-                = default; \
-        name(name const &) \
-                noexcept( \
-                    SHAREMIND_CLANGPR23383_WORKAROUND( \
-                        baseIsNothrowCopyConstructible, \
-                        std::is_nothrow_copy_constructible<base>::value)) \
-                = default; \
+        name() noexcept = default; \
+        name(name const &) noexcept = default; \
         ~name() noexcept override = default; \
-        name & operator=(name const &) \
-                noexcept( \
-                    SHAREMIND_CLANGPR23383_WORKAROUND( \
-                        baseIsNothrowCopyAssignable, \
-                        std::is_nothrow_copy_assignable<base>::value)) \
-                = default; \
+        name & operator=(name const &) noexcept = default; \
     }
 
 #define SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(base,name,msg) \
     class name: public base { \
-        SHAREMIND_CLANGPR23383_WORKAROUND_STATIC_PRIVATE_CONSTEXPR_DEF( \
-            baseIsNothrowDefaultConstructible, \
-            std::is_nothrow_default_constructible<base>::value) \
-        SHAREMIND_CLANGPR23383_WORKAROUND_STATIC_PRIVATE_CONSTEXPR_DEF( \
-            baseIsNothrowCopyConstructible, \
-            std::is_nothrow_copy_constructible<base>::value) \
-        SHAREMIND_CLANGPR23383_WORKAROUND_STATIC_PRIVATE_CONSTEXPR_DEF( \
-            baseIsNothrowCopyAssignable, \
-            std::is_nothrow_copy_assignable<base>::value) \
+        static_assert(std::is_nothrow_default_constructible<base>::value, ""); \
+        static_assert(std::is_nothrow_copy_constructible<base>::value, ""); \
+        static_assert(std::is_nothrow_copy_assignable<base>::value, ""); \
     public: /* Methods: */ \
-        name() noexcept( \
-                SHAREMIND_CLANGPR23383_WORKAROUND( \
-                    baseIsNothrowDefaultConstructible, \
-                    std::is_nothrow_default_constructible<base>::value)) \
-                = default; \
-        name(name const &) \
-                noexcept( \
-                    SHAREMIND_CLANGPR23383_WORKAROUND( \
-                        baseIsNothrowCopyConstructible, \
-                        std::is_nothrow_copy_constructible<base>::value)) \
-                = default; \
+        name() noexcept = default; \
+        name(name const &) noexcept = default; \
         ~name() noexcept override = default; \
-        name & operator=(name const &) \
-                noexcept( \
-                    SHAREMIND_CLANGPR23383_WORKAROUND( \
-                        baseIsNothrowCopyAssignable, \
-                        std::is_nothrow_copy_assignable<base>::value)) \
-                = default; \
+        name & operator=(name const &) noexcept = default; \
         const char * what() const noexcept final override \
         { return (msg); } \
     }
 
 #define SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_STDSTRING(base,name) \
     class name: public base { \
-        SHAREMIND_CLANGPR23383_WORKAROUND_STATIC_PRIVATE_CONSTEXPR_DEF( \
-            baseIsNothrowDefaultConstructible, \
-            std::is_nothrow_default_constructible<base>::value) \
-        SHAREMIND_CLANGPR23383_WORKAROUND_STATIC_PRIVATE_CONSTEXPR_DEF( \
-            baseIsNothrowCopyConstructible, \
-            std::is_nothrow_copy_constructible<base>::value) \
-        SHAREMIND_CLANGPR23383_WORKAROUND_STATIC_PRIVATE_CONSTEXPR_DEF( \
-            baseIsNothrowCopyAssignable, \
-            std::is_nothrow_copy_assignable<base>::value) \
+        static_assert(std::is_nothrow_default_constructible<base>::value, ""); \
+        static_assert(std::is_nothrow_copy_constructible<base>::value, ""); \
+        static_assert(std::is_nothrow_copy_assignable<base>::value, ""); \
     public: /* Methods: */ \
         name(std::string message) \
             : m_message(std::make_shared<std::string>(std::move(message))) \
         {} \
-        name(name const &) \
-                noexcept( \
-                    SHAREMIND_CLANGPR23383_WORKAROUND( \
-                        baseIsNothrowCopyConstructible, \
-                        std::is_nothrow_copy_constructible<base>::value)) \
-                = default; \
+        name(name const &) noexcept = default; \
         ~name() noexcept override = default; \
-        name & operator=(name const &) \
-                noexcept( \
-                    SHAREMIND_CLANGPR23383_WORKAROUND( \
-                        baseIsNothrowCopyAssignable, \
-                        std::is_nothrow_copy_assignable<base>::value)) \
-                = default; \
+        name & operator=(name const &) noexcept = default; \
         const char * what() const noexcept final override { \
             assert(m_message); \
             return m_message->c_str(); \
