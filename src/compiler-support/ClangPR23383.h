@@ -45,6 +45,29 @@
                 Check<int>::value)
     };
 
+  Note however, that this workaround does not always help, e.g. in cases such as
+
+    #define DERIVE(base,name) \
+        class name: public base { \
+            SHAREMIND_CLANGPR23383_WORKAROUND_STATIC_PRIVATE_CONSTEXPR_DEF( \
+                workaround, \
+                std::is_nothrow_default_constructible<base>::value) \
+        public: \
+            name() noexcept( \
+                        SHAREMIND_CLANGPR23383_WORKAROUND( \
+                            workaround, \
+                            std::is_nothrow_default_constructible<base>::value)) \
+                    = default; \
+        }
+    struct E { virtual ~E() noexcept; };
+    DERIVE(E, Exception);
+    struct X {
+        DERIVE(Exception, Exception2);
+        DERIVE(Exception2, Exception3);
+    };
+
+  No known workaround for these cases at the moment.
+
 */
 
 /** \todo This might be already fixed in development versions of Clang. As of
