@@ -62,21 +62,11 @@ auto operator!=(Iter const & it, TerminatingNullCharacterSentinel const &)
 
 struct StringHasher {
 
-    template <typename T>
-    auto operator()(T && v) const noexcept
-            -> SHAREMIND_REQUIRE_CONCEPTS_R(std::size_t,
-                                            InputRangeTo(T, char),
-                                            Not(DecaysTo(T, std::string)))
-    { return this->operator()(std::begin(v), std::end(v)); }
-
-    std::size_t operator()(std::string const & v) const noexcept
-    { return boost::hash_range(v.begin(), v.end()); }
-
-    std::size_t operator()(char const * const v) const noexcept
-    { return this->operator()(v, Detail::TerminatingNullCharacterSentinel()); }
-
     template <typename Iterator_, typename Sentinel_>
-    auto operator()(Iterator_ first, Sentinel_ last) const noexcept
+    auto operator()(Iterator_ first, Sentinel_ last) const
+            noexcept(noexcept(first != last)
+                     && noexcept(++first)
+                     && noexcept(*first))
             -> SHAREMIND_REQUIRE_CONCEPTS_R(std::size_t,
                                             InputIteratorTo(Iterator_, char),
                                             Sentinel(Sentinel_, Iterator_))
@@ -86,6 +76,24 @@ struct StringHasher {
             boost::hash_combine(seed, *first);
         return seed;
     }
+
+    std::size_t operator()(std::string const & v) const
+            noexcept(noexcept(std::declval<StringHasher const &>()(v.begin(),
+                                                                   v.end())))
+    { return boost::hash_range(v.begin(), v.end()); }
+
+    std::size_t operator()(char const * const v) const noexcept
+    { return this->operator()(v, Detail::TerminatingNullCharacterSentinel()); }
+
+    template <typename T>
+    auto operator()(T && v) const
+            noexcept(noexcept(std::declval<StringHasher const &>()(
+                                  std::begin(v),
+                                  std::end(v))))
+            -> SHAREMIND_REQUIRE_CONCEPTS_R(std::size_t,
+                                            InputRangeTo(T, char),
+                                            Not(DecaysTo(T, std::string)))
+    { return this->operator()(std::begin(v), std::end(v)); }
 
 };
 
