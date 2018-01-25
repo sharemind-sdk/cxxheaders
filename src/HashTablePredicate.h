@@ -20,8 +20,8 @@
 #ifndef SHAREMIND_HASHTABLEPREDICATE_H
 #define SHAREMIND_HASHTABLEPREDICATE_H
 
-#include <cstddef>
 #include <type_traits>
+#include "Hash.h"
 #include "Concepts.h"
 
 
@@ -38,7 +38,7 @@ SHAREMIND_DEFINE_CONCEPT(HashTablePredicate) {
                         typename std::remove_reference<
                             decltype(pred.hash())
                         >::type
-                     >::type, std::size_t)
+                     >::type, HashValue)
             );
 };
 
