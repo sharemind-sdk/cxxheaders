@@ -34,6 +34,10 @@ namespace sharemind {
 
 class TimeoutsThread {
 
+private: /* Types: */
+
+    class Tasks;
+
 public: /* Types: */
 
     using Clock =
@@ -43,18 +47,20 @@ public: /* Types: */
             std::chrono::steady_clock
         >::type;
 
-private: /* Types: */
-
-
-    struct Task
-            : boost::intrusive::set_base_hook<
+    class Task
+            : public boost::intrusive::set_base_hook<
                 boost::intrusive::link_mode<boost::intrusive::normal_link> >
     {
 
-    /* Methods: */
+        friend class TimeoutsThread;
+        friend class Tasks;
+
+    public: /* Methods: */
 
         virtual ~Task() noexcept {}
-        virtual void operator()() = 0; // Not explicitly noexcept for StopTask
+
+        /// \note Not explicitly noexcept for StopTask
+        virtual void operator()(std::unique_ptr<Task> &&) = 0;
 
         bool operator==(Task const & rhs) const noexcept
         { return m_timePoint == rhs.m_timePoint; }
@@ -74,28 +80,14 @@ private: /* Types: */
         bool operator>=(Task const & rhs) const noexcept
         { return m_timePoint >= rhs.m_timePoint; }
 
-    /* Fields: */
+    private: /* Fields: */
 
         Clock::time_point m_timePoint;
         std::unique_ptr<Task> m_selfPtr;
 
     };
 
-    template <typename F>
-    struct TaskImpl: Task {
-
-    /* Methods: */
-
-        template <typename ... Args>
-        TaskImpl(Args && ... args) : m_f(std::forward<Args>(args)...) {}
-
-        void operator()() final override { m_f(); }
-
-    /* Fields: */
-
-        F m_f;
-
-    };
+private: /* Types: */
 
     struct StopException {};
 
@@ -103,7 +95,8 @@ private: /* Types: */
 
     /* Methods: */
 
-        void operator()() final override { throw StopException(); }
+        void operator()(std::unique_ptr<Task> &&) final override
+        { throw StopException(); }
 
     };
 
@@ -122,11 +115,6 @@ private: /* Types: */
         using const_iterator = Inner::const_iterator;
         using reference = Inner::reference;
 
-        struct Disposer {
-            void operator()(Task * const t) const noexcept
-            { t->m_selfPtr.reset(); }
-        };
-
     public: /* Methods: */
 
         ~Tasks() noexcept {
@@ -144,16 +132,15 @@ private: /* Types: */
 
         bool empty() const noexcept { return m_data.empty(); }
 
-        void moveExpiredTo(Tasks & targetContainer) noexcept {
+        std::unique_ptr<Task> takeFirstTask() noexcept {
+            std::unique_ptr<Task> r;
             m_data.erase_and_dispose(
-                    m_data.begin(),
-                    m_data.upper_bound(
-                        Clock::now(),
-                        [](decltype(Clock::now()) const & t, Task const & a)
-                                noexcept
-                        { return t <= a.m_timePoint; }),
-                    [&targetContainer](Task * const e) noexcept
-                    { targetContainer.m_data.push_back(*e); });
+                        m_data.begin(),
+                        [&r](Task * const task) noexcept {
+                            assert(task->m_selfPtr.get() == task);
+                            r = std::move(task->m_selfPtr);
+                        });
+            return r;
         }
 
     private: /* Fields: */
@@ -173,12 +160,51 @@ public: /* Methods: */
     }
 
     template <typename F>
-    static std::unique_ptr<Task> createTask(F && f) {
+    static std::unique_ptr<Task> createOneShotTask(F && f) {
         static_assert(
             noexcept(std::declval<typename std::decay<F>::type &>()()),
             "Callable for task must be noexcept!");
-        return makeUnique<TaskImpl<typename std::decay<F>::type> >(
-            std::forward<F>(f));
+
+        struct TaskImpl: Task {
+
+        /* Methods: */
+
+            TaskImpl(F && f) : m_f(std::forward<F>(f)) {}
+
+            void operator()(std::unique_ptr<Task> &&) final override { m_f(); }
+
+        /* Fields: */
+
+            typename std::decay<F>::type m_f;
+
+        };
+
+        return makeUnique<TaskImpl>(std::forward<F>(f));
+    }
+
+    template <typename F>
+    static std::unique_ptr<Task> createReusableTask(F && f) {
+        static_assert(
+            noexcept(std::declval<typename std::decay<F>::type &>()(
+                         std::declval<std::unique_ptr<Task> &&>())),
+            "Callable for task must be noexcept!");
+
+        struct TaskImpl: Task {
+
+        /* Methods: */
+
+            TaskImpl(F && f) : m_f(std::forward<F>(f)) {}
+
+            void operator()(std::unique_ptr<Task> && task) final override
+            { m_f(std::move(task)); }
+
+        /* Fields: */
+
+            typename std::decay<F>::type m_f;
+
+        };
+
+        return makeUnique<TaskImpl>(std::forward<F>(f));
     }
 
     void addTimeoutTask(Clock::duration const & duration,
@@ -200,13 +226,12 @@ public: /* Methods: */
     void run() noexcept {
         try {
             for (;;) {
-                decltype(m_tasks) runTasks; // Container for expired tasks
+                std::unique_ptr<Task> runTask;
                 {
                     std::unique_lock<std::mutex> lock(m_mutex);
                     // Wait for any tasks:
-                    m_cond.wait(
-                            lock,
-                            [this]() noexcept { return !m_tasks.empty(); });
+                    while (m_tasks.empty())
+                        m_cond.wait(lock);
                     for (;;) {
                         // Expiry of earliest task:
                         auto const nextTimePoint(m_tasks.begin()->m_timePoint);
@@ -221,11 +246,13 @@ public: /* Methods: */
                             break;
                     }
                     // Move any expired/expiring tasks to runTasks.
-                    m_tasks.moveExpiredTo(runTasks);
+                    runTask = m_tasks.takeFirstTask();
                 } // Release lock
-                // Execute expired tasks in order:
-                for (auto & runTask : runTasks)
-                    runTask(); // May throw StopException
+
+                // Execute expired task:
+                assert(runTask);
+                auto & runTaskRef = *runTask.get();
+                runTaskRef(std::move(runTask));
             }
         } catch (StopException const &) { return; }
     }

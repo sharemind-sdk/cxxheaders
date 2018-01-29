@@ -28,48 +28,80 @@ int main() {
     using sharemind::TimeoutsThread;
     std::mutex mutex;
     std::string outStr;
+    outStr.reserve(20u);
     auto const output(
                 [&outStr, &mutex](char const c) noexcept {
                     std::lock_guard<std::mutex> const guard(mutex);
                     outStr.push_back(c);
                 });
-    auto t1(TimeoutsThread::createTask([&output]() noexcept { output('1'); }));
-    auto t2(TimeoutsThread::createTask([&output]() noexcept { output('2'); }));
-    auto t3(TimeoutsThread::createTask([&output]() noexcept { output('3'); }));
+    {
+        #define CREATE_ONE_SHOT_TASK(...) \
+            TimeoutsThread::createOneShotTask( \
+                    [&output]() noexcept { output(__VA_ARGS__); })
+        auto t1(CREATE_ONE_SHOT_TASK('1'));
+        auto t2(CREATE_ONE_SHOT_TASK('2'));
+        auto t3(CREATE_ONE_SHOT_TASK('3'));
 
-    auto ta(TimeoutsThread::createTask([&output]() noexcept { output('a'); }));
-    auto tb(TimeoutsThread::createTask([&output]() noexcept { output('b'); }));
-    auto tc(TimeoutsThread::createTask([&output]() noexcept { output('c'); }));
-    auto td(TimeoutsThread::createTask([&output]() noexcept { output('d'); }));
-    auto te(TimeoutsThread::createTask([&output]() noexcept { output('e'); }));
-    auto tf(TimeoutsThread::createTask([&output]() noexcept { output('f'); }));
+        auto ta(CREATE_ONE_SHOT_TASK('a'));
+        auto tb(CREATE_ONE_SHOT_TASK('b'));
+        auto tc(CREATE_ONE_SHOT_TASK('c'));
+        auto td(CREATE_ONE_SHOT_TASK('d'));
+        auto te(CREATE_ONE_SHOT_TASK('e'));
+        auto tf(CREATE_ONE_SHOT_TASK('f'));
 
-    std::promise<void> pr;
-    auto f(pr.get_future());
-    auto tw(TimeoutsThread::createTask(
-                [&pr,&output]() noexcept {
-                    output('w');
-                    pr.set_value();
-                }));
+        std::promise<void> pr;
+        auto f(pr.get_future());
+        auto tw(TimeoutsThread::createOneShotTask(
+                    [&pr,&output]() noexcept {
+                        output('w');
+                        pr.set_value();
+                    }));
 
-    TimeoutsThread thread;
-    auto const start(TimeoutsThread::Clock::now());
-    thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(ta));
-    thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(tb));
-    thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(tc));
-    thread.addTimeoutTask(std::chrono::milliseconds(500), std::move(tw));
-    thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(td));
-    thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(te));
-    thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(tf));
-    thread.addTimeoutTask(std::chrono::milliseconds(300), std::move(t3));
-    thread.addTimeoutTask(std::chrono::milliseconds(200), std::move(t2));
-    thread.addTimeoutTask(std::chrono::milliseconds(100), std::move(t1));
-    f.get();
-    auto const timeTaken(TimeoutsThread::Clock::now() - start);
+        TimeoutsThread thread;
+        auto const start(TimeoutsThread::Clock::now());
+        thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(ta));
+        thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(tb));
+        thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(tc));
+        thread.addTimeoutTask(std::chrono::milliseconds(500), std::move(tw));
+        thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(td));
+        thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(te));
+        thread.addTimeoutTask(std::chrono::milliseconds(400), std::move(tf));
+        thread.addTimeoutTask(std::chrono::milliseconds(300), std::move(t3));
+        thread.addTimeoutTask(std::chrono::milliseconds(200), std::move(t2));
+        thread.addTimeoutTask(std::chrono::milliseconds(100), std::move(t1));
+        f.get();
+        auto const timeTaken(TimeoutsThread::Clock::now() - start);
 
-    SHAREMIND_TESTASSERT(outStr == "123abcdefw");
-    SHAREMIND_TESTASSERT(timeTaken >= std::chrono::milliseconds(500));
+        SHAREMIND_TESTASSERT(outStr == "123abcdefw");
+        SHAREMIND_TESTASSERT(timeTaken >= std::chrono::milliseconds(500));
 
-    // Let's hope our test platform is fast enough:
-    SHAREMIND_TESTASSERT(timeTaken < std::chrono::milliseconds(600));
+        // Let's hope our test platform is fast enough:
+        SHAREMIND_TESTASSERT(timeTaken < std::chrono::milliseconds(600));
+    }{
+        unsigned countDown = 10u;
+        TimeoutsThread thread;
+        std::promise<void> pr;
+        auto task(TimeoutsThread::createReusableTask(
+                    [&countDown,&thread,&pr](
+                        std::unique_ptr<TimeoutsThread::Task> && task) noexcept
+                    {
+                        if (--countDown) {
+                            thread.addTimeoutTask(
+                                        std::chrono::milliseconds(100),
+                                        std::move(task));
+                        } else {
+                            pr.set_value();
+                        }
+                    }));
+        auto f(pr.get_future());
+        auto const start(TimeoutsThread::Clock::now());
+        thread.addTimeoutTask(std::chrono::milliseconds(100), std::move(task));
+        f.get();
+        auto const timeTaken(TimeoutsThread::Clock::now() - start);
+        SHAREMIND_TESTASSERT(countDown == 0u);
+
+        SHAREMIND_TESTASSERT(timeTaken > std::chrono::milliseconds(1000));
+        // Let's hope our test platform is fast enough:
+        SHAREMIND_TESTASSERT(timeTaken < std::chrono::milliseconds(1100));
+    }
 }
