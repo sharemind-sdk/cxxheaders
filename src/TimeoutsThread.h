@@ -29,6 +29,8 @@
 #include <utility>
 
 
+namespace sharemind {
+
 class TimeoutsThread {
 
 public: /* Types: */
@@ -242,5 +244,7 @@ private: /* Fields: */
     std::thread m_thread{&TimeoutsThread::run, this};
 
 };
+
+} /* namespace sharemind */
 
 #endif /* SHAREMIND_TIMEOUTSTHREAD_H */

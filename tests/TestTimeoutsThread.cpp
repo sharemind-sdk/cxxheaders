@@ -25,6 +25,7 @@
 
 
 int main() {
+    using sharemind::TimeoutsThread;
     std::mutex mutex;
     std::string outStr;
     auto const output(
