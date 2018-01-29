@@ -27,6 +27,7 @@
 #include <thread>
 #include <type_traits>
 #include <utility>
+#include "MakeUnique.h"
 
 
 namespace sharemind {
@@ -76,7 +77,7 @@ private: /* Types: */
     /* Fields: */
 
         Clock::time_point m_timePoint;
-        std::shared_ptr<Task> m_selfPtr;
+        std::unique_ptr<Task> m_selfPtr;
 
     };
 
@@ -172,20 +173,20 @@ public: /* Methods: */
     }
 
     template <typename F>
-    static std::shared_ptr<Task> createTask(F && f) {
+    static std::unique_ptr<Task> createTask(F && f) {
         static_assert(
             noexcept(std::declval<typename std::decay<F>::type &>()()),
             "Callable for task must be noexcept!");
-        return std::make_shared<TaskImpl<typename std::decay<F>::type> >(
+        return makeUnique<TaskImpl<typename std::decay<F>::type> >(
             std::forward<F>(f));
     }
 
     void addTimeoutTask(Clock::duration const & duration,
-                        std::shared_ptr<Task> task) noexcept
+                        std::unique_ptr<Task> task) noexcept
     { return addTask(Clock::now() + duration, std::move(task)); }
 
     template <typename TimePoint>
-    void addTask(TimePoint && timePoint, std::shared_ptr<Task> task) noexcept {
+    void addTask(TimePoint && timePoint, std::unique_ptr<Task> task) noexcept {
         assert(task);
         auto & t = *task;
         assert(!t.m_selfPtr); // Already inserted
@@ -236,7 +237,7 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    std::shared_ptr<Task> const m_stopTask{std::make_shared<StopTask>()};
+    std::unique_ptr<Task> m_stopTask{makeUnique<StopTask>()};
     std::mutex m_mutex;
     std::condition_variable m_cond;
     Tasks m_tasks;
