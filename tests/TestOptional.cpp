@@ -30,10 +30,7 @@
 #define DEBUG_MSG(...) static_cast<void>(0)
 #endif
 
-using sharemind::NullOption;
-using sharemind::nullOption;
-using sharemind::inPlace;
-using sharemind::Optional;
+using namespace sharemind;
 
 static_assert(!std::is_default_constructible<NullOption>::value, "");
 
