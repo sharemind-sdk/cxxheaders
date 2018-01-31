@@ -20,6 +20,7 @@
 #include "../src/Optional.h"
 
 #include <type_traits>
+#include "../src/Concepts.h"
 #include "../src/TestAssert.h"
 
 
@@ -54,6 +55,108 @@ TEST_NULLOPTION_COMPARE(Le, <=, !x, true);
 TEST_NULLOPTION_COMPARE(Gt, >,  bool(x), false);
 TEST_NULLOPTION_COMPARE(Ge, >=, true, !x);
 #undef TEST_NULLOPTION_COMPARE
+
+namespace TestCompareWellFormed {
+namespace Test { struct A {}; struct B {}; struct Acomp {}; }
+
+#define TEST_COMPARE(Op, op) \
+    namespace Test { \
+        bool operator op(A const &, Acomp const &) noexcept; \
+        bool operator op(Acomp const &, A const &) noexcept; \
+    } \
+    template <typename T, typename U> \
+    constexpr bool test ## Op ## WellFormed() noexcept { \
+        return Models<Op ## Comparable(T, U)>::value \
+                == Models<Op ## Comparable(Optional<T> const &, \
+                                           Optional<U> const &)>::value; \
+    } \
+    template <typename T, typename U> \
+    constexpr bool test ## Op ## Noexcept() noexcept { \
+        return Models<Op ## Comparable(T, U)>::value \
+                == Models<Op ## Comparable(Optional<T> const &, \
+                                           Optional<U> const &)>::value; \
+    } \
+    template <typename T, typename U> \
+    constexpr bool test ## Op() noexcept { \
+        return test ## Op ## WellFormed<T, U>() \
+               && test ## Op ## Noexcept<T, U>(); \
+    } \
+    static_assert(test ## Op<Test::A, Test::A>(), "A " #Op " A"); \
+    static_assert(test ## Op<Test::A, Test::B>(), "A " #Op " B"); \
+    static_assert(test ## Op<Test::B, Test::A>(), "B " #Op " A"); \
+    static_assert(test ## Op<Test::A, Test::Acomp>(), "A " #Op " Acomp"); \
+    static_assert(test ## Op<Test::Acomp, Test::A>(), "Acomp " #Op " A")
+TEST_COMPARE(Equality, ==);
+TEST_COMPARE(Inequality, !=);
+TEST_COMPARE(LessThan, <);
+TEST_COMPARE(LessOrEqual, <=);
+TEST_COMPARE(GreaterThan, >);
+TEST_COMPARE(GreaterOrEqual, >=);
+#undef TEST_COMPARE
+
+} // namespace TestCompareWellFormed {
+
+namespace TestCompareNoexcept {
+namespace Test { struct A {}; struct Yes {}; struct No {}; }
+
+#define TEST_COMPARE(op) \
+    namespace Test { \
+        bool operator op(A const &, Yes const &) noexcept; \
+        bool operator op(A const &, No const &); \
+    } \
+    static_assert(noexcept(std::declval<Optional<Test::A> const &>() \
+                           op std::declval<Optional<Test::Yes> const &>()), \
+                           ""); \
+    static_assert(!noexcept(std::declval<Optional<Test::A> const &>() \
+                            op std::declval<Optional<Test::No> const &>()), "")
+TEST_COMPARE(==);
+TEST_COMPARE(!=);
+TEST_COMPARE(<);
+TEST_COMPARE(<=);
+TEST_COMPARE(>);
+TEST_COMPARE(>=);
+#undef TEST_COMPARE
+
+} // namespace TestCompareNoexcept {
+
+namespace TestCompare {
+namespace Test{
+struct T{}; struct TT{}; struct TF{}; struct FT{}; struct FF{}; struct F{};
+};
+#define TEST(op, t1, t2, r, ee, ev, ve) \
+    namespace Test { \
+        constexpr bool operator op(Test::t1 const &, Test::t2 const &) noexcept\
+        { return r; } \
+    } \
+    static_assert((Optional<Test::t1>() op Optional<Test::t2>()) == (ee), \
+                  #t1 " " #op " " #t2 " ee"); \
+    static_assert((Optional<Test::t1>() op Optional<Test::t2>(inPlace)) \
+                  == (ev), #t1 " " #op " " #t2  " ev"); \
+    static_assert((Optional<Test::t1>(inPlace) op Optional<Test::t2>()) \
+                  == (ve), #t1 " " #op " " #t2  " ve"); \
+    static_assert((Optional<Test::t1>(inPlace) op Optional<Test::t2>(inPlace)) \
+                  == (Test::t1() op Test::t2()), #t1 " " #op " " #t2  " vv");
+#define TEST_COMPARE(op, ee, ev, ve) \
+    TEST(op, T, T,  true,  ee, ev, ve) \
+    TEST(op, T, TT, true,  ee, ev, ve) \
+    TEST(op, TT, T, true,  ee, ev, ve) \
+    TEST(op, T, TF, true,  ee, ev, ve) \
+    TEST(op, TF, T, false, ee, ev, ve) \
+    TEST(op, T, FT, false, ee, ev, ve) \
+    TEST(op, FT, T, true,  ee, ev, ve) \
+    TEST(op, T, FF, false, ee, ev, ve) \
+    TEST(op, FF, T, false, ee, ev, ve) \
+    TEST(op, F, F,  false, ee, ev, ve)
+TEST_COMPARE(==, true,  false, false)
+TEST_COMPARE(!=, false, true,  true)
+TEST_COMPARE(<,  false, true,  false)
+TEST_COMPARE(<=, true,  true,  false)
+TEST_COMPARE(>,  false, false, true)
+TEST_COMPARE(>=, true,  false, true)
+#undef TEST_COMPARE
+#undef TEST
+
+} // namespace TestCompare {
 
 struct TestStats {
     TestStats() noexcept { ++m_total; }

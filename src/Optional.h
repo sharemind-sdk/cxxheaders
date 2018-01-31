@@ -25,6 +25,7 @@
 #include <type_traits>
 #include <utility>
 #include "compiler-support/ClangPR22637.h"
+#include "Concepts.h"
 
 
 namespace sharemind {
@@ -236,6 +237,50 @@ public: /* Methods: */
 
 template <typename T>
 using Optional = Detail::Optional::Impl<T>;
+
+template <typename T, typename U>
+constexpr auto operator==(Optional<T> const & lhs, Optional<U> const & rhs)
+        noexcept(noexcept(*lhs == *rhs))
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, EqualityComparable(T, U))
+{
+    return (bool(lhs) != bool(rhs))
+           ? false
+           : (bool(lhs) == false ? true : (*lhs == *rhs));
+}
+
+template <typename T, typename U>
+constexpr auto operator!=(Optional<T> const & lhs, Optional<U> const & rhs)
+        noexcept(noexcept(*lhs == *rhs))
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, InequalityComparable(T, U))
+{
+    return (bool(lhs) != bool(rhs))
+           ? true
+           : (bool(lhs) == false ? false : (*lhs != *rhs));
+}
+
+template <typename T, typename U>
+constexpr auto operator<(Optional<T> const & lhs, Optional<U> const & rhs)
+        noexcept(noexcept(*lhs < *rhs))
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, LessThanComparable(T, U))
+{ return !rhs ? false : (!lhs ? true : (*lhs < *rhs)); }
+
+template <typename T, typename U>
+constexpr auto operator<=(Optional<T> const & lhs, Optional<U> const & rhs)
+        noexcept(noexcept(*lhs <= *rhs))
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, LessOrEqualComparable(T, U))
+{ return !lhs ? true : (!rhs ? false : (*lhs <= *rhs)); }
+
+template <typename T, typename U>
+constexpr auto operator>(Optional<T> const & lhs, Optional<U> const & rhs)
+        noexcept(noexcept(*lhs > *rhs))
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, GreaterThanComparable(T, U))
+{ return !lhs ? false : (!rhs ? true : (*lhs > *rhs)); }
+
+template <typename T, typename U>
+constexpr auto operator>=(Optional<T> const & lhs, Optional<U> const & rhs)
+        noexcept(noexcept(*lhs >= *rhs))
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, GreaterOrEqualComparable(T, U))
+{ return !rhs ? true : (!lhs ? false : (*lhs >= *rhs)); }
 
 #define SHAREMIND_OPTIONAL_H_NULLCOMPARE(op,r1,r2) \
     template <typename T> \
