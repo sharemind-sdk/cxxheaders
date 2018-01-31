@@ -31,10 +31,32 @@
 #endif
 
 using sharemind::NullOption;
+using sharemind::nullOption;
 using sharemind::inPlace;
 using sharemind::Optional;
 
 static_assert(!std::is_default_constructible<NullOption>::value, "");
+
+#define TEST_NULLOPTION_COMPARE(Op,op,r1,r2) \
+    template <typename T> \
+    constexpr bool testCompare ## Op ## NullOption(Optional<T> const & x) \
+            noexcept \
+    { \
+        static_assert(noexcept(x op nullOption), ""); \
+        static_assert(noexcept(nullOption op x), ""); \
+        static_assert(std::is_same<decltype(x op nullOption), bool>::value, ""); \
+        static_assert(std::is_same<decltype(nullOption op x), bool>::value, ""); \
+        return ((x op nullOption) == r1) && ((nullOption op x) == r2); \
+    } \
+    static_assert(testCompare ## Op ## NullOption(Optional<int>()), ""); \
+    static_assert(testCompare ## Op ## NullOption(Optional<int>(inPlace, 42)), "")
+TEST_NULLOPTION_COMPARE(Eq, ==, !x, !x);
+TEST_NULLOPTION_COMPARE(Ne, !=, bool(x), bool(x));
+TEST_NULLOPTION_COMPARE(Lt, <,  false, bool(x));
+TEST_NULLOPTION_COMPARE(Le, <=, !x, true);
+TEST_NULLOPTION_COMPARE(Gt, >,  bool(x), false);
+TEST_NULLOPTION_COMPARE(Ge, >=, true, !x);
+#undef TEST_NULLOPTION_COMPARE
 
 struct TestStats {
     TestStats() noexcept { ++m_total; }

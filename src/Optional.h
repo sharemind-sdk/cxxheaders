@@ -237,6 +237,21 @@ public: /* Methods: */
 template <typename T>
 using Optional = Detail::Optional::Impl<T>;
 
+#define SHAREMIND_OPTIONAL_H_NULLCOMPARE(op,r1,r2) \
+    template <typename T> \
+    constexpr bool operator op(Optional<T> const & x, NullOption) noexcept \
+    { return r1; } \
+    template <typename T> \
+    constexpr bool operator op(NullOption, Optional<T> const & x) noexcept \
+    { return r2; }
+SHAREMIND_OPTIONAL_H_NULLCOMPARE(==, !x, !x)
+SHAREMIND_OPTIONAL_H_NULLCOMPARE(!=, bool(x), bool(x))
+SHAREMIND_OPTIONAL_H_NULLCOMPARE(<,  (static_cast<void>(x), false), bool(x))
+SHAREMIND_OPTIONAL_H_NULLCOMPARE(<=, !x, (static_cast<void>(x), true))
+SHAREMIND_OPTIONAL_H_NULLCOMPARE(>,  bool(x), (static_cast<void>(x), false))
+SHAREMIND_OPTIONAL_H_NULLCOMPARE(>=, (static_cast<void>(x), true), !x)
+#undef SHAREMIND_OPTIONAL_H_NULLCOMPARE
+
 } /* namespace sharemind */
 
 #endif /* SHAREMIND_OPTIONAL_H */
