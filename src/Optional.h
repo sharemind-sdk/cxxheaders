@@ -71,8 +71,8 @@ class Impl;
     static_assert(!std::is_same<typename std::remove_cv<T>::type, InPlace>::value, ""); \
     static_assert(!std::is_same<typename std::remove_cv<T>::type, NullOption>::value, ""); \
 public: /* Methods: */ \
-    constexpr Impl() noexcept : m_valid(false) {} \
-    constexpr Impl(NullOption) noexcept : m_valid(false) {} \
+    constexpr Impl() noexcept : m_empty(), m_valid(false) {} \
+    constexpr Impl(NullOption) noexcept : m_empty(), m_valid(false) {} \
     template <typename ... Args> \
     constexpr Impl(InPlace, Args && ... args) \
             noexcept(std::is_nothrow_constructible<T, Args...>::value) \
