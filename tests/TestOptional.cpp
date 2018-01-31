@@ -19,6 +19,7 @@
 
 #include "../src/Optional.h"
 
+#include <type_traits>
 #include "../src/TestAssert.h"
 
 
@@ -29,8 +30,11 @@
 #define DEBUG_MSG(...) static_cast<void>(0)
 #endif
 
+using sharemind::NullOption;
 using sharemind::inPlace;
 using sharemind::Optional;
+
+static_assert(!std::is_default_constructible<NullOption>::value, "");
 
 struct TestStats {
     TestStats() noexcept { ++m_total; }

@@ -29,8 +29,26 @@
 
 namespace sharemind {
 
-struct NullOption { explicit NullOption() = default; };
-constexpr NullOption nullOption = NullOption();
+struct NullOption {
+
+private: /* Types: */
+
+    struct Secret {};
+
+public: /* Methods: */
+
+    NullOption() = delete;
+    template <typename T> NullOption(std::initializer_list<T> const &) = delete;
+
+    constexpr static NullOption getInstance() noexcept
+    { return NullOption(Secret(), Secret()); }
+
+private: /* Methods: */
+
+    constexpr explicit NullOption(Secret, Secret) noexcept {}
+
+};
+constexpr NullOption nullOption = NullOption::getInstance();
 struct InPlace { explicit InPlace() = default; };
 constexpr InPlace inPlace = InPlace();
 
