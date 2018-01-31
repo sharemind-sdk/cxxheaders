@@ -19,7 +19,9 @@
 
 #include "../src/Optional.h"
 
+#include <memory>
 #include <type_traits>
+#include <utility>
 #include "../src/Concepts.h"
 #include "../src/TestAssert.h"
 
