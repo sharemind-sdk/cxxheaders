@@ -21,6 +21,7 @@
 #define SHAREMIND_OPTIONAL_H
 
 #include <cassert>
+#include <initializer_list>
 #include <memory>
 #include <type_traits>
 #include <utility>
