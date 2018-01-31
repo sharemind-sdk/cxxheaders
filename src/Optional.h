@@ -297,6 +297,21 @@ SHAREMIND_OPTIONAL_H_NULLCOMPARE(>,  bool(x), (static_cast<void>(x), false))
 SHAREMIND_OPTIONAL_H_NULLCOMPARE(>=, (static_cast<void>(x), true), !x)
 #undef SHAREMIND_OPTIONAL_H_NULLCOMPARE
 
+#define SHAREMIND_OPTIONAL_H_VALUECOMPARE(op,r1,r2) \
+    template <typename T, typename U> \
+    constexpr bool operator op(Optional<T> const & x, U const & v) noexcept \
+    { return bool(x) ? (*x op v) : r1; } \
+    template <typename T, typename U> \
+    constexpr bool operator op(T const & v, Optional<U> const & x) noexcept \
+    { return bool(x) ? (v op *x) : r2; }
+SHAREMIND_OPTIONAL_H_VALUECOMPARE(==, false, false)
+SHAREMIND_OPTIONAL_H_VALUECOMPARE(!=, true,  true)
+SHAREMIND_OPTIONAL_H_VALUECOMPARE(<,  true,  false)
+SHAREMIND_OPTIONAL_H_VALUECOMPARE(<=, true,  false)
+SHAREMIND_OPTIONAL_H_VALUECOMPARE(>,  false, true)
+SHAREMIND_OPTIONAL_H_VALUECOMPARE(>=, false, true)
+#undef SHAREMIND_OPTIONAL_H_VALUECOMPARE
+
 } /* namespace sharemind */
 
 #endif /* SHAREMIND_OPTIONAL_H */

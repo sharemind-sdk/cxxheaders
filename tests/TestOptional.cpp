@@ -123,36 +123,44 @@ namespace TestCompare {
 namespace Test{
 struct T{}; struct TT{}; struct TF{}; struct FT{}; struct FF{}; struct F{};
 };
-#define TEST(op, t1, t2, r, ee, ev, ve) \
+#define TEST(ns, op, t1, t2, r, ee, ev, ve) \
     namespace Test { \
         constexpr bool operator op(Test::t1 const &, Test::t2 const &) noexcept\
         { return r; } \
     } \
-    static_assert((Optional<Test::t1>() op Optional<Test::t2>()) == (ee), \
-                  #t1 " " #op " " #t2 " ee"); \
-    static_assert((Optional<Test::t1>() op Optional<Test::t2>(inPlace)) \
-                  == (ev), #t1 " " #op " " #t2  " ev"); \
-    static_assert((Optional<Test::t1>(inPlace) op Optional<Test::t2>()) \
-                  == (ve), #t1 " " #op " " #t2  " ve"); \
-    static_assert((Optional<Test::t1>(inPlace) op Optional<Test::t2>(inPlace)) \
-                  == (Test::t1() op Test::t2()), #t1 " " #op " " #t2  " vv");
-#define TEST_COMPARE(op, ee, ev, ve) \
-    TEST(op, T, T,  true,  ee, ev, ve) \
-    TEST(op, T, TT, true,  ee, ev, ve) \
-    TEST(op, TT, T, true,  ee, ev, ve) \
-    TEST(op, T, TF, true,  ee, ev, ve) \
-    TEST(op, TF, T, false, ee, ev, ve) \
-    TEST(op, T, FT, false, ee, ev, ve) \
-    TEST(op, FT, T, true,  ee, ev, ve) \
-    TEST(op, T, FF, false, ee, ev, ve) \
-    TEST(op, FF, T, false, ee, ev, ve) \
-    TEST(op, F, F,  false, ee, ev, ve)
-TEST_COMPARE(==, true,  false, false)
-TEST_COMPARE(!=, false, true,  true)
-TEST_COMPARE(<,  false, true,  false)
-TEST_COMPARE(<=, true,  true,  false)
-TEST_COMPARE(>,  false, false, true)
-TEST_COMPARE(>=, true,  false, true)
+    namespace ns ## _ ## t1 ## _ ## t2 { \
+    constexpr auto const ot1 = Optional<Test::t1>(inPlace); \
+    constexpr auto const ot2 = Optional<Test::t2>(inPlace); \
+    constexpr auto const ot1e = Optional<Test::t1>(); \
+    constexpr auto const ot2e = Optional<Test::t2>(); \
+    constexpr auto const vt1 = Test::t1(); \
+    constexpr auto const vt2 = Test::t2(); \
+    static_assert((ot1e op ot2e) == (ee), #t1 " " #op " " #t2 " ee"); \
+    static_assert((ot1e op ot2 ) == (ev), #t1 " " #op " " #t2 " ev"); \
+    static_assert((ot1  op ot2e) == (ve), #t1 " " #op " " #t2 " ve"); \
+    static_assert((ot1  op ot2 ) == (vt1 op vt2), #t1 " " #op " " #t2  " vv"); \
+    static_assert((ot1e op vt2 ) == (ev), #t1 " " #op " " #t2  " ev2"); \
+    static_assert((vt1  op ot2e) == (ve), #t1 " " #op " " #t2  " ve2"); \
+    static_assert((vt1  op ot2 ) == (vt1 op vt2), #t1 " " #op " " #t2  " vv2");\
+    static_assert((ot1  op vt2 ) == (vt1 op vt2), #t1 " " #op " " #t2  " vv3");\
+    }
+#define TEST_COMPARE(ns, op, ee, ev, ve) \
+    TEST(ns, op, T, T,  true,  ee, ev, ve) \
+    TEST(ns, op, T, TT, true,  ee, ev, ve) \
+    TEST(ns, op, TT, T, true,  ee, ev, ve) \
+    TEST(ns, op, T, TF, true,  ee, ev, ve) \
+    TEST(ns, op, TF, T, false, ee, ev, ve) \
+    TEST(ns, op, T, FT, false, ee, ev, ve) \
+    TEST(ns, op, FT, T, true,  ee, ev, ve) \
+    TEST(ns, op, T, FF, false, ee, ev, ve) \
+    TEST(ns, op, FF, T, false, ee, ev, ve) \
+    TEST(ns, op, F, F,  false, ee, ev, ve)
+TEST_COMPARE(Eq, ==, true,  false, false)
+TEST_COMPARE(Ne, !=, false, true,  true)
+TEST_COMPARE(Lt, <,  false, true,  false)
+TEST_COMPARE(Le, <=, true,  true,  false)
+TEST_COMPARE(Gt, >,  false, false, true)
+TEST_COMPARE(Ge, >=, true,  false, true)
 #undef TEST_COMPARE
 #undef TEST
 
