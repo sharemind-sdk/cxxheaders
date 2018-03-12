@@ -87,10 +87,6 @@ public: /* Methods: */ \
         if (m_valid) \
             new (std::addressof(m_data)) T(std::move(move.m_data)); \
     } \
-    constexpr Impl(Impl & copy) \
-            noexcept(std::is_nothrow_copy_constructible<T>::value) \
-        : Impl(const_cast<Impl const &>(copy)) \
-    {} \
     Impl(Impl const & copy) \
             noexcept(std::is_nothrow_copy_constructible<T>::value) \
         : m_valid(copy.m_valid) \
