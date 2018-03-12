@@ -73,12 +73,18 @@ namespace Test { struct A {}; struct B {}; struct Acomp {}; }
                 == SM::Models<SM::Op ## Comparable(SMO<T> const &, \
                                                    SMO<U> const &)>::value; \
     } \
-    template <typename T, typename U> \
+    template <typename T, \
+              typename U, \
+              SHAREMIND_REQUIRES_CONCEPTS(SM::Op ## Comparable(T, U))> \
     constexpr bool test ## Op ## Noexcept() noexcept { \
-        return SM::Models<SM::Op ## Comparable(T, U)>::value \
-                == SM::Models<SM::Op ## Comparable(SMO<T> const &, \
-                                                   SMO<U> const &)>::value; \
+        return noexcept(std::declval<T const &>() op std::declval<U const &>())\
+               == noexcept(std::declval<SMO<T> const &>() \
+                           op std::declval<SMO<U> const &>()); \
     } \
+    template <typename T, \
+              typename U, \
+              SHAREMIND_REQUIRES_CONCEPTS(SM::Not(SM::Op ## Comparable(T, U)))>\
+    constexpr bool test ## Op ## Noexcept() noexcept { return true; } \
     template <typename T, typename U> \
     constexpr bool test ## Op() noexcept { \
         return test ## Op ## WellFormed<T, U>() \
