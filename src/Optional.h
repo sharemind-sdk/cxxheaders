@@ -230,14 +230,8 @@ public: /* Methods: */
 #undef SHAREMIND_OPTIONAL_H_IMPL_COMMON
 #undef SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR
 
-} /* namespace Optional { */
-} /* namespace Detail { */
-
-template <typename T>
-using Optional = Detail::Optional::Impl<T>;
-
 template <typename T, typename U>
-constexpr auto operator==(Optional<T> const & lhs, Optional<U> const & rhs)
+constexpr auto operator==(Impl<T> const & lhs, Impl<U> const & rhs)
         noexcept(noexcept(*lhs == *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, EqualityComparable(T, U))
 {
@@ -247,7 +241,7 @@ constexpr auto operator==(Optional<T> const & lhs, Optional<U> const & rhs)
 }
 
 template <typename T, typename U>
-constexpr auto operator!=(Optional<T> const & lhs, Optional<U> const & rhs)
+constexpr auto operator!=(Impl<T> const & lhs, Impl<U> const & rhs)
         noexcept(noexcept(*lhs == *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, InequalityComparable(T, U))
 {
@@ -257,35 +251,35 @@ constexpr auto operator!=(Optional<T> const & lhs, Optional<U> const & rhs)
 }
 
 template <typename T, typename U>
-constexpr auto operator<(Optional<T> const & lhs, Optional<U> const & rhs)
+constexpr auto operator<(Impl<T> const & lhs, Impl<U> const & rhs)
         noexcept(noexcept(*lhs < *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, LessThanComparable(T, U))
 { return !rhs ? false : (!lhs ? true : (*lhs < *rhs)); }
 
 template <typename T, typename U>
-constexpr auto operator<=(Optional<T> const & lhs, Optional<U> const & rhs)
+constexpr auto operator<=(Impl<T> const & lhs, Impl<U> const & rhs)
         noexcept(noexcept(*lhs <= *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, LessOrEqualComparable(T, U))
 { return !lhs ? true : (!rhs ? false : (*lhs <= *rhs)); }
 
 template <typename T, typename U>
-constexpr auto operator>(Optional<T> const & lhs, Optional<U> const & rhs)
+constexpr auto operator>(Impl<T> const & lhs, Impl<U> const & rhs)
         noexcept(noexcept(*lhs > *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, GreaterThanComparable(T, U))
 { return !lhs ? false : (!rhs ? true : (*lhs > *rhs)); }
 
 template <typename T, typename U>
-constexpr auto operator>=(Optional<T> const & lhs, Optional<U> const & rhs)
+constexpr auto operator>=(Impl<T> const & lhs, Impl<U> const & rhs)
         noexcept(noexcept(*lhs >= *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, GreaterOrEqualComparable(T, U))
 { return !rhs ? true : (!lhs ? false : (*lhs >= *rhs)); }
 
 #define SHAREMIND_OPTIONAL_H_NULLCOMPARE(op,r1,r2) \
     template <typename T> \
-    constexpr bool operator op(Optional<T> const & x, NullOption) noexcept \
+    constexpr bool operator op(Impl<T> const & x, NullOption) noexcept \
     { return r1; } \
     template <typename T> \
-    constexpr bool operator op(NullOption, Optional<T> const & x) noexcept \
+    constexpr bool operator op(NullOption, Impl<T> const & x) noexcept \
     { return r2; }
 SHAREMIND_OPTIONAL_H_NULLCOMPARE(==, !x, !x)
 SHAREMIND_OPTIONAL_H_NULLCOMPARE(!=, bool(x), bool(x))
@@ -297,10 +291,10 @@ SHAREMIND_OPTIONAL_H_NULLCOMPARE(>=, (static_cast<void>(x), true), !x)
 
 #define SHAREMIND_OPTIONAL_H_VALUECOMPARE(op,r1,r2) \
     template <typename T, typename U> \
-    constexpr bool operator op(Optional<T> const & x, U const & v) noexcept \
+    constexpr bool operator op(Impl<T> const & x, U const & v) noexcept \
     { return bool(x) ? (*x op v) : r1; } \
     template <typename T, typename U> \
-    constexpr bool operator op(T const & v, Optional<U> const & x) noexcept \
+    constexpr bool operator op(T const & v, Impl<U> const & x) noexcept \
     { return bool(x) ? (v op *x) : r2; }
 SHAREMIND_OPTIONAL_H_VALUECOMPARE(==, false, false)
 SHAREMIND_OPTIONAL_H_VALUECOMPARE(!=, true,  true)
@@ -309,6 +303,12 @@ SHAREMIND_OPTIONAL_H_VALUECOMPARE(<=, true,  false)
 SHAREMIND_OPTIONAL_H_VALUECOMPARE(>,  false, true)
 SHAREMIND_OPTIONAL_H_VALUECOMPARE(>=, false, true)
 #undef SHAREMIND_OPTIONAL_H_VALUECOMPARE
+
+} /* namespace Optional { */
+} /* namespace Detail { */
+
+template <typename T>
+using Optional = Detail::Optional::Impl<T>;
 
 } /* namespace sharemind */
 

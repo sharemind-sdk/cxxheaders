@@ -33,23 +33,24 @@
 #define DEBUG_MSG(...) static_cast<void>(0)
 #endif
 
-using namespace sharemind;
+#define SM sharemind
+#define SMO SM::Optional
 
-static_assert(!std::is_default_constructible<NullOption>::value, "");
+static_assert(!std::is_default_constructible<SM::NullOption>::value, "");
 
 #define TEST_NULLOPTION_COMPARE(Op,op,r1,r2) \
     template <typename T> \
-    constexpr bool testCompare ## Op ## NullOption(Optional<T> const & x) \
-            noexcept \
-    { \
-        static_assert(noexcept(x op nullOption), ""); \
-        static_assert(noexcept(nullOption op x), ""); \
-        static_assert(std::is_same<decltype(x op nullOption), bool>::value, ""); \
-        static_assert(std::is_same<decltype(nullOption op x), bool>::value, ""); \
-        return ((x op nullOption) == r1) && ((nullOption op x) == r2); \
+    constexpr bool testCompare ## Op ## NullOption(SMO<T> const & x) noexcept {\
+        static_assert(noexcept(x op SM::nullOption), ""); \
+        static_assert(noexcept(SM::nullOption op x), ""); \
+        static_assert(std::is_same<decltype(x op SM::nullOption), \
+                                   bool>::value, ""); \
+        static_assert(std::is_same<decltype(SM::nullOption op x), \
+                                   bool>::value, ""); \
+        return ((x op SM::nullOption) == r1) && ((SM::nullOption op x) == r2); \
     } \
-    static_assert(testCompare ## Op ## NullOption(Optional<int>()), ""); \
-    static_assert(testCompare ## Op ## NullOption(Optional<int>(inPlace, 42)), "")
+    static_assert(testCompare ## Op ## NullOption(SMO<int>()), ""); \
+    static_assert(testCompare ## Op ## NullOption(SMO<int>(SM::inPlace, 42)),"")
 TEST_NULLOPTION_COMPARE(Eq, ==, !x, !x);
 TEST_NULLOPTION_COMPARE(Ne, !=, bool(x), bool(x));
 TEST_NULLOPTION_COMPARE(Lt, <,  false, bool(x));
@@ -68,15 +69,15 @@ namespace Test { struct A {}; struct B {}; struct Acomp {}; }
     } \
     template <typename T, typename U> \
     constexpr bool test ## Op ## WellFormed() noexcept { \
-        return Models<Op ## Comparable(T, U)>::value \
-                == Models<Op ## Comparable(Optional<T> const &, \
-                                           Optional<U> const &)>::value; \
+        return SM::Models<SM::Op ## Comparable(T, U)>::value \
+                == SM::Models<SM::Op ## Comparable(SMO<T> const &, \
+                                                   SMO<U> const &)>::value; \
     } \
     template <typename T, typename U> \
     constexpr bool test ## Op ## Noexcept() noexcept { \
-        return Models<Op ## Comparable(T, U)>::value \
-                == Models<Op ## Comparable(Optional<T> const &, \
-                                           Optional<U> const &)>::value; \
+        return SM::Models<SM::Op ## Comparable(T, U)>::value \
+                == SM::Models<SM::Op ## Comparable(SMO<T> const &, \
+                                                   SMO<U> const &)>::value; \
     } \
     template <typename T, typename U> \
     constexpr bool test ## Op() noexcept { \
@@ -106,11 +107,10 @@ namespace Test { struct A {}; struct Yes {}; struct No {}; }
         bool operator op(A const &, Yes const &) noexcept; \
         bool operator op(A const &, No const &); \
     } \
-    static_assert(noexcept(std::declval<Optional<Test::A> const &>() \
-                           op std::declval<Optional<Test::Yes> const &>()), \
-                           ""); \
-    static_assert(!noexcept(std::declval<Optional<Test::A> const &>() \
-                            op std::declval<Optional<Test::No> const &>()), "")
+    static_assert(noexcept(std::declval<SMO<Test::A> const &>() \
+                           op std::declval<SMO<Test::Yes> const &>()), ""); \
+    static_assert(!noexcept(std::declval<SMO<Test::A> const &>() \
+                            op std::declval<SMO<Test::No> const &>()), "")
 TEST_COMPARE(==);
 TEST_COMPARE(!=);
 TEST_COMPARE(<);
@@ -123,7 +123,14 @@ TEST_COMPARE(>=);
 
 namespace TestCompare {
 namespace Test{
-struct T{}; struct TT{}; struct TF{}; struct FT{}; struct FF{}; struct F{};
+#define TEST_CONSTEXPR_STRUCT(name) struct name { constexpr name() {} }
+TEST_CONSTEXPR_STRUCT(T);
+TEST_CONSTEXPR_STRUCT(TT);
+TEST_CONSTEXPR_STRUCT(TF);
+TEST_CONSTEXPR_STRUCT(FT);
+TEST_CONSTEXPR_STRUCT(FF);
+TEST_CONSTEXPR_STRUCT(F);
+#undef TEST_CONSTEXPR_STRUCT
 };
 #define TEST(ns, op, t1, t2, r, ee, ev, ve) \
     namespace Test { \
@@ -131,12 +138,12 @@ struct T{}; struct TT{}; struct TF{}; struct FT{}; struct FF{}; struct F{};
         { return r; } \
     } \
     namespace ns ## _ ## t1 ## _ ## t2 { \
-    constexpr auto const ot1 = Optional<Test::t1>(inPlace); \
-    constexpr auto const ot2 = Optional<Test::t2>(inPlace); \
-    constexpr auto const ot1e = Optional<Test::t1>(); \
-    constexpr auto const ot2e = Optional<Test::t2>(); \
-    constexpr auto const vt1 = Test::t1(); \
-    constexpr auto const vt2 = Test::t2(); \
+    constexpr SMO<Test::t1> const ot1(SM::inPlace); \
+    constexpr SMO<Test::t2> const ot2(SM::inPlace); \
+    constexpr SMO<Test::t1> const ot1e; \
+    constexpr SMO<Test::t2> const ot2e; \
+    constexpr Test::t1 const vt1; \
+    constexpr Test::t2 const vt2; \
     static_assert((ot1e op ot2e) == (ee), #t1 " " #op " " #t2 " ee"); \
     static_assert((ot1e op ot2 ) == (ev), #t1 " " #op " " #t2 " ev"); \
     static_assert((ot1  op ot2e) == (ve), #t1 " " #op " " #t2 " ve"); \
@@ -311,14 +318,14 @@ bool operator==(T const & lhs, TestType<T> const & rhs) noexcept
 
 int main() {
     using T = TestType<char>;
-    using OT = Optional<T>;
-    using OC = Optional<char>;
+    using OT = SMO<T>;
+    using OC = SMO<char>;
 
     static_assert(std::is_trivially_destructible<OC>::value, "");
     static_assert(!std::is_trivially_destructible<OT>::value, "");
 
     #define TMP_(c) std::make_shared<TestStats>(), c
-    #define TMP(c) inPlace, TMP_(c)
+    #define TMP(c) SM::inPlace, TMP_(c)
     #define GEN(n,c) OT n(TMP(c))
     DEBUG_MSG("Nothing\n");
     SHAREMIND_TESTASSERT(!OT());
@@ -336,7 +343,7 @@ int main() {
     {
         auto const stats(std::make_shared<TestStats>());
         TestStats::assumeAndReset(1u);
-        { OT(inPlace, stats, 'x'); }
+        { OT(SM::inPlace, stats, 'x'); }
         TestStats::assumeAndReset(0u);
         SHAREMIND_TESTASSERT(*stats == TestStats(false, 0u, 0u, false, 0u, 0u, true));
         TestStats::assumeAndReset(1u);
