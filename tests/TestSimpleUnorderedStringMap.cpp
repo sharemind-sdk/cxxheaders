@@ -26,6 +26,7 @@
 #include <unordered_set>
 #include <vector>
 #include "../src/TestAssert.h"
+#include "../src/StringHashTablePredicate.h"
 
 
 namespace {
@@ -147,6 +148,22 @@ int main() {
             }{
                 auto tmp(vp.first);
                 auto const it(cm.find(rangeOf(tmp)));
+                SHAREMIND_TESTASSERT(it != cm.end());
+                SHAREMIND_TESTASSERT(it->first == vp.first);
+                SHAREMIND_TESTASSERT(it->second == vp.second);
+            }{
+                std::string const s(vp.first);
+                using sharemind::getOrCreateTemporaryStringHashTablePredicate;
+                auto const p(getOrCreateTemporaryStringHashTablePredicate(s));
+                auto const it(m.find(p));
+                SHAREMIND_TESTASSERT(it != cm.end());
+                SHAREMIND_TESTASSERT(it->first == vp.first);
+                SHAREMIND_TESTASSERT(it->second == vp.second);
+            }{
+                std::string const s(vp.first);
+                using sharemind::getOrCreateTemporaryStringHashTablePredicate;
+                auto const p(getOrCreateTemporaryStringHashTablePredicate(s));
+                auto const it(cm.find(p));
                 SHAREMIND_TESTASSERT(it != cm.end());
                 SHAREMIND_TESTASSERT(it->first == vp.first);
                 SHAREMIND_TESTASSERT(it->second == vp.second);
