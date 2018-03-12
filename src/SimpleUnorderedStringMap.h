@@ -28,6 +28,7 @@
 #include <functional>
 #include <iterator>
 #include <type_traits>
+#include <sharemind/compiler-support/GccVersion.h>
 #include <utility>
 #include "Concepts.h"
 #if __cplusplus < 201402L
@@ -118,6 +119,39 @@ template <
 class SimpleUnorderedStringMap
         : public SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE
 {
+
+private: /* Types: */
+
+#define SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_CALLABLE_CONCEPT(Name,memb,isConst) \
+    SHAREMIND_DEFINE_CONCEPT(Base ## Name ## Callable) { \
+        using B = SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE; \
+        template <typename ... Args> \
+        auto check(Args && ... args) \
+                -> decltype(std::declval<B isConst &>().memb( \
+                                std::forward<Args>(args)...)); \
+    }
+    SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_CALLABLE_CONCEPT(Find, find,);
+    SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_CALLABLE_CONCEPT(ConstFind, find, const);
+    SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_CALLABLE_CONCEPT(ConstCount,
+                                                        count,
+                                                        const);
+    SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_CALLABLE_CONCEPT(ConstBucket,
+                                                        bucket,
+                                                        const);
+#undef SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_CALLABLE_CONCEPT
+
+#ifdef SHAREMIND_GCC_VERSION
+/* Workaround GCC PR 84832: */
+#define SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_PASSTHROUGH(...)
+#else
+#define SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_PASSTHROUGH(name, conc, r, isConst) \
+    template <typename Arg> \
+    auto name(Arg && arg) isConst -> SHAREMIND_REQUIRE_CONCEPTS_R(r, conc(Arg))\
+    { \
+        using B = SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE isConst; \
+        return this->B::name(std::forward<Arg>(arg)); \
+    }
+#endif
 
 public: /* Types: */
 
@@ -249,15 +283,35 @@ public: /* Methods: */
     { return find(this->hash_function()(key), this->key_eq(), key); }
 
     template <typename Range>
-    auto find(Range && key) const
-            -> SHAREMIND_REQUIRE_CONCEPTS_R(
-                    typename SimpleUnorderedStringMap::const_iterator,
-                    InputRangeTo(Range, char),
-                    Not(DecaysTo(Range, std::string))
-                )
+    auto find(Range && key)
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(
+                typename SimpleUnorderedStringMap::iterator,
+                InputRangeTo(Range, char),
+                Not(BaseFindCallable(Range))
+            )
     { return find(this->hash_function()(key), this->key_eq(), key); }
 
+    template <typename Range>
+    auto find(Range && key) const
+        -> SHAREMIND_REQUIRE_CONCEPTS_R(
+                typename SimpleUnorderedStringMap::const_iterator,
+                InputRangeTo(Range, char),
+                Not(BaseConstFindCallable(Range))
+            )
+    { return find(this->hash_function()(key), this->key_eq(), key); }
+
+    SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_PASSTHROUGH(
+            find,
+            BaseFindCallable,
+            typename SimpleUnorderedStringMap::iterator,)
+    SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_PASSTHROUGH(
+            find,
+            BaseConstFindCallable,
+            typename SimpleUnorderedStringMap::const_iterator,
+            const)
+
     using SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE::find;
+
 
     typename SimpleUnorderedStringMap::size_type count(char const * const key)
             const
@@ -268,9 +322,15 @@ public: /* Methods: */
             -> SHAREMIND_REQUIRE_CONCEPTS_R(
                     typename SimpleUnorderedStringMap::size_type,
                     InputRangeTo(Range, char),
-                    Not(DecaysTo(Range, std::string))
+                    Not(BaseConstCountCallable(Range))
                 )
     { return this->count(this->hash_function()(key), this->key_eq(), key); }
+
+    SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_PASSTHROUGH(
+            count,
+            BaseConstCountCallable,
+            typename SimpleUnorderedStringMap::size_type,
+            const)
 
     using SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE::count;
 
@@ -322,13 +382,20 @@ public: /* Methods: */
             -> SHAREMIND_REQUIRE_CONCEPTS_R(
                     typename SimpleUnorderedStringMap::size_type,
                     InputRangeTo(Range, char),
-                    Not(DecaysTo(Range, std::string)))
+                    Not(BaseConstBucketCallable(Range)))
     { return this->bucket(this->hash_function()(key)); }
+
+    SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_PASSTHROUGH(
+            bucket,
+            BaseConstBucketCallable,
+            typename SimpleUnorderedStringMap::size_type,
+            const)
 
     using SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE::bucket;
 
 };
 
+#undef SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_PASSTHROUGH
 #undef SHAREMIND_SIMPLEUNORDEREDSIMPLEMAP_BASE
 
 } /* namespace Sharemind { */

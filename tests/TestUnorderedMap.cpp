@@ -29,6 +29,8 @@
 #include <unordered_map>
 #include <utility>
 #include "../src/TestAssert.h"
+#include "../src/StringHasher.h"
+#include "../src/StringHashTablePredicate.h"
 
 
 namespace {
@@ -436,16 +438,62 @@ int main() {
         testUnorderedMap<UM>();
 
         {
-            sharemind::UnorderedMap<std::string, int, MyHash> m;
-            m.emplace("teretere", 42);
-            auto const it(m.find("teretere"));
-            SHAREMIND_TESTASSERT(it != m.end());
-            SHAREMIND_TESTASSERT(it->first == "teretere");
-            SHAREMIND_TESTASSERT(it->second == 42);
+            char const cs[] = "teretere";
+            std::string const s(cs);
 
-            auto const hash(MyHash()("teretere"));
-            SHAREMIND_TESTASSERT(m.find(hash, "teretere") == it);
-            SHAREMIND_TESTASSERT(m.find(hash, MyKeyEqual(), "teretere") == it);
+            {
+                sharemind::UnorderedMap<std::string, int, MyHash> m;
+                auto const & cm = m;
+                m.emplace(s, 42);
+                auto const it(m.find(s));
+                SHAREMIND_TESTASSERT(it != m.end());
+                SHAREMIND_TESTASSERT(it->first == s);
+                SHAREMIND_TESTASSERT(it->second == 42);
+                {
+                    auto const it2(cm.find(cs));
+                    SHAREMIND_TESTASSERT(it2 != cm.end());
+                    SHAREMIND_TESTASSERT(it2->first == s);
+                    SHAREMIND_TESTASSERT(it2->second == 42);
+                }{
+                    auto const it2(m.find(cs));
+                    SHAREMIND_TESTASSERT(it2 != m.end());
+                    SHAREMIND_TESTASSERT(it2->first == s);
+                    SHAREMIND_TESTASSERT(it2->second == 42);
+                }{
+                    auto const it2(cm.find(cs));
+                    SHAREMIND_TESTASSERT(it2 != cm.end());
+                    SHAREMIND_TESTASSERT(it2->first == s);
+                    SHAREMIND_TESTASSERT(it2->second == 42);
+                }
+
+                auto const hash(MyHash()(s));
+                SHAREMIND_TESTASSERT(m.find(hash, s) == it);
+                SHAREMIND_TESTASSERT(cm.find(hash, s) == it);
+                SHAREMIND_TESTASSERT(m.find(hash, MyKeyEqual(), s) == it);
+                SHAREMIND_TESTASSERT(cm.find(hash, MyKeyEqual(), s) == it);
+                SHAREMIND_TESTASSERT(m.find(hash, cs) == it);
+                SHAREMIND_TESTASSERT(cm.find(hash, cs) == it);
+                SHAREMIND_TESTASSERT(m.find(hash, MyKeyEqual(), cs) == it);
+                SHAREMIND_TESTASSERT(cm.find(hash, MyKeyEqual(), cs) == it);
+            }{
+                sharemind::UnorderedMap<std::string,
+                                        int,
+                                        sharemind::StringHasher> m;
+                auto const & cm = m;
+                m.emplace(s, 42);
+                auto const it(m.find(s));
+                SHAREMIND_TESTASSERT(it != m.end());
+                SHAREMIND_TESTASSERT(it->first == s);
+                SHAREMIND_TESTASSERT(it->second == 42);
+
+                using sharemind::getOrCreateTemporaryStringHashTablePredicate;
+                auto const p(getOrCreateTemporaryStringHashTablePredicate(s));
+                SHAREMIND_TESTASSERT(m.find(p) == it);
+                SHAREMIND_TESTASSERT(m.find(p.hash(), p) == it);
+
+                SHAREMIND_TESTASSERT(cm.find(p) == it);
+                SHAREMIND_TESTASSERT(cm.find(p.hash(), p) == it);
+            }
         }
 
         {
