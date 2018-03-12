@@ -41,6 +41,7 @@ SharemindNewUniqueList(SharemindCxxHeaders_DEFINITIONS
 )
 SharemindNewUniqueList(SharemindCxxHeaders_LINK_LIBRARIES
     ${SharemindCHeaders_LIBRARIES}
+    "-latomic"
 )
 
 FILE(GLOB_RECURSE SharemindCxxHeaders_HEADERS
