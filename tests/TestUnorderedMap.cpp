@@ -443,7 +443,7 @@ int main() {
             SHAREMIND_TESTASSERT(it->first == "teretere");
             SHAREMIND_TESTASSERT(it->second == 42);
 
-            auto const hash(std::hash<std::string>()("teretere") + 10);
+            auto const hash(MyHash()("teretere"));
             SHAREMIND_TESTASSERT(m.find(hash, "teretere") == it);
             SHAREMIND_TESTASSERT(m.find(hash, MyKeyEqual(), "teretere") == it);
         }
