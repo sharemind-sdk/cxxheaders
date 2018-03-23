@@ -30,7 +30,9 @@ namespace sharemind {
 namespace ObjectTree {
 
 template <class P, class C, class MutexT> class ParentNode;
-template <class ParentNodeType, ParentNodeType (ParentNodeType::ParentType::*parentMember)> class ChildNode;
+template <class ParentNodeType,
+          ParentNodeType ParentNodeType::ParentType::*parentMember>
+class ChildNode;
 
 template <class ParentNodeType>
 class ChildNodeBase {
@@ -39,7 +41,8 @@ class ChildNodeBase {
                             typename ParentNodeType::ChildType,
                             typename ParentNodeType::MutexType>;
 
-    template <class ParentNodeType_, ParentNodeType_ (ParentNodeType_::ParentType::*parentMember)>
+    template <class ParentNodeType_,
+              ParentNodeType_ ParentNodeType_::ParentType::*parentMember>
     friend class ChildNode;
 
 public: /* Methods: */
@@ -51,9 +54,10 @@ public: /* Methods: */
 
 private: /* Methods: */
 
-    inline ChildNodeBase(typename ParentNodeType::ParentType * const parent,
-                         typename ParentNodeType::ChildType * const realChild,
-                         ParentNodeType (ParentNodeType::ParentType::*parentMember))
+    inline ChildNodeBase(
+            typename ParentNodeType::ParentType * const parent,
+            typename ParentNodeType::ChildType * const realChild,
+            ParentNodeType ParentNodeType::ParentType::*parentMember)
         : m_parent(parent)
         , m_realChild((assert(realChild), realChild))
     {
@@ -65,7 +69,7 @@ private: /* Methods: */
     { return m_realChild; }
 
     inline void unregisterChild(
-            ParentNodeType (ParentNodeType::ParentType::*parentMember)) noexcept
+            ParentNodeType ParentNodeType::ParentType::*parentMember) noexcept
     {
         if (m_parent) {
             (m_parent->*parentMember).unregisterChild(this);
@@ -86,7 +90,8 @@ private: /* Fields: */
 
 };
 
-template <class ParentNodeType, ParentNodeType (ParentNodeType::ParentType::*parentMember)>
+template <class ParentNodeType,
+          ParentNodeType ParentNodeType::ParentType::*parentMember>
 class ChildNode: public ChildNodeBase<ParentNodeType> {
 
 public: /* Methods: */
