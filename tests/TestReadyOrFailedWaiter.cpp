@@ -127,14 +127,12 @@ template <typename NOTIFYLOGIC, typename THREADLOGIC>
 void testMultithreaded(NOTIFYLOGIC notifyLogic,
                        THREADLOGIC threadLogic) noexcept
 {
-    std::thread * threads[numThreads];
+    std::thread threads[numThreads];
     for (std::size_t i = 0u; i < numThreads; ++i)
-        threads[i] = new std::thread(threadLogic);
+        threads[i] = std::thread(threadLogic);
     notifyLogic();
     for (std::size_t i = 0u; i < numThreads; ++i)
-        threads[i]->join();
-    for (std::size_t i = 0u; i < numThreads; ++i)
-        delete threads[i];
+        threads[i].join();
 }
 
 int main() {
