@@ -83,12 +83,12 @@ private: /* Types: */
 
 public: /* Methods: */
 
-    inline NoStartThread() : m_thread(std::bind(&Inner::run, &m_inner)) {}
+    inline NoStartThread() : m_thread(&Inner::run, &m_inner) {}
 
     template <typename F, typename ... Args>
     inline NoStartThread(F && f, Args && ... args)
         : m_inner(std::forward<F>(f), std::forward<Args>(args)...)
-        , m_thread(std::bind(&Inner::run, &m_inner))
+        , m_thread(&Inner::run, &m_inner)
     {}
 
     inline ~NoStartThread() noexcept { stop(); }

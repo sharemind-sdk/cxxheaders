@@ -105,10 +105,10 @@ public: /* Methods: */
     template <typename F, typename ... Args>
     inline NoStartLoopThread(F && f, Args && ... args)
         : m_inner(std::forward<F>(f), std::forward<Args>(args)...)
-        , m_thread(std::bind(&Inner::run, &m_inner))
+        , m_thread(&Inner::run, &m_inner)
     {}
 
-    inline NoStartLoopThread() : m_thread(std::bind(&Inner::run, &m_inner)) {}
+    inline NoStartLoopThread() : m_thread(&Inner::run, &m_inner) {}
 
     inline ~NoStartLoopThread() noexcept {
         m_inner.stopLoop();
