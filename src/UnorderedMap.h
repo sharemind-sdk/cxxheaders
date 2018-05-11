@@ -570,14 +570,14 @@ public: /* Methods: */
     }
 
     size_type count(key_type const & key) const {
-        size_type count = 0u;
+        size_type r = 0u;
         auto const hash(m_hasher(key));
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
              ++er.first)
             if (m_pred(er.first->second->first, key))
-                ++count;
-        return count;
+                ++r;
+        return r;
     }
 
     /** \note not in std::unordered_map */
@@ -585,13 +585,13 @@ public: /* Methods: */
               SHAREMIND_REQUIRES_CONCEPTS(
                     UnaryPredicate(Pred, key_type const &))>
     size_type count(hash_type hash, Pred && pred) const {
-        size_type count = 0u;
+        size_type r = 0u;
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
              ++er.first)
             if (pred(er.first->second->first))
-                ++count;
-        return count;
+                ++r;
+        return r;
     }
 
     /** \note not in std::unordered_map */
@@ -610,13 +610,13 @@ public: /* Methods: */
     size_type count(hash_type hash, Pred && pred, Key_ const & key)
             const
     {
-        size_type count = 0u;
+        size_type r = 0u;
         for (auto er(m_container.equal_range(hash));
              er.first != er.second;
              ++er.first)
             if (pred(er.first->second->first, key))
-                ++count;
-        return count;
+                ++r;
+        return r;
     }
 
     /** \note some not in std::unordered_map */
