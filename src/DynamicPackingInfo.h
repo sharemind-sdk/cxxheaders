@@ -269,6 +269,159 @@ struct AccumVecPopulator<T, Ts...> {
     }
 };
 
+
+template <typename ... Ts>
+struct AccumArrayType
+        : std::array<std::size_t, DynamicFieldFilter<Ts...>::size()>
+{
+
+/* Constants: */
+
+    constexpr static std::size_t minSizeInBytes()
+    { return FieldsTraits<Ts...>::minBytes; }
+
+    constexpr static std::size_t maxSizeInBytes()
+    { return FieldsTraits<Ts...>::maxBytes; }
+
+    constexpr static std::size_t numFields() { return sizeof...(Ts); }
+
+    constexpr static std::size_t numDynamicFields()
+    { return DynamicFieldFilter<Ts...>::size(); }
+
+    constexpr static bool hasDynamicFields() { return numDynamicFields() > 0u; }
+
+/* Types: */
+
+    using type = AccumArrayType;
+
+    using base = std::array<std::size_t, numDynamicFields()>;
+
+    template <std::size_t I>
+    using ElemType = TemplateGetTypeParam_t<I, Ts...>;
+
+    template <std::size_t I>
+    using TypeTraits = FieldTraits<ElemType<I> >;
+
+    template <std::size_t I>
+    using ReferenceType = typename TypeTraits<I>::ReferenceType;
+
+    template <std::size_t I>
+    using ConstReferenceType = typename TypeTraits<I>::ConstReferenceType;
+
+    template <std::size_t I>
+    using PointerType = typename TypeTraits<I>::PointerType;
+
+    template <std::size_t I>
+    using ConstPointerType = typename TypeTraits<I>::ConstPointerType;
+
+/* Methods: */
+
+    template <typename ... Args>
+    AccumArrayType(Args && ... args) noexcept {
+        static_assert(sizeof...(Args) == numDynamicFields(),
+                      "The number of arguments must match the number of "
+                      "dynamic fields.");
+        using P = AccumVecPopulator<Ts...>;
+        P::populate(this->data(), 0u, std::forward<Args>(args)...);
+    }
+
+    AccumArrayType(type & copy) noexcept
+        : AccumArrayType(const_cast<type const &>(copy))
+    {}
+
+    AccumArrayType(type &&) noexcept = default;
+    AccumArrayType(type const &) noexcept = default;
+
+    type & operator=(type &&) noexcept = default;
+    type & operator=(type const &) noexcept = default;
+
+    std::size_t structSizeInBytes() const noexcept
+    { return StaticTailSize<Ts...>::value + (*this)[numDynamicFields() - 1u]; }
+
+    template <std::size_t I>
+    typename std::enable_if<
+        (TemplateInstantiateWithTypeParams_t<
+                DynamicFieldFilter,
+                TemplatePrefixTypes_t<I, Ts...>
+            >::size() > 0u),
+        std::size_t
+    >::type
+    elemOffset() const noexcept
+    {
+        return (*this)[
+                TemplateInstantiateWithTypeParams_t<
+                    DynamicFieldFilter,
+                    TemplatePrefixTypes_t<I, Ts...>
+                >::size() - 1u]
+               + TemplateInstantiateWithTypeParams_t<
+                    StaticTailSize,
+                    TemplatePrefixTypes_t<I, Ts...>
+                >::value;
+    }
+
+    template <std::size_t I>
+    typename std::enable_if<
+        !(TemplateInstantiateWithTypeParams_t<
+                  DynamicFieldFilter,
+                  TemplatePrefixTypes_t<I, Ts...>
+              >::size() > 0u),
+        std::size_t
+    >::type
+    elemOffset() const noexcept {
+        return TemplateInstantiateWithTypeParams_t<
+                    SizeOfTypes,
+                    TemplatePrefixTypes_t<I, Ts...>
+                >::value;
+    }
+
+    template <std::size_t I>
+    void * voidPtr(void * const data) const noexcept
+    { return ptrAdd(data, elemOffset<I>()); }
+
+    template <std::size_t I>
+    void const * constVoidPtr(void const * const data) const noexcept
+    { return ptrAdd(data, elemOffset<I>()); }
+
+    void * endVoidPtr(void * const data) const noexcept
+    { return ptrAdd(data, structSizeInBytes()); }
+
+    void const * endVoidPtr(void const * const data) const noexcept
+    { return ptrAdd(data, structSizeInBytes()); }
+
+    void const * endConstVoidPtr(void const * const data) const noexcept
+    { return ptrAdd(data, structSizeInBytes()); }
+
+    template <std::size_t I>
+    PointerType<I> ptr(void * const data) const noexcept
+    { return voidPtr<I>(data); }
+
+    template <std::size_t I>
+    ConstPointerType<I> constPtr(void const * const data) const noexcept
+    { return constVoidPtr<I>(data); }
+
+    template <std::size_t I>
+    ConstReferenceType<I> cref(void const * const data) const noexcept
+    { return constVoidPtr<I>(data); }
+
+    template <std::size_t I>
+    ReferenceType<I> ref(void * const data) const noexcept
+    { return voidPtr<I>(data); }
+
+    template <std::size_t I>
+    typename std::enable_if<TypeTraits<I>::isStatic, ElemType<I> >::type
+    get(void const * const data) const noexcept
+    { return cref<I>(data); }
+
+    template <std::size_t I>
+    auto set(void * const data, ElemType<I> const & v) const noexcept ->
+            typename std::enable_if<
+                TypeTraits<I>::isStatic,
+                decltype(ref<I>(data) = v)
+            >::type
+    { return ref<I>(data) = v; }
+
+}; /* struct AccumArrayType */
+
 } /* namespace DynamicPacking { */
 } /* namespace Detail { */
 
@@ -296,14 +449,13 @@ struct DynamicPackingInfo {
 
     using type = DynamicPackingInfo<Ts...>;
 
-    struct AccumArrayType;
+    using AccumArrayType = Detail::DynamicPacking::AccumArrayType<Ts...>;
 
     template <std::size_t I>
-    using ElemType = TemplateGetTypeParam_t<I, Ts...>;
+    using ElemType = typename AccumArrayType::template ElemType<I>;
 
     template <std::size_t I>
-    using TypeTraits =
-            Detail::DynamicPacking::FieldTraits<ElemType<I> >;
+    using TypeTraits = typename AccumArrayType::template TypeTraits<I>;
 
     template <std::size_t I>
     using ReferenceType = typename TypeTraits<I>::ReferenceType;
@@ -367,83 +519,48 @@ struct DynamicPackingInfo {
         P::populate(accumSizes, 0u, std::forward<Args>(args)...);
     }
 
-    template <typename AccumSizes>
-    static constexpr std::size_t sizeFromAccum(AccumSizes const & accumSizes)
+    static constexpr std::size_t sizeFromAccum(AccumArrayType const & accumSizes)
             noexcept
     {
         return Detail::DynamicPacking::StaticTailSize<Ts...>::value
                + accumSizes[numDynamicFields() - 1u];
     }
 
-    template <std::size_t I, typename AccumSizes>
-    constexpr static
-    typename std::enable_if<
-        (TemplateInstantiateWithTypeParams_t<
-            Detail::DynamicPacking::DynamicFieldFilter,
-            TemplatePrefixTypes_t<I, Ts...>
-        >::size() > 0u) ? true : false,
-        std::size_t
-    >::type
-    elemOffset(AccumSizes const & accumSizes) noexcept
-    {
-        return accumSizes[
-                TemplateInstantiateWithTypeParams_t<
-                    Detail::DynamicPacking::DynamicFieldFilter,
-                    TemplatePrefixTypes_t<I, Ts...>
-                >::size() - 1u]
-               + TemplateInstantiateWithTypeParams_t<
-                    Detail::DynamicPacking::StaticTailSize,
-                    TemplatePrefixTypes_t<I, Ts...>
-                >::value;
-    }
+    template <std::size_t I>
+    constexpr static std::size_t elemOffset(AccumArrayType const & accumSizes)
+            noexcept
+    { return accumSizes.template elemOffset<I>(); }
 
-    template <std::size_t I, typename AccumSizes>
-    constexpr static
-    typename std::enable_if<
-        (TemplateInstantiateWithTypeParams_t<
-            Detail::DynamicPacking::DynamicFieldFilter,
-            TemplatePrefixTypes_t<I, Ts...>
-        >::size() > 0u) ? false : true,
-        std::size_t
-    >::type
-    elemOffset(AccumSizes const &) noexcept {
-        return TemplateInstantiateWithTypeParams_t<
-                    SizeOfTypes,
-                    TemplatePrefixTypes_t<I, Ts...>
-                >::value;
-    }
-
-    template <std::size_t I, typename AccumSizes>
+    template <std::size_t I>
     constexpr static void * voidPtr(void * const data,
-                                    AccumSizes const & accumSizes) noexcept
-    { return ptrAdd(data, elemOffset<I>(accumSizes)); }
+                                    AccumArrayType const & accumSizes) noexcept
+    { return accumSizes.template voidPtr<I>(data); }
 
-    template <std::size_t I, typename AccumSizes>
-    constexpr static void const * constVoidPtr(void const * const data,
-                                               AccumSizes const & accumSizes)
-            noexcept
-    { return ptrAdd(data, elemOffset<I>(accumSizes)); }
+    template <std::size_t I>
+    constexpr static void const * constVoidPtr(
+            void const * const data,
+            AccumArrayType const & accumSizes) noexcept
+    { return accumSizes.template constVoidPtr<I>(data); }
 
-    template <typename AccumSizes>
     constexpr static void * endVoidPtr(void * const data,
-                                       AccumSizes const & accumSizes) noexcept
-    { return ptrAdd(data, accumSizes.structSizeInBytes()); }
+                                       AccumArrayType const & accumSizes)
+            noexcept
+    { return accumSizes.endVoidPtr(data); }
 
-    template <typename AccumSizes>
     constexpr static void const * endVoidPtr(void const * const data,
-                                             AccumSizes const & accumSizes)
+                                             AccumArrayType const & accumSizes)
             noexcept
-    { return ptrAdd(data, accumSizes.structSizeInBytes()); }
+    { return accumSizes.endConstVoidPtr(data); }
 
-    template <typename AccumSizes>
-    constexpr static void const * endConstVoidPtr(void const * const data,
-                                                  AccumSizes const & accumSizes)
-            noexcept
-    { return ptrAdd(data, accumSizes.structSizeInBytes()); }
+    constexpr static void const * endConstVoidPtr(
+            void const * const data,
+            AccumArrayType const & accumSizes) noexcept
+    { return accumSizes.endConstVoidPtr(data); }
 
-    template <std::size_t I, typename AccumSizes>
+    template <std::size_t I>
     constexpr static PointerType<I> ptr(void * const data,
-                                        AccumSizes const & accumSizes) noexcept
+                                        AccumArrayType const & accumSizes)
+            noexcept
     { return voidPtr<I>(data, accumSizes); }
 
     template <std::size_t I, typename AccumSizes>
@@ -452,143 +569,32 @@ struct DynamicPackingInfo {
             noexcept
     { return constVoidPtr<I>(data, accumSizes); }
 
-    template <std::size_t I, typename AccumSizes>
-    constexpr static ConstReferenceType<I> cref(void const * const data,
-                                                AccumSizes const & accumSizes)
-            noexcept
+    template <std::size_t I>
+    constexpr static ConstReferenceType<I> cref(
+            void const * const data,
+            AccumArrayType const & accumSizes) noexcept
     { return constVoidPtr<I>(data, accumSizes); }
 
-    template <std::size_t I, typename AccumSizes>
+    template <std::size_t I>
     constexpr static ReferenceType<I> ref(void * const data,
-                                          AccumSizes const & accumSizes)
+                                          AccumArrayType const & accumSizes)
             noexcept
     { return voidPtr<I>(data, accumSizes); }
 
-    template <std::size_t I, typename AccumSizes>
+    template <std::size_t I>
     constexpr static auto get(void const * const data,
-                              AccumSizes const & accumSizes) noexcept ->
-            typename std::enable_if<
-                TypeTraits<I>::isStatic,
-                ElemType<I>
-            >::type
-    { return cref<I>(data, accumSizes); }
+                              AccumArrayType const & accumSizes) noexcept ->
+            decltype(accumSizes.template get<I>(data))
+    { return accumSizes.template get<I>(data); }
 
-    template <std::size_t I, typename AccumSizes>
+    template <std::size_t I>
     constexpr static auto set(void * const data,
-                              AccumSizes const & accumSizes,
+                              AccumArrayType const & accumSizes,
                               ElemType<I> const & v) noexcept ->
-            typename std::enable_if<
-                TypeTraits<I>::isStatic,
-                decltype(ref<I>(data, accumSizes) = v)
-            >::type
-    { return ref<I>(data, accumSizes) = v; }
+            decltype(accumSizes.template set<I>(data, v))
+    { return accumSizes.template set<I>(data, v); }
 
-};
-
-template <typename ... Ts>
-struct DynamicPackingInfo<Ts...>::AccumArrayType
-        : std::array<std::size_t, numDynamicFields()>
-{
-
-/* Types: */
-
-    using type = AccumArrayType;
-
-    using base = std::array<std::size_t, numDynamicFields()>;
-
-    template <std::size_t I> using ElemType =
-            typename DynamicPackingInfo<Ts...>::template ElemType<I>;
-
-    template <std::size_t I>
-    using TypeTraits =
-            typename DynamicPackingInfo<Ts...>::template TypeTraits<I>;
-
-    template <std::size_t I>
-    using ReferenceType =
-            typename DynamicPackingInfo<Ts...>::template ReferenceType<I>;
-
-    template <std::size_t I>
-    using ConstReferenceType =
-            typename DynamicPackingInfo<Ts...>::template ConstReferenceType<I>;
-
-    template <std::size_t I>
-    using PointerType =
-            typename DynamicPackingInfo<Ts...>::template PointerType<I>;
-
-    template <std::size_t I>
-    using ConstPointerType =
-            typename DynamicPackingInfo<Ts...>::template ConstPointerType<I>;
-
-/* Methods: */
-
-    template <typename ... Args>
-    AccumArrayType(Args && ... args) noexcept {
-        DynamicPackingInfo<Ts...>::populateAccumArray(
-                    this->data(),
-                    std::forward<Args>(args)...);
-    }
-
-    AccumArrayType(type & copy) noexcept
-        : AccumArrayType(const_cast<type const &>(copy))
-    {}
-
-    AccumArrayType(type &&) noexcept = default;
-    AccumArrayType(type const &) noexcept = default;
-
-    type & operator=(type &&) noexcept = default;
-    type & operator=(type const &) noexcept = default;
-
-    std::size_t structSizeInBytes() const noexcept
-    { return DynamicPackingInfo<Ts...>::sizeFromAccum(*this); }
-
-    template <std::size_t I>
-    std::size_t elemOffset() const noexcept
-    { return DynamicPackingInfo<Ts...>::elemOffset<I>(*this); }
-
-    template <std::size_t I>
-    void * voidPtr(void * const data) const noexcept
-    { return DynamicPackingInfo<Ts...>::voidPtr<I>(data, *this); }
-
-    template <std::size_t I>
-    void const * constVoidPtr(void const * const data) const noexcept
-    { return DynamicPackingInfo<Ts...>::constVoidPtr<I>(data, *this); }
-
-    void * endVoidPtr(void * const data) const noexcept
-    { return DynamicPackingInfo<Ts...>::endVoidPtr(data, *this); }
-
-    void const * endVoidPtr(void const * const data) const noexcept
-    { return DynamicPackingInfo<Ts...>::endVoidPtr(data, *this); }
-
-    void const * endConstVoidPtr(void const * const data) const noexcept
-    { return DynamicPackingInfo<Ts...>::endConstVoidPtr(data, *this); }
-
-    template <std::size_t I>
-    PointerType<I> ptr(void * const data) const noexcept
-    { return DynamicPackingInfo<Ts...>::ptr<I>(data, *this); }
-
-    template <std::size_t I>
-    ConstPointerType<I> constPtr(void const * const data) const noexcept
-    { return DynamicPackingInfo<Ts...>::constPtr<I>(data, *this); }
-
-    template <std::size_t I>
-    ConstReferenceType<I> cref(void const * const data) const noexcept
-    { return DynamicPackingInfo<Ts...>::cref<I>(data, *this); }
-
-    template <std::size_t I>
-    ReferenceType<I> ref(void * const data) const noexcept
-    { return DynamicPackingInfo<Ts...>::ref<I>(data, *this); }
-
-    template <std::size_t I>
-    auto get(void const * const data) const noexcept ->
-            decltype(DynamicPackingInfo<Ts...>::get<I>(data, *this))
-    { return DynamicPackingInfo<Ts...>::get<I>(data, *this); }
-
-    template <std::size_t I>
-    auto set(void * const data, ElemType<I> const & v) const noexcept ->
-            decltype(DynamicPackingInfo<Ts...>::set<I>(data, *this, v))
-    { return DynamicPackingInfo<Ts...>::set<I>(data, *this, v); }
-
-};
+}; /* struct DynamicPackingInfo */
 
 } /* namespace sharemind { */
 
