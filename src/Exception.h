@@ -105,7 +105,7 @@ public: /* Methods: */
 
     int errorNumber() const noexcept { return m_errno; }
 
-private: /* Methods: */
+private: /* Fields: */
 
     MessageBuffer const m_message;
     int const m_errno;
