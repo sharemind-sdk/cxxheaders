@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_EXCEPTION_H
 #define SHAREMIND_EXCEPTION_H
 
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <errno.h>
@@ -78,22 +79,36 @@ public: /* Constants: */
 
     constexpr static std::size_t BUFFER_SIZE = 1024u;
 
+private: /* Types: */
+
+    using MessageBuffer = std::array<char, BUFFER_SIZE>;
+
 public: /* Methods: */
 
-    ErrnoException(const ErrnoException &) = default;
-    ErrnoException & operator=(const ErrnoException &) = default;
+    ErrnoException(ErrnoException const &) = default;
+    ErrnoException & operator=(ErrnoException const &) = default;
     ErrnoException(ErrnoException &&) = default;
     ErrnoException & operator=(ErrnoException &&) = default;
 
-    explicit inline ErrnoException(const int e) noexcept
-    { SHAREMIND_STRERROR_(e, m_message, BUFFER_SIZE); }
+    explicit inline ErrnoException(int const e) noexcept
+        : m_message(
+            [e]() noexcept {
+                MessageBuffer r;
+                SHAREMIND_STRERROR_(e, r.data(), BUFFER_SIZE);
+                return r;
+            }())
+        , m_errno(e)
+    {}
 
-    inline const char * what() const noexcept final override
-    { return m_message; }
+    inline char const * what() const noexcept final override
+    { return m_message.data(); }
+
+    int errorNumber() const noexcept { return m_errno; }
 
 private: /* Methods: */
 
-    char m_message[BUFFER_SIZE];
+    MessageBuffer const m_message;
+    int const m_errno;
 
 };
 
