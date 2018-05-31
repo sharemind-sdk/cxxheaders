@@ -79,7 +79,7 @@
                 noexcept(std::is_nothrow_default_constructible<base>::value); \
         name(name const &) \
                 noexcept(std::is_nothrow_copy_constructible<base>::value); \
-        ~name() noexcept; \
+        ~name() noexcept override; \
         name & operator=(name const &) \
                 noexcept(std::is_nothrow_copy_assignable<base>::value); \
         char const * what() const noexcept final override; \
