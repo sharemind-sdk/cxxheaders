@@ -79,6 +79,7 @@
                 noexcept(std::is_nothrow_default_constructible<base>::value); \
         name(name const &) \
                 noexcept(std::is_nothrow_copy_constructible<base>::value); \
+        ~name() noexcept; \
         name & operator=(name const &) \
                 noexcept(std::is_nothrow_copy_assignable<base>::value); \
         char const * what() const noexcept final override; \
@@ -97,6 +98,7 @@
     ns name::name(name const &) \
             noexcept(std::is_nothrow_copy_constructible<base>::value) \
             = default; \
+    ns name::~name() noexcept = default; \
     ns name & ns name::operator=(name const &) \
             noexcept(std::is_nothrow_copy_assignable<base>::value) \
             = default; \
