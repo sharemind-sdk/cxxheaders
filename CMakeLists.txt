@@ -29,7 +29,7 @@ SharemindSetProjectVersion()
 
 SET(Boost_USE_STATIC_RUNTIME OFF)
 FIND_PACKAGE(Boost REQUIRED)
-FIND_PACKAGE(SharemindCHeaders REQUIRED)
+FIND_PACKAGE(SharemindCHeaders 1.1.0 REQUIRED)
 
 
 SharemindNewUniqueList(SharemindCxxHeaders_INCLUDE_DIRS
