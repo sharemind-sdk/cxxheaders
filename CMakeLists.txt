@@ -94,7 +94,7 @@ SharemindAddComponentPackage("dev"
     DESCRIPTION "C++ development headers for Sharemind"
     DEB_SECTION "libdevel"
     DEB_DEPENDS
-        "libsharemind-cheaders-dev (>= 0.1.0)"
+        "libsharemind-cheaders-dev (>= 1.1.0)"
         "libboost-dev (>= 1.55)"
         "libc6-dev (>= 2.19)"
         "libstdc++-dev"
