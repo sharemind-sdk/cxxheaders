@@ -20,7 +20,6 @@
 #ifndef SHAREMIND_CONCAT_H
 #define SHAREMIND_CONCAT_H
 
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -54,20 +53,6 @@ inline std::string concat(const std::string & s) { return s; }
 template <typename ... T>
 inline std::string concat(T && ... args)
 { return Detail::concatBase(std::ostringstream(), std::forward<T>(args)...); }
-
-template <typename ... Args>
-inline std::basic_ostream<std::ostringstream::char_type,
-                          std::ostringstream::traits_type> &
-concat_endl(Args && ... args)
-    noexcept(noexcept(
-                 std::endl<std::ostringstream::char_type,
-                           std::ostringstream::traits_type>(
-                        std::forward<Args>(args)...)))
-{
-    return std::endl<std::ostringstream::char_type,
-                     std::ostringstream::traits_type>(
-                std::forward<Args>(args)...);
-}
 
 } /* namespace sharemind { */
 
