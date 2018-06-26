@@ -25,8 +25,9 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
+#include <ios>
 #include <limits>
+#include <ostream>
 #include <stdexcept>
 #include <type_traits>
 
