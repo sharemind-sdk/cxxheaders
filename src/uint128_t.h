@@ -62,10 +62,10 @@ public: /* Methods: */
     template <typename T>
     uint128_t (T rhs)
         : m_upper (0)
-        , m_lower (static_cast<uint64_t>(rhs))
+        , m_lower (static_cast<std::uint64_t>(rhs))
     { }
 
-    uint128_t (uint64_t upper, uint64_t lower)
+    uint128_t (std::uint64_t upper, std::uint64_t lower)
         : m_upper (upper)
         , m_lower (lower)
     { }
@@ -73,12 +73,12 @@ public: /* Methods: */
     template <typename T>
     uint128_t& operator = (T rhs) {
         m_upper = 0;
-        m_lower = static_cast<uint64_t>(rhs);
+        m_lower = static_cast<std::uint64_t>(rhs);
         return *this;
     }
 
-    uint64_t upper () const { return m_upper; }
-    uint64_t lower () const { return m_lower; }
+    std::uint64_t upper () const { return m_upper; }
+    std::uint64_t lower () const { return m_lower; }
     bool operator ! () const { return ! static_cast<bool>(m_upper | m_lower); }
     uint128_t operator ~ () const { return uint128_t (~ m_upper, ~ m_lower); }
     uint128_t& operator ++ () { *this += 1; return *this; }
@@ -93,8 +93,8 @@ public: /* Methods: */
     uint128_t& operator *= (uint128_t x) { *this = *this * x; return *this; }
     uint128_t& operator /= (uint128_t x) { *this = *this / x; return *this; }
     uint128_t& operator %= (uint128_t x) { *this = *this % x; return *this; }
-    uint128_t& operator >>= (uint64_t shift) { *this = *this >> shift; return *this; }
-    uint128_t& operator <<= (uint64_t shift) { *this = *this << shift; return *this; }
+    uint128_t& operator >>= (std::uint64_t shift) { *this = *this >> shift; return *this; }
+    uint128_t& operator <<= (std::uint64_t shift) { *this = *this << shift; return *this; }
 
     static uint128_t random ();
 
@@ -109,8 +109,8 @@ private: /* Methods: */
     friend uint128_t operator * (uint128_t x, uint128_t y);
     friend uint128_t operator / (uint128_t x, uint128_t y);
     friend uint128_t operator % (uint128_t x, uint128_t y);
-    friend uint128_t operator >> (uint128_t x, uint64_t shift);
-    friend uint128_t operator << (uint128_t x, uint64_t shift);
+    friend uint128_t operator >> (uint128_t x, std::uint64_t shift);
+    friend uint128_t operator << (uint128_t x, std::uint64_t shift);
 
     friend bool operator == (uint128_t x, uint128_t y);
     friend bool operator != (uint128_t x, uint128_t y);
@@ -124,8 +124,8 @@ private: /* Methods: */
     static void divMod (uint128_t x, uint128_t y, uint128_t& quotient, uint128_t& reminder);
 
 private: /* Fields: */
-    uint64_t m_upper;
-    uint64_t m_lower;
+    std::uint64_t m_upper;
+    std::uint64_t m_lower;
 };
 
 /*
@@ -138,7 +138,7 @@ inline uint128_t operator ^ (uint128_t x, uint128_t y) { return uint128_t (x.m_u
 
 inline uint128_t operator | (uint128_t x, uint128_t y) { return uint128_t (x.m_upper | y.m_upper, x.m_lower | y.m_lower); }
 
-inline uint128_t operator << (uint128_t x, uint64_t shift) {
+inline uint128_t operator << (uint128_t x, std::uint64_t shift) {
     if (shift == 0) return x;
     assert (shift < 128 && "Left shift on uint128_t of 128 bits or more.");
     if (shift < 64)
@@ -147,7 +147,7 @@ inline uint128_t operator << (uint128_t x, uint64_t shift) {
         return uint128_t (x.m_lower << (shift - 64), 0);
 }
 
-inline uint128_t operator >> (uint128_t x, uint64_t shift) {
+inline uint128_t operator >> (uint128_t x, std::uint64_t shift) {
     if (shift == 0) return x;
     assert (shift < 128 && "Right shift on uint128_t of 128 bits or more.");
     if (shift < 64)
@@ -161,20 +161,20 @@ inline uint128_t operator >> (uint128_t x, uint64_t shift) {
  */
 
 inline uint128_t operator - (uint128_t x) {
-    return uint128_t (- x.m_upper - static_cast<uint64_t>(x.m_lower > 0), - x.m_lower);
+    return uint128_t (- x.m_upper - static_cast<std::uint64_t>(x.m_lower > 0), - x.m_lower);
 }
 
 inline uint128_t operator + (uint128_t x, uint128_t y) {
-    const uint64_t upper = x.m_upper + y.m_upper;
-    const uint64_t lower = x.m_lower + y.m_lower;
-    const uint64_t overflow = static_cast<uint64_t>(lower < x.m_lower);
+    std::uint64_t const upper = x.m_upper + y.m_upper;
+    std::uint64_t const lower = x.m_lower + y.m_lower;
+    std::uint64_t const overflow = static_cast<std::uint64_t>(lower < x.m_lower);
     return uint128_t (upper + overflow, lower);
 }
 
 inline uint128_t operator - (uint128_t x, uint128_t y) {
-    const uint64_t upper = x.m_upper - y.m_upper;
-    const uint64_t lower = x.m_lower - y.m_lower;
-    const uint64_t overflow = static_cast<uint64_t>(lower > x.m_lower);
+    std::uint64_t const upper = x.m_upper - y.m_upper;
+    std::uint64_t const lower = x.m_lower - y.m_lower;
+    std::uint64_t const overflow = static_cast<std::uint64_t>(lower > x.m_lower);
     return uint128_t (upper - overflow, lower);
 }
 
@@ -185,13 +185,13 @@ inline uint128_t operator - (uint128_t x, uint128_t y) {
  * 4. add previous sums together with correct exponents
  */
 inline uint128_t operator * (uint128_t x, uint128_t y) {
-    const uint64_t MASK = 0xffffffffULL;
-    const uint64_t xs[4] = { x.m_upper >> 32, x.m_upper & MASK, x.m_lower >> 32, x.m_lower & MASK };
-    const uint64_t ys[4] = { y.m_upper >> 32, y.m_upper & MASK, y.m_lower >> 32, y.m_lower & MASK };
-    const uint64_t muls[10] = { xs[0] * ys[3], xs[1] * ys[2], xs[1] * ys[3], xs[2] * ys[1], xs[2] * ys[2],
+    std::uint64_t const MASK = 0xffffffffULL;
+    std::uint64_t const xs[4] = { x.m_upper >> 32, x.m_upper & MASK, x.m_lower >> 32, x.m_lower & MASK };
+    std::uint64_t const ys[4] = { y.m_upper >> 32, y.m_upper & MASK, y.m_lower >> 32, y.m_lower & MASK };
+    std::uint64_t const muls[10] = { xs[0] * ys[3], xs[1] * ys[2], xs[1] * ys[3], xs[2] * ys[1], xs[2] * ys[2],
                                 xs[2] * ys[3], xs[3] * ys[0], xs[3] * ys[1], xs[3] * ys[2], xs[3] * ys[3] };
 
-    uint64_t vals[4] = {0, 0, 0, 0};
+    std::uint64_t vals[4] = {0, 0, 0, 0};
     vals[0] += (muls[9] & MASK);
     vals[1] += (muls[5] & MASK) + (muls[9] >> 32);
     vals[2] += (muls[2] & MASK) + (muls[5] >> 32);
@@ -219,7 +219,7 @@ inline void uint128_t::divMod (uint128_t x, uint128_t y, uint128_t& quotient, ui
     quotient = 0;
     reminder = 0;
 
-    uint128_t bit (uint64_t (1) << 63, 0);
+    uint128_t bit (std::uint64_t (1) << 63, 0);
     while (bit != 0) {
         reminder <<= 1;
         reminder.m_lower |= !!(x & bit);
@@ -303,19 +303,19 @@ struct demote_integer_impl<bool, uint128_t, void> {
 };
 
 template <>
-struct demote_integer_impl<uint64_t, uint128_t, void> {
-    static inline uint64_t demote (const uint128_t x) {
+struct demote_integer_impl<std::uint64_t, uint128_t, void> {
+    static inline std::uint64_t demote (const uint128_t x) {
         return x.lower ();
     }
 };
 
-// Demote to unsigned integers other than bool and uint64_t
+// Demote to unsigned integers other than bool and std::uint64_t
 template <typename T>
 struct demote_integer_impl<T, uint128_t,
         typename std::enable_if<
             std::is_unsigned<T>::value &&
             ! std::is_same<T, bool>::value &&
-            ! std::is_same<T, uint64_t>::value
+            ! std::is_same<T, std::uint64_t>::value
         >::type
     >
 {
