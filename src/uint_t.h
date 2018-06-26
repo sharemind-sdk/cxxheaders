@@ -40,9 +40,9 @@ namespace sharemind {
 namespace detail {
 
 template <typename T> struct double_size {};
-template <> struct double_size<uint8_t>  { using type_t = uint16_t; };
-template <> struct double_size<uint16_t> { using type_t = uint32_t; };
-template <> struct double_size<uint32_t> { using type_t = uint64_t; };
+template <> struct double_size<std::uint8_t>  { using type_t = std::uint16_t; };
+template <> struct double_size<std::uint16_t> { using type_t = std::uint32_t; };
+template <> struct double_size<std::uint32_t> { using type_t = std::uint64_t; };
 
 } /* namespace detail { */
 
@@ -72,10 +72,12 @@ inline mul_t<T> multHiLo(T u, T v) {
  * times faster for the use in my multiplication.
  */
 template <>
-inline mul_t<uint64_t> multHiLo<uint64_t>(uint64_t u, uint64_t v) {
+inline mul_t<std::uint64_t> multHiLo<std::uint64_t>(std::uint64_t u,
+                                                    std::uint64_t v)
+{
 
-    uint64_t u0, u1, v0, v1, k, t;
-    uint64_t w0, w1, w2;
+    std::uint64_t u0, u1, v0, v1, k, t;
+    std::uint64_t w0, w1, w2;
     u1 = u >> 32; u0 = u & 0xFFFFFFFF;
     v1 = v >> 32; v0 = v & 0xFFFFFFFF;
     t = u0*v0;
@@ -86,7 +88,7 @@ inline mul_t<uint64_t> multHiLo<uint64_t>(uint64_t u, uint64_t v) {
     w2 = t >> 32;
     t = u0*v1 + w1;
     k = t >> 32;
-    mul_t<uint64_t> res;
+    mul_t<std::uint64_t> res;
     res.lo = (t << 32) + w0;
     res.hi = u1*v1 + w2 + k;
     return res;
@@ -102,7 +104,7 @@ inline mul_t<uint64_t> multHiLo<uint64_t>(uint64_t u, uint64_t v) {
 //    const unsigned __int128 uu = u;
 //    const unsigned __int128 vv = v;
 //    const unsigned __int128 r = uu*vv;
-//    mul_t<uint64_t> res;
+//    mul_t<std::uint64_t> res;
 //    res.lo = r;
 //    res.hi = r >> 64;
 //    return res;
@@ -151,7 +153,7 @@ private: /* Fields: */
  * Arbitrary precision static length unsigned integers.
  * \invariant Unused bits are always set to zero.
  */
-template <unsigned N, typename B = uint64_t>
+template <unsigned N, typename B = std::uint64_t>
 class uint_t : public uint_detail<N, B> {
 public:
 
@@ -329,8 +331,8 @@ public: /* Methods: */
     uint_t& operator %= (uint_t x) { *this = *this % x; return *this; }
     uint_t& operator >>= (uint_t shift) { *this = *this >> shift; return *this; }
     uint_t& operator <<= (uint_t shift) { *this = *this << shift; return *this; }
-    uint_t& operator >>= (uint64_t shift) { *this = *this >> shift; return *this; }
-    uint_t& operator <<= (uint64_t shift) { *this = *this << shift; return *this; }
+    uint_t& operator >>= (std::uint64_t shift) { *this = *this >> shift; return *this; }
+    uint_t& operator <<= (std::uint64_t shift) { *this = *this << shift; return *this; }
 
 
 
@@ -361,16 +363,16 @@ public: /* Methods: */
     }
 
     friend uint_t operator << (uint_t x, uint_t shift) {
-        const uint64_t u64shift = shift.as_uint64_t ();
+        std::uint64_t const u64shift = shift.as_uint64_t ();
         return x << u64shift;
     }
 
     friend uint_t operator >> (uint_t x, uint_t shift) {
-        const uint64_t u64shift = shift.as_uint64_t ();
+        std::uint64_t const u64shift = shift.as_uint64_t ();
         return x >> u64shift;
     }
 
-    friend uint_t operator << (uint_t x, uint64_t shift) {
+    friend uint_t operator << (uint_t x, std::uint64_t shift) {
         assert (shift < N);
 
         if (shift == 0) return x;
@@ -402,7 +404,7 @@ public: /* Methods: */
         return result;
     }
 
-    friend uint_t operator >> (uint_t x, uint64_t shift) {
+    friend uint_t operator >> (uint_t x, std::uint64_t shift) {
         assert (shift < N);
 
         if (shift == 0) return x;
@@ -664,7 +666,7 @@ public: /* Methods: */
 
     inline void dump_blocks (std::ostream& os) const {
         for (std::size_t i = 0u; i < num_of_blocks; ++i)
-            os << std::hex << static_cast<uint64_t>(block(i)) << ' ';
+            os << std::hex << static_cast<std::uint64_t>(block(i)) << ' ';
         os << std::endl;
     }
 
@@ -743,11 +745,11 @@ private: /* Methods: */
     }
 
     // TODO: we are assuming that blocks are not greater than 64 bits!
-    inline uint64_t as_uint64_t () const {
-        uint64_t out = 0;
+    inline std::uint64_t as_uint64_t () const {
+        std::uint64_t out = 0;
         std::size_t const s = min(num_of_bits, 64u);
         for (std::size_t i = 0u, j = 0u; j < s; ++i, j += bits_in_block)
-            out ^= static_cast<uint64_t>(block (i)) << j;
+            out ^= static_cast<std::uint64_t>(block (i)) << j;
         return out;
     }
 
