@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <ostream>
 #include <typeinfo>
 #include "compiler-support/GccNoreturn.h"
 
