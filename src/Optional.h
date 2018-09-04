@@ -75,7 +75,7 @@ struct DestructorBase<T, true> {
 
     template <typename ... Args>
     constexpr explicit DestructorBase(InPlace, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
         : m_data(std::forward<Args>(args)...)
         , m_valid(true)
     {}
@@ -106,7 +106,7 @@ struct DestructorBase<T, false> {
 
     template <typename ... Args>
     constexpr explicit DestructorBase(InPlace, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
         : m_data(std::forward<Args>(args)...)
         , m_valid(true)
     {}
@@ -148,7 +148,7 @@ struct CopyConstructorBase<T, false>: DestructorBase<T> {
 
     template <typename ... Args>
     constexpr explicit CopyConstructorBase(InPlace ip, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
         : DestructorBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
 
@@ -188,7 +188,7 @@ struct MoveConstructorBase<T, false>: CopyConstructorBase<T> {
 
     template <typename ... Args>
     constexpr explicit MoveConstructorBase(InPlace ip, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
         : CopyConstructorBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
 
@@ -228,7 +228,7 @@ struct CopyAssignmentBase<T, false>: MoveConstructorBase<T> {
 
     template <typename ... Args>
     constexpr explicit CopyAssignmentBase(InPlace ip, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
         : MoveConstructorBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
 
@@ -276,7 +276,7 @@ struct MoveAssignmentBase<T, false>: CopyAssignmentBase<T> {
 
     template <typename ... Args>
     constexpr explicit MoveAssignmentBase(InPlace ip, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
         : CopyAssignmentBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
 
@@ -348,7 +348,7 @@ public: /* Methods: */
 
     template <typename ... Args>
     constexpr explicit Impl(InPlace ip, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
         : MoveAssignmentBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
 
@@ -406,7 +406,7 @@ public: /* Methods: */
 
     template <typename ... Args>
     void emplace(Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
     {
         this->reset();
         new (std::addressof(this->m_data)) T(std::forward<Args>(args)...);
