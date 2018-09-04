@@ -21,6 +21,7 @@
 #define SHAREMIND_TOSIGNED_H
 
 #include <type_traits>
+#include "RemoveCvref.h"
 
 
 namespace sharemind {
@@ -29,14 +30,8 @@ namespace Detail {
 template <typename T>
 using ToSigned =
     std::conditional<
-        std::is_unsigned<
-            typename std::remove_reference<T>::type
-        >::value,
-        typename std::make_signed<
-            typename std::remove_cv<
-                typename std::remove_reference<T>::type
-            >::type
-        >::type,
+        std::is_unsigned<RemoveCvrefT<T> >::value,
+        typename std::make_signed<RemoveCvrefT<T> >::type,
         T const &
     >;
 
