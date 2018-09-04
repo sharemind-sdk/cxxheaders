@@ -27,6 +27,7 @@
 #include <utility>
 #include "compiler-support/ClangPR22637.h"
 #include "Concepts.h"
+#include "RemoveCvref.h"
 
 
 namespace sharemind {
@@ -72,6 +73,16 @@ class Impl;
     static_assert(!std::is_reference<T>::value, ""); \
     static_assert(!std::is_same<typename std::remove_cv<T>::type, InPlace>::value, ""); \
     static_assert(!std::is_same<typename std::remove_cv<T>::type, NullOption>::value, ""); \
+private: /* Types: */ \
+    template <typename U, bool isExplicit> \
+    using IsPassThroughConstructorArg = \
+            std::integral_constant< \
+                bool, \
+                !std::is_same<RemoveCvrefT<U>, InPlace>::value \
+                && !std::is_same<RemoveCvrefT<U>, Impl>::value \
+                && std::is_constructible<T, U &&>::value \
+                && (std::is_convertible<U &&, T>::value != isExplicit) \
+            >; \
 public: /* Methods: */ \
     constexpr Impl() noexcept : m_empty(), m_valid(false) {} \
     constexpr Impl(NullOption) noexcept : m_empty(), m_valid(false) {} \
@@ -81,6 +92,16 @@ public: /* Methods: */ \
         : m_data(std::forward<Args>(args)...) \
         , m_valid(true) \
     {} \
+    template <typename U = T, \
+              typename std::enable_if< \
+                    IsPassThroughConstructorArg<U, false>::value,\
+                    int>::type = 0> \
+    constexpr Impl(U && v) : Impl(inPlace, std::forward<U>(v)) {} \
+    template <typename U = T, \
+              typename std::enable_if< \
+                    IsPassThroughConstructorArg<U, true>::value,\
+                    int>::type = 0> \
+    explicit constexpr Impl(U && v) : Impl(inPlace, std::forward<U>(v)) {} \
     Impl(Impl && move) noexcept(std::is_nothrow_move_constructible<T>::value) \
         : m_valid(move.m_valid) \
     { \
