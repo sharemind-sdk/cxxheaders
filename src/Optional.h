@@ -331,6 +331,18 @@ SHAREMIND_OPTIONAL_H_VALUECOMPARE(>=, false, true)
 template <typename T>
 using Optional = Detail::Optional::Impl<T>;
 
+template <typename T>
+constexpr Optional<typename std::decay<T>::type> makeOptional(T && v)
+{ return Optional<typename std::decay<T>::type>(std::forward<T>(v)); }
+
+template <typename T, typename ... Args>
+constexpr Optional<T> makeOptional(Args && ... args)
+{ return Optional<T>(inPlace, std::forward<Args>(args)...); }
+
+template <typename T, typename U, typename ... Args>
+constexpr Optional<T> makeOptional(std::initializer_list<U> l, Args && ... args)
+{ return Optional<T>(inPlace, l, std::forward<Args>(args)...); }
+
 } /* namespace sharemind */
 
 #endif /* SHAREMIND_OPTIONAL_H */
