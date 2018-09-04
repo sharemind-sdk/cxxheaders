@@ -59,150 +59,59 @@ namespace Detail {
 namespace Optional {
 
 template <typename T, bool = std::is_trivially_destructible<T>::value>
-class Impl;
-
-/* Constexpr implied const in C++11, but not in C++14. */
-#if __cplusplus >= 201402L
-#define SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR constexpr
-#else
-#define SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR
-#endif
-
-#define SHAREMIND_OPTIONAL_H_IMPL_COMMON \
-    static_assert(std::is_nothrow_destructible<T>::value, ""); \
-    static_assert(!std::is_reference<T>::value, ""); \
-    static_assert(!std::is_same<typename std::remove_cv<T>::type, InPlace>::value, ""); \
-    static_assert(!std::is_same<typename std::remove_cv<T>::type, NullOption>::value, ""); \
-private: /* Types: */ \
-    template <typename U, bool isExplicit> \
-    using IsPassThroughConstructorArg = \
-            std::integral_constant< \
-                bool, \
-                !std::is_same<RemoveCvrefT<U>, InPlace>::value \
-                && !std::is_same<RemoveCvrefT<U>, Impl>::value \
-                && std::is_constructible<T, U &&>::value \
-                && (std::is_convertible<U &&, T>::value != isExplicit) \
-            >; \
-public: /* Methods: */ \
-    constexpr Impl() noexcept : m_empty(), m_valid(false) {} \
-    constexpr Impl(NullOption) noexcept : m_empty(), m_valid(false) {} \
-    template <typename ... Args> \
-    constexpr Impl(InPlace, Args && ... args) \
-            noexcept(std::is_nothrow_constructible<T, Args...>::value) \
-        : m_data(std::forward<Args>(args)...) \
-        , m_valid(true) \
-    {} \
-    template <typename U = T, \
-              typename std::enable_if< \
-                    IsPassThroughConstructorArg<U, false>::value,\
-                    int>::type = 0> \
-    constexpr Impl(U && v) : Impl(inPlace, std::forward<U>(v)) {} \
-    template <typename U = T, \
-              typename std::enable_if< \
-                    IsPassThroughConstructorArg<U, true>::value,\
-                    int>::type = 0> \
-    explicit constexpr Impl(U && v) : Impl(inPlace, std::forward<U>(v)) {} \
-    Impl(Impl && move) noexcept(std::is_nothrow_move_constructible<T>::value) \
-        : m_valid(move.m_valid) \
-    { \
-        if (m_valid) \
-            new (std::addressof(m_data)) T(std::move(move.m_data)); \
-    } \
-    Impl(Impl const & copy) \
-            noexcept(std::is_nothrow_copy_constructible<T>::value) \
-        : m_valid(copy.m_valid) \
-    { \
-        if (m_valid) \
-            new (std::addressof(m_data)) T(copy.m_data); \
-    } \
-    Impl & operator=(Impl && move) \
-            noexcept(std::is_nothrow_move_assignable<T>::value \
-                     && std::is_nothrow_move_constructible<T>::value) \
-    { \
-        if (&move != this) { \
-            if (m_valid) { \
-                if (move.m_valid) { \
-                    m_data = std::move(move.m_data); \
-                } else { \
-                    m_data.~T(); \
-                    m_valid = false; \
-                } \
-            } else { \
-                if (move.m_valid) { \
-                    new (std::addressof(m_data)) T(std::move(move.m_data)); \
-                    m_valid = true; \
-                } \
-            } \
-        } \
-        return *this; \
-    } \
-    Impl & operator=(Impl const & copy) \
-            noexcept(std::is_nothrow_copy_assignable<T>::value \
-                     && std::is_nothrow_copy_constructible<T>::value) \
-    { \
-        if (&copy != this) { \
-            if (m_valid) { \
-                if (copy.m_valid) { \
-                    m_data = copy.m_data; \
-                } else { \
-                    m_data.~T(); \
-                    m_valid = false; \
-                } \
-            } else { \
-                if (copy.m_valid) { \
-                    new (std::addressof(m_data)) T(copy.m_data); \
-                    m_valid = true; \
-                } \
-            } \
-        } \
-        return *this; \
-    } \
-    constexpr explicit operator bool() const noexcept { return m_valid; } \
-    constexpr T const * operator->() const noexcept \
-    { return (assert(m_valid), std::addressof(m_data)); } \
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T * operator->() noexcept \
-    { return (assert(m_valid), std::addressof(m_data)); } \
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & operator*() & noexcept \
-    { return (assert(m_valid), m_data); } \
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && operator*() && noexcept \
-    { return (assert(m_valid), std::move(m_data)); } \
-    constexpr T const & operator*() const & noexcept \
-    { return (assert(m_valid), m_data); } \
-    constexpr T const && operator*() const && noexcept \
-    { return (assert(m_valid), std::move(m_data)); } \
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & value() & noexcept \
-    { return (assert(m_valid), m_data); } \
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && value() && noexcept \
-    { return (assert(m_valid), std::move(m_data)); } \
-    constexpr T const & value() const & noexcept \
-    { return (assert(m_valid), m_data); } \
-    constexpr T const && value() const && noexcept \
-    { return (assert(m_valid), std::move(m_data)); } \
-    template <typename ... Args> \
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T value(Args && ... args) && \
-            noexcept \
-    { return m_valid ? std::move(m_data) : T(std::forward<Args>(args)...); } \
-    template <typename ... Args> \
-    constexpr T value(Args && ... args) const & noexcept { \
-        return m_valid \
-               ? T(SHAREMIND_CLANGPR22637_WORKAROUND(m_data)) \
-               : T(std::forward<Args>(args)...); \
-    } \
-private: /* Fields: */ \
-    union { \
-        char m_empty; \
-        T m_data; \
-    }; \
-    bool m_valid;
+struct DestructorBase;
 
 template <typename T>
-class Impl<T, false> {
+struct DestructorBase<T, true> {
 
-    SHAREMIND_OPTIONAL_H_IMPL_COMMON
+/* Methods: */
 
-public: /* Methods: */
+    constexpr DestructorBase() noexcept : m_empty(), m_valid(false) {}
 
-    ~Impl() noexcept {
+    constexpr DestructorBase(bool const valid) noexcept
+        : m_empty()
+        , m_valid(valid)
+    {}
+
+    template <typename ... Args>
+    constexpr DestructorBase(InPlace, Args && ... args)
+            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+        : m_data(std::forward<Args>(args)...)
+        , m_valid(true)
+    {}
+
+    void reset() noexcept { this->m_valid = false; }
+
+/* Fields: */
+
+    union {
+        char m_empty;
+        T m_data;
+    };
+    bool m_valid;
+
+};
+
+template <typename T>
+struct DestructorBase<T, false> {
+
+/* Methods: */
+
+    constexpr DestructorBase() noexcept : m_empty(), m_valid(false) {}
+
+    constexpr DestructorBase(bool const valid) noexcept
+        : m_empty()
+        , m_valid(valid)
+    {}
+
+    template <typename ... Args>
+    constexpr DestructorBase(InPlace, Args && ... args)
+            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+        : m_data(std::forward<Args>(args)...)
+        , m_valid(true)
+    {}
+
+    ~DestructorBase() noexcept {
         if (m_valid)
             m_data.~T();
     }
@@ -214,41 +123,297 @@ public: /* Methods: */
         }
     }
 
+/* Fields: */
+
+    union {
+        char m_empty;
+        T m_data;
+    };
+    bool m_valid;
+
+};
+
+template <typename T, bool = std::is_trivially_copy_constructible<T>::value>
+struct CopyConstructorBase: DestructorBase<T>
+{ using DestructorBase<T>::DestructorBase; };
+
+template <typename T>
+struct CopyConstructorBase<T, false>: DestructorBase<T> {
+
+    constexpr CopyConstructorBase() noexcept = default;
+
+    constexpr CopyConstructorBase(bool const v) noexcept
+        : DestructorBase<T>(v)
+    {}
+
     template <typename ... Args>
-    void emplace(Args && ... args)
+    constexpr CopyConstructorBase(InPlace ip, Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args...>::value)
+        : DestructorBase<T>(std::move(ip), std::forward<Args>(args)...)
+    {}
+
+    CopyConstructorBase(CopyConstructorBase const & copy)
+            noexcept(std::is_nothrow_copy_constructible<T>::value)
+        : DestructorBase<T>(copy.m_valid)
     {
-        if (m_valid) {
-            m_data.~T();
-            m_valid = false;
+        if (copy.m_valid)
+            new (std::addressof(this->m_data)) T(copy.m_data);
+    }
+
+    constexpr CopyConstructorBase(CopyConstructorBase &&)
+            noexcept(std::is_nothrow_move_constructible<T>::value) = default;
+
+    CopyConstructorBase & operator=(CopyConstructorBase const &)
+            noexcept(std::is_nothrow_copy_constructible<T>::value
+                     && std::is_nothrow_copy_assignable<T>::value) = default;
+
+    CopyConstructorBase & operator=(CopyConstructorBase &&)
+            noexcept(std::is_nothrow_move_constructible<T>::value
+                     && std::is_nothrow_move_assignable<T>::value) = default;
+
+};
+
+template <typename T, bool = std::is_trivially_move_constructible<T>::value>
+struct MoveConstructorBase: CopyConstructorBase<T>
+{ using CopyConstructorBase<T>::CopyConstructorBase; };
+
+template <typename T>
+struct MoveConstructorBase<T, false>: CopyConstructorBase<T> {
+
+    constexpr MoveConstructorBase() noexcept = default;
+
+    constexpr MoveConstructorBase(bool const v) noexcept
+        : CopyConstructorBase<T>(v)
+    {}
+
+    template <typename ... Args>
+    constexpr MoveConstructorBase(InPlace ip, Args && ... args)
+            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+        : CopyConstructorBase<T>(std::move(ip), std::forward<Args>(args)...)
+    {}
+
+    MoveConstructorBase(MoveConstructorBase const & copy)
+            noexcept(std::is_nothrow_copy_constructible<T>::value) = default;
+
+    MoveConstructorBase(MoveConstructorBase && move)
+            noexcept(std::is_nothrow_move_constructible<T>::value)
+        : CopyConstructorBase<T>(move.m_valid)
+    {
+        if (move.m_valid)
+            new (std::addressof(this->m_data)) T(std::move(move.m_data));
+    }
+
+    MoveConstructorBase & operator=(MoveConstructorBase const &)
+            noexcept(std::is_nothrow_copy_constructible<T>::value
+                     && std::is_nothrow_copy_assignable<T>::value) = default;
+
+    MoveConstructorBase & operator=(MoveConstructorBase &&)
+            noexcept(std::is_nothrow_move_constructible<T>::value
+                     && std::is_nothrow_move_assignable<T>::value) = default;
+
+};
+
+template <typename T, bool = std::is_trivially_copy_assignable<T>::value>
+struct CopyAssignmentBase: MoveConstructorBase<T>
+{ using MoveConstructorBase<T>::MoveConstructorBase; };
+
+template <typename T>
+struct CopyAssignmentBase<T, false>: MoveConstructorBase<T> {
+
+    constexpr CopyAssignmentBase() noexcept = default;
+
+    constexpr CopyAssignmentBase(bool const v) noexcept
+        : MoveConstructorBase<T>(v)
+    {}
+
+    template <typename ... Args>
+    constexpr CopyAssignmentBase(InPlace ip, Args && ... args)
+            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+        : MoveConstructorBase<T>(std::move(ip), std::forward<Args>(args)...)
+    {}
+
+    CopyAssignmentBase(CopyAssignmentBase const & copy)
+            noexcept(std::is_nothrow_copy_constructible<T>::value) = default;
+
+    CopyAssignmentBase(CopyAssignmentBase && move)
+            noexcept(std::is_nothrow_move_constructible<T>::value) = default;
+
+    CopyAssignmentBase & operator=(CopyAssignmentBase const & copy)
+            noexcept(std::is_nothrow_copy_constructible<T>::value
+                     && std::is_nothrow_copy_assignable<T>::value)
+    {
+        if (copy.m_valid) {
+            if (this->m_valid) {
+                this->m_data = copy.m_data;
+            } else {
+                new (std::addressof(this->m_data)) T(copy.m_data);
+                this->m_valid = true;
+            }
+        } else {
+            this->reset();
         }
-        new (std::addressof(m_data)) T(std::forward<Args>(args)...);
-        m_valid = true;
+        return *this;
+    }
+
+    CopyAssignmentBase & operator=(CopyAssignmentBase &&)
+            noexcept(std::is_nothrow_move_constructible<T>::value
+                     && std::is_nothrow_move_assignable<T>::value) = default;
+
+};
+
+template <typename T, bool = std::is_trivially_copy_assignable<T>::value>
+struct MoveAssignmentBase: CopyAssignmentBase<T>
+{ using CopyAssignmentBase<T>::CopyAssignmentBase; };
+
+template <typename T>
+struct MoveAssignmentBase<T, false>: CopyAssignmentBase<T> {
+
+    constexpr MoveAssignmentBase() noexcept = default;
+
+    constexpr MoveAssignmentBase(bool const v) noexcept
+        : CopyAssignmentBase<T>(v)
+    {}
+
+    template <typename ... Args>
+    constexpr MoveAssignmentBase(InPlace ip, Args && ... args)
+            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+        : CopyAssignmentBase<T>(std::move(ip), std::forward<Args>(args)...)
+    {}
+
+    MoveAssignmentBase(MoveAssignmentBase const & copy)
+            noexcept(std::is_nothrow_copy_constructible<T>::value) = default;
+
+    MoveAssignmentBase(MoveAssignmentBase && move)
+            noexcept(std::is_nothrow_move_constructible<T>::value) = default;
+
+    MoveAssignmentBase & operator=(MoveAssignmentBase const & copy)
+            noexcept(std::is_nothrow_copy_constructible<T>::value
+                     && std::is_nothrow_copy_assignable<T>::value) = default;
+
+    MoveAssignmentBase & operator=(MoveAssignmentBase && move)
+            noexcept(std::is_nothrow_move_constructible<T>::value
+                     && std::is_nothrow_move_assignable<T>::value)
+    {
+        if (move.m_valid) {
+            if (this->m_valid) {
+                this->m_data = std::move(move.m_data);
+            } else {
+                new (std::addressof(this->m_data)) T(std::move(move.m_data));
+                this->m_valid = true;
+            }
+        } else {
+            this->reset();
+        }
+        return *this;
     }
 
 };
 
-template <typename T>
-class Impl<T, true> {
 
-    SHAREMIND_OPTIONAL_H_IMPL_COMMON
+/* Constexpr implied const in C++11, but not in C++14. */
+#if __cplusplus >= 201402L
+#define SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR constexpr
+#else
+#define SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR
+#endif
+
+template <typename T>
+class Impl : private MoveAssignmentBase<T> {
+
+    static_assert(std::is_object<T>::value, "");
+
+private: /* Types: */
+
+    template <typename U, bool isExplicit>
+    using IsPassThroughConstructorArg =
+            std::integral_constant<
+                bool,
+                !std::is_same<RemoveCvrefT<U>, InPlace>::value
+                && !std::is_same<RemoveCvrefT<U>, Impl>::value
+                && std::is_constructible<T, U &&>::value
+                && (std::is_convertible<U &&, T>::value != isExplicit)
+            >;
 
 public: /* Methods: */
 
-    void reset() noexcept { m_valid = false; }
+    constexpr Impl() noexcept = default;
+
+    constexpr Impl(NullOption) noexcept : Impl() {}
+
+    constexpr Impl(Impl const &)
+            noexcept(std::is_nothrow_copy_constructible<T>::value) = default;
+
+    constexpr Impl(Impl &&)
+            noexcept(std::is_nothrow_move_constructible<T>::value) = default;
+
+    template <typename ... Args>
+    constexpr Impl(InPlace ip, Args && ... args)
+            noexcept(std::is_nothrow_constructible<T, Args...>::value)
+        : MoveAssignmentBase<T>(std::move(ip), std::forward<Args>(args)...)
+    {}
+
+    template <typename U = T,
+              typename std::enable_if<
+                    IsPassThroughConstructorArg<U, false>::value,
+                    int>::type = 0>
+    constexpr Impl(U && v) : Impl(inPlace, std::forward<U>(v)) {}
+
+    template <typename U = T,
+              typename std::enable_if<
+                    IsPassThroughConstructorArg<U, true>::value,
+                    int>::type = 0>
+    explicit constexpr Impl(U && v) : Impl(inPlace, std::forward<U>(v)) {}
+
+    Impl & operator=(Impl const &)
+            noexcept(std::is_nothrow_copy_constructible<T>::value
+                     && std::is_nothrow_copy_assignable<T>::value) = default;
+
+    Impl & operator=(Impl &&)
+            noexcept(std::is_nothrow_move_constructible<T>::value
+                     && std::is_nothrow_move_assignable<T>::value) = default;
+
+    constexpr explicit operator bool() const noexcept { return this->m_valid; }
+    constexpr T const * operator->() const noexcept
+    { return (assert(this->m_valid), std::addressof(this->m_data)); }
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T * operator->() noexcept
+    { return (assert(this->m_valid), std::addressof(this->m_data)); }
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & operator*() & noexcept
+    { return (assert(this->m_valid), this->m_data); }
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && operator*() && noexcept
+    { return (assert(this->m_valid), std::move(this->m_data)); }
+    constexpr T const & operator*() const & noexcept
+    { return (assert(this->m_valid), this->m_data); }
+    constexpr T const && operator*() const && noexcept
+    { return (assert(this->m_valid), std::move(this->m_data)); }
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & value() & noexcept
+    { return (assert(this->m_valid), this->m_data); }
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && value() && noexcept
+    { return (assert(this->m_valid), std::move(this->m_data)); }
+    constexpr T const & value() const & noexcept
+    { return (assert(this->m_valid), this->m_data); }
+    constexpr T const && value() const && noexcept
+    { return (assert(this->m_valid), std::move(this->m_data)); }
+    template <typename ... Args>
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T value(Args && ... args) &&
+            noexcept
+    { return this->m_valid ? std::move(this->m_data) : T(std::forward<Args>(args)...); }
+    template <typename ... Args>
+    constexpr T value(Args && ... args) const & noexcept {
+        return this->m_valid
+               ? T(SHAREMIND_CLANGPR22637_WORKAROUND(this->m_data))
+               : T(std::forward<Args>(args)...);
+    }
 
     template <typename ... Args>
     void emplace(Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args...>::value)
     {
-        m_valid = false;
-        new (std::addressof(m_data)) T(std::forward<Args>(args)...);
-        m_valid = true;
+        this->reset();
+        new (std::addressof(this->m_data)) T(std::forward<Args>(args)...);
+        this->m_valid = true;
     }
-
 };
 
-#undef SHAREMIND_OPTIONAL_H_IMPL_COMMON
 #undef SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR
 
 template <typename T, typename U>
