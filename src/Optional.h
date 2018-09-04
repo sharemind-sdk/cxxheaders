@@ -68,13 +68,13 @@ struct DestructorBase<T, true> {
 
     constexpr DestructorBase() noexcept : m_empty(), m_valid(false) {}
 
-    constexpr DestructorBase(bool const valid) noexcept
+    constexpr explicit DestructorBase(bool const valid) noexcept
         : m_empty()
         , m_valid(valid)
     {}
 
     template <typename ... Args>
-    constexpr DestructorBase(InPlace, Args && ... args)
+    constexpr explicit DestructorBase(InPlace, Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args...>::value)
         : m_data(std::forward<Args>(args)...)
         , m_valid(true)
@@ -99,13 +99,13 @@ struct DestructorBase<T, false> {
 
     constexpr DestructorBase() noexcept : m_empty(), m_valid(false) {}
 
-    constexpr DestructorBase(bool const valid) noexcept
+    constexpr explicit DestructorBase(bool const valid) noexcept
         : m_empty()
         , m_valid(valid)
     {}
 
     template <typename ... Args>
-    constexpr DestructorBase(InPlace, Args && ... args)
+    constexpr explicit DestructorBase(InPlace, Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args...>::value)
         : m_data(std::forward<Args>(args)...)
         , m_valid(true)
@@ -142,12 +142,12 @@ struct CopyConstructorBase<T, false>: DestructorBase<T> {
 
     constexpr CopyConstructorBase() noexcept = default;
 
-    constexpr CopyConstructorBase(bool const v) noexcept
+    constexpr explicit CopyConstructorBase(bool const v) noexcept
         : DestructorBase<T>(v)
     {}
 
     template <typename ... Args>
-    constexpr CopyConstructorBase(InPlace ip, Args && ... args)
+    constexpr explicit CopyConstructorBase(InPlace ip, Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args...>::value)
         : DestructorBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
@@ -182,12 +182,12 @@ struct MoveConstructorBase<T, false>: CopyConstructorBase<T> {
 
     constexpr MoveConstructorBase() noexcept = default;
 
-    constexpr MoveConstructorBase(bool const v) noexcept
+    constexpr explicit MoveConstructorBase(bool const v) noexcept
         : CopyConstructorBase<T>(v)
     {}
 
     template <typename ... Args>
-    constexpr MoveConstructorBase(InPlace ip, Args && ... args)
+    constexpr explicit MoveConstructorBase(InPlace ip, Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args...>::value)
         : CopyConstructorBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
@@ -222,12 +222,12 @@ struct CopyAssignmentBase<T, false>: MoveConstructorBase<T> {
 
     constexpr CopyAssignmentBase() noexcept = default;
 
-    constexpr CopyAssignmentBase(bool const v) noexcept
+    constexpr explicit CopyAssignmentBase(bool const v) noexcept
         : MoveConstructorBase<T>(v)
     {}
 
     template <typename ... Args>
-    constexpr CopyAssignmentBase(InPlace ip, Args && ... args)
+    constexpr explicit CopyAssignmentBase(InPlace ip, Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args...>::value)
         : MoveConstructorBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
@@ -270,12 +270,12 @@ struct MoveAssignmentBase<T, false>: CopyAssignmentBase<T> {
 
     constexpr MoveAssignmentBase() noexcept = default;
 
-    constexpr MoveAssignmentBase(bool const v) noexcept
+    constexpr explicit MoveAssignmentBase(bool const v) noexcept
         : CopyAssignmentBase<T>(v)
     {}
 
     template <typename ... Args>
-    constexpr MoveAssignmentBase(InPlace ip, Args && ... args)
+    constexpr explicit MoveAssignmentBase(InPlace ip, Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args...>::value)
         : CopyAssignmentBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
@@ -347,7 +347,7 @@ public: /* Methods: */
             noexcept(std::is_nothrow_move_constructible<T>::value) = default;
 
     template <typename ... Args>
-    constexpr Impl(InPlace ip, Args && ... args)
+    constexpr explicit Impl(InPlace ip, Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args...>::value)
         : MoveAssignmentBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
