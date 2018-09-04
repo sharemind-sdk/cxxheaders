@@ -418,6 +418,23 @@ public: /* Methods: */
         this->m_valid = true;
         return this->m_data;
     }
+
+    template <typename U, typename ... Args>
+    auto emplace(std::initializer_list<U> il, Args && ... args)
+            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
+            -> typename std::enable_if<
+                    std::is_constructible<
+                        T,
+                        std::initializer_list<U> &,
+                        Args &&...
+                    >::value,
+                    T &>::type
+    {
+        this->reset();
+        new (std::addressof(this->m_data)) T(il, std::forward<Args>(args)...);
+        this->m_valid = true;
+        return this->m_data;
+    }
 };
 
 #undef SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR
