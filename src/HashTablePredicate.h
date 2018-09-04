@@ -23,6 +23,7 @@
 #include <type_traits>
 #include "Hash.h"
 #include "Concepts.h"
+#include "RemoveCvref.h"
 
 
 namespace sharemind {
@@ -33,12 +34,7 @@ SHAREMIND_DEFINE_CONCEPT(HashTablePredicate) {
     auto check(Pred && pred) -> SHAREMIND_REQUIRE_CONCEPTS(
                 UnaryPredicate(Pred, Key &),
                 UnaryPredicate(Pred, Key const &),
-                ConvertibleTo(
-                    typename std::remove_cv<
-                        typename std::remove_reference<
-                            decltype(pred.hash())
-                        >::type
-                     >::type, HashValue)
+                ConvertibleTo(RemoveCvrefT<decltype(pred.hash())>, HashValue)
             );
 };
 
