@@ -364,6 +364,11 @@ public: /* Methods: */
                     int>::type = 0>
     explicit constexpr Impl(U && v) : Impl(inPlace, std::forward<U>(v)) {}
 
+    Impl & operator=(NullOption) noexcept {
+        this->reset();
+        return *this;
+    }
+
     Impl & operator=(Impl const &)
             noexcept(std::is_nothrow_copy_constructible<T>::value
                      && std::is_nothrow_copy_assignable<T>::value) = default;
