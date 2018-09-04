@@ -410,12 +410,13 @@ public: /* Methods: */
     }
 
     template <typename ... Args>
-    void emplace(Args && ... args)
+    T & emplace(Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
     {
         this->reset();
         new (std::addressof(this->m_data)) T(std::forward<Args>(args)...);
         this->m_valid = true;
+        return this->m_data;
     }
 };
 
