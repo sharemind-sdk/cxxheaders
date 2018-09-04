@@ -33,6 +33,7 @@
 #include <type_traits>
 #include <utility>
 #include "Min.h"
+#include "RemoveCvref.h"
 
 
 namespace sharemind {
@@ -827,10 +828,6 @@ private: /* Methods: */
     template <unsigned N2, typename B2>
     struct is_some_uint<uint_t<N2, B2> > : public std::true_type { };
 
-    // Remove reference and constant and volatile qualifiers.
-    template <typename T>
-    struct remove_cv_ref : public std::remove_cv<typename std::remove_reference<T>::type> { };
-
     /*
      * This is a hack in order to detect things that look like random number
      * generators.  Anything that is not an integral, an uint128_t or any
@@ -838,9 +835,9 @@ private: /* Methods: */
      */
     template <typename Generator>
     struct is_random_generator : public std::integral_constant<bool,
-        ! std::is_integral<typename remove_cv_ref<Generator>::type>::value &&
-        ! std::is_same<typename remove_cv_ref<Generator>::type, uint128_t>::value &&
-        ! is_some_uint<typename remove_cv_ref<Generator>::type>::value
+        ! std::is_integral<RemoveCvrefT<Generator> >::value &&
+        ! std::is_same<RemoveCvrefT<Generator>, uint128_t>::value &&
+        ! is_some_uint<RemoveCvrefT<Generator> >::value
     > { };
 
     /*
