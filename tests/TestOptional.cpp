@@ -272,6 +272,8 @@ struct TestType {
             noexcept(std::is_nothrow_copy_constructible<T>::value)
         : m_value(copy.m_value)
     {
+        assert(m_stats);
+        assert(copy.m_stats);
         m_stats->m_copyConstructorCalled = true; 
         ++(copy.m_stats->m_copiedFrom);
         DEBUG_MSG("%p copy %p\n", this, &copy);
@@ -302,11 +304,9 @@ struct TestType {
         SHAREMIND_TESTASSERT(m_stats);
         SHAREMIND_TESTASSERT(!m_stats->m_destroyed);
         m_stats->m_destroyed = true;
-        m_stats.reset();
-        SHAREMIND_TESTASSERT(!m_stats);
     }
 
-    std::shared_ptr<TestStats> m_stats{std::make_shared<TestStats>()};
+    std::shared_ptr<TestStats> const m_stats{std::make_shared<TestStats>()};
     T m_value;
 };
 
@@ -356,7 +356,7 @@ int main() {
     }
     DEBUG_MSG("\nCopy construct from nothing\n");
     {
-        OT x;
+        OT const x;
         TestStats::assumeAndReset(0u);
         OT y(x);
         TestStats::assumeAndReset(0u);
