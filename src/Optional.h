@@ -383,31 +383,40 @@ public: /* Methods: */
             noexcept(std::is_nothrow_move_constructible<T>::value
                      && std::is_nothrow_move_assignable<T>::value) = default;
 
+    constexpr T const * operator->() const noexcept
+    { return (assert(this->m_containsValue), std::addressof(this->m_data)); }
+
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T * operator->() noexcept
+    { return (assert(this->m_containsValue), std::addressof(this->m_data)); }
+
+    constexpr T const & operator*() const & noexcept
+    { return (assert(this->m_containsValue), this->m_data); }
+
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & operator*() & noexcept
+    { return (assert(this->m_containsValue), this->m_data); }
+
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && operator*() && noexcept
+    { return (assert(this->m_containsValue), std::move(this->m_data)); }
+
+    constexpr T const && operator*() const && noexcept
+    { return (assert(this->m_containsValue), std::move(this->m_data)); }
+
     constexpr explicit operator bool() const noexcept
     { return this->m_containsValue; }
 
-    constexpr T const * operator->() const noexcept
-    { return (assert(this->m_containsValue), std::addressof(this->m_data)); }
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T * operator->() noexcept
-    { return (assert(this->m_containsValue), std::addressof(this->m_data)); }
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & operator*() & noexcept
-    { return (assert(this->m_containsValue), this->m_data); }
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && operator*() && noexcept
-    { return (assert(this->m_containsValue), std::move(this->m_data)); }
-    constexpr T const & operator*() const & noexcept
-    { return (assert(this->m_containsValue), this->m_data); }
-    constexpr T const && operator*() const && noexcept
-    { return (assert(this->m_containsValue), std::move(this->m_data)); }
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & value() & noexcept
-    { return (assert(this->m_containsValue), this->m_data); }
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && value() && noexcept
-    { return (assert(this->m_containsValue), std::move(this->m_data)); }
     constexpr T const & value() const & noexcept
     { return (assert(this->m_containsValue), this->m_data); }
+
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & value() & noexcept
+    { return (assert(this->m_containsValue), this->m_data); }
+
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && value() && noexcept
+    { return (assert(this->m_containsValue), std::move(this->m_data)); }
+
     constexpr T const && value() const && noexcept
     { return (assert(this->m_containsValue), std::move(this->m_data)); }
-    template <typename ... Args>
 
+    template <typename ... Args>
     SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T value(Args && ... args) &&
             noexcept
     {
