@@ -68,22 +68,22 @@ struct DestructorBase<T, true> {
 
     constexpr DestructorBase() noexcept
         : m_noValuePlaceholder()
-        , m_valid(false)
+        , m_containsValue(false)
     {}
 
     constexpr explicit DestructorBase(bool const valid) noexcept
         : m_noValuePlaceholder()
-        , m_valid(valid)
+        , m_containsValue(valid)
     {}
 
     template <typename ... Args>
     constexpr explicit DestructorBase(InPlace, Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
         : m_data(std::forward<Args>(args)...)
-        , m_valid(true)
+        , m_containsValue(true)
     {}
 
-    void reset() noexcept { this->m_valid = false; }
+    void reset() noexcept { this->m_containsValue = false; }
 
 /* Fields: */
 
@@ -91,7 +91,7 @@ struct DestructorBase<T, true> {
         char m_noValuePlaceholder;
         T m_data;
     };
-    bool m_valid;
+    bool m_containsValue;
 
 };
 
@@ -102,30 +102,30 @@ struct DestructorBase<T, false> {
 
     constexpr DestructorBase() noexcept
         : m_noValuePlaceholder()
-        , m_valid(false)
+        , m_containsValue(false)
     {}
 
     constexpr explicit DestructorBase(bool const valid) noexcept
         : m_noValuePlaceholder()
-        , m_valid(valid)
+        , m_containsValue(valid)
     {}
 
     template <typename ... Args>
     constexpr explicit DestructorBase(InPlace, Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
         : m_data(std::forward<Args>(args)...)
-        , m_valid(true)
+        , m_containsValue(true)
     {}
 
     ~DestructorBase() noexcept {
-        if (m_valid)
+        if (m_containsValue)
             m_data.~T();
     }
 
     void reset() noexcept {
-        if (m_valid) {
+        if (m_containsValue) {
             m_data.~T();
-            m_valid = false;
+            m_containsValue = false;
         }
     }
 
@@ -135,7 +135,7 @@ struct DestructorBase<T, false> {
         char m_noValuePlaceholder;
         T m_data;
     };
-    bool m_valid;
+    bool m_containsValue;
 
 };
 
@@ -160,9 +160,9 @@ struct CopyConstructorBase<T, false>: DestructorBase<T> {
 
     CopyConstructorBase(CopyConstructorBase const & copy)
             noexcept(std::is_nothrow_copy_constructible<T>::value)
-        : DestructorBase<T>(copy.m_valid)
+        : DestructorBase<T>(copy.m_containsValue)
     {
-        if (copy.m_valid)
+        if (copy.m_containsValue)
             new (std::addressof(this->m_data)) T(copy.m_data);
     }
 
@@ -203,9 +203,9 @@ struct MoveConstructorBase<T, false>: CopyConstructorBase<T> {
 
     MoveConstructorBase(MoveConstructorBase && move)
             noexcept(std::is_nothrow_move_constructible<T>::value)
-        : CopyConstructorBase<T>(move.m_valid)
+        : CopyConstructorBase<T>(move.m_containsValue)
     {
-        if (move.m_valid)
+        if (move.m_containsValue)
             new (std::addressof(this->m_data)) T(std::move(move.m_data));
     }
 
@@ -248,12 +248,12 @@ struct CopyAssignmentBase<T, false>: MoveConstructorBase<T> {
             noexcept(std::is_nothrow_copy_constructible<T>::value
                      && std::is_nothrow_copy_assignable<T>::value)
     {
-        if (copy.m_valid) {
-            if (this->m_valid) {
+        if (copy.m_containsValue) {
+            if (this->m_containsValue) {
                 this->m_data = copy.m_data;
             } else {
                 new (std::addressof(this->m_data)) T(copy.m_data);
-                this->m_valid = true;
+                this->m_containsValue = true;
             }
         } else {
             this->reset();
@@ -300,12 +300,12 @@ struct MoveAssignmentBase<T, false>: CopyAssignmentBase<T> {
             noexcept(std::is_nothrow_move_constructible<T>::value
                      && std::is_nothrow_move_assignable<T>::value)
     {
-        if (move.m_valid) {
-            if (this->m_valid) {
+        if (move.m_containsValue) {
+            if (this->m_containsValue) {
                 this->m_data = std::move(move.m_data);
             } else {
                 new (std::addressof(this->m_data)) T(std::move(move.m_data));
-                this->m_valid = true;
+                this->m_containsValue = true;
             }
         } else {
             this->reset();
@@ -383,34 +383,42 @@ public: /* Methods: */
             noexcept(std::is_nothrow_move_constructible<T>::value
                      && std::is_nothrow_move_assignable<T>::value) = default;
 
-    constexpr explicit operator bool() const noexcept { return this->m_valid; }
+    constexpr explicit operator bool() const noexcept
+    { return this->m_containsValue; }
+
     constexpr T const * operator->() const noexcept
-    { return (assert(this->m_valid), std::addressof(this->m_data)); }
+    { return (assert(this->m_containsValue), std::addressof(this->m_data)); }
     SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T * operator->() noexcept
-    { return (assert(this->m_valid), std::addressof(this->m_data)); }
+    { return (assert(this->m_containsValue), std::addressof(this->m_data)); }
     SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & operator*() & noexcept
-    { return (assert(this->m_valid), this->m_data); }
+    { return (assert(this->m_containsValue), this->m_data); }
     SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && operator*() && noexcept
-    { return (assert(this->m_valid), std::move(this->m_data)); }
+    { return (assert(this->m_containsValue), std::move(this->m_data)); }
     constexpr T const & operator*() const & noexcept
-    { return (assert(this->m_valid), this->m_data); }
+    { return (assert(this->m_containsValue), this->m_data); }
     constexpr T const && operator*() const && noexcept
-    { return (assert(this->m_valid), std::move(this->m_data)); }
+    { return (assert(this->m_containsValue), std::move(this->m_data)); }
     SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & value() & noexcept
-    { return (assert(this->m_valid), this->m_data); }
+    { return (assert(this->m_containsValue), this->m_data); }
     SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && value() && noexcept
-    { return (assert(this->m_valid), std::move(this->m_data)); }
+    { return (assert(this->m_containsValue), std::move(this->m_data)); }
     constexpr T const & value() const & noexcept
-    { return (assert(this->m_valid), this->m_data); }
+    { return (assert(this->m_containsValue), this->m_data); }
     constexpr T const && value() const && noexcept
-    { return (assert(this->m_valid), std::move(this->m_data)); }
+    { return (assert(this->m_containsValue), std::move(this->m_data)); }
     template <typename ... Args>
+
     SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T value(Args && ... args) &&
             noexcept
-    { return this->m_valid ? std::move(this->m_data) : T(std::forward<Args>(args)...); }
+    {
+        return this->m_containsValue
+               ? std::move(this->m_data)
+               : T(std::forward<Args>(args)...);
+    }
+
     template <typename ... Args>
     constexpr T value(Args && ... args) const & noexcept {
-        return this->m_valid
+        return this->m_containsValue
                ? T(SHAREMIND_CLANGPR22637_WORKAROUND(this->m_data))
                : T(std::forward<Args>(args)...);
     }
@@ -421,7 +429,7 @@ public: /* Methods: */
     {
         this->reset();
         new (std::addressof(this->m_data)) T(std::forward<Args>(args)...);
-        this->m_valid = true;
+        this->m_containsValue = true;
         return this->m_data;
     }
 
@@ -438,7 +446,7 @@ public: /* Methods: */
     {
         this->reset();
         new (std::addressof(this->m_data)) T(il, std::forward<Args>(args)...);
-        this->m_valid = true;
+        this->m_containsValue = true;
         return this->m_data;
     }
 };
