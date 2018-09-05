@@ -253,7 +253,7 @@ struct CopyAssignmentBase<T, false>: MoveConstructorBase<T> {
 
 };
 
-template <typename T, bool = std::is_trivially_copy_assignable<T>::value>
+template <typename T, bool = std::is_trivially_move_assignable<T>::value>
 struct MoveAssignmentBase: CopyAssignmentBase<T>
 { using CopyAssignmentBase<T>::CopyAssignmentBase; };
 
