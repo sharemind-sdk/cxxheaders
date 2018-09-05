@@ -146,7 +146,7 @@ struct CopyConstructorBase: DestructorBase<T>
 template <typename T>
 struct CopyConstructorBase<T, false>: DestructorBase<T> {
 
-    constexpr CopyConstructorBase() noexcept = default;
+    constexpr CopyConstructorBase() = default;
 
     constexpr explicit CopyConstructorBase(bool const v) noexcept
         : DestructorBase<T>(v)
@@ -166,16 +166,11 @@ struct CopyConstructorBase<T, false>: DestructorBase<T> {
             new (std::addressof(this->m_data)) T(copy.m_data);
     }
 
-    constexpr CopyConstructorBase(CopyConstructorBase &&)
-            noexcept(std::is_nothrow_move_constructible<T>::value) = default;
+    constexpr CopyConstructorBase(CopyConstructorBase &&) = default;
 
-    CopyConstructorBase & operator=(CopyConstructorBase const &)
-            noexcept(std::is_nothrow_copy_constructible<T>::value
-                     && std::is_nothrow_copy_assignable<T>::value) = default;
+    CopyConstructorBase & operator=(CopyConstructorBase const &) = default;
 
-    CopyConstructorBase & operator=(CopyConstructorBase &&)
-            noexcept(std::is_nothrow_move_constructible<T>::value
-                     && std::is_nothrow_move_assignable<T>::value) = default;
+    CopyConstructorBase & operator=(CopyConstructorBase &&) = default;
 
 };
 
@@ -186,7 +181,7 @@ struct MoveConstructorBase: CopyConstructorBase<T>
 template <typename T>
 struct MoveConstructorBase<T, false>: CopyConstructorBase<T> {
 
-    constexpr MoveConstructorBase() noexcept = default;
+    constexpr MoveConstructorBase() = default;
 
     constexpr explicit MoveConstructorBase(bool const v) noexcept
         : CopyConstructorBase<T>(v)
@@ -198,8 +193,7 @@ struct MoveConstructorBase<T, false>: CopyConstructorBase<T> {
         : CopyConstructorBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
 
-    MoveConstructorBase(MoveConstructorBase const & copy)
-            noexcept(std::is_nothrow_copy_constructible<T>::value) = default;
+    MoveConstructorBase(MoveConstructorBase const & copy) = default;
 
     MoveConstructorBase(MoveConstructorBase && move)
             noexcept(std::is_nothrow_move_constructible<T>::value)
@@ -209,13 +203,9 @@ struct MoveConstructorBase<T, false>: CopyConstructorBase<T> {
             new (std::addressof(this->m_data)) T(std::move(move.m_data));
     }
 
-    MoveConstructorBase & operator=(MoveConstructorBase const &)
-            noexcept(std::is_nothrow_copy_constructible<T>::value
-                     && std::is_nothrow_copy_assignable<T>::value) = default;
+    MoveConstructorBase & operator=(MoveConstructorBase const &) = default;
 
-    MoveConstructorBase & operator=(MoveConstructorBase &&)
-            noexcept(std::is_nothrow_move_constructible<T>::value
-                     && std::is_nothrow_move_assignable<T>::value) = default;
+    MoveConstructorBase & operator=(MoveConstructorBase &&) = default;
 
 };
 
@@ -226,7 +216,7 @@ struct CopyAssignmentBase: MoveConstructorBase<T>
 template <typename T>
 struct CopyAssignmentBase<T, false>: MoveConstructorBase<T> {
 
-    constexpr CopyAssignmentBase() noexcept = default;
+    constexpr CopyAssignmentBase() = default;
 
     constexpr explicit CopyAssignmentBase(bool const v) noexcept
         : MoveConstructorBase<T>(v)
@@ -238,11 +228,9 @@ struct CopyAssignmentBase<T, false>: MoveConstructorBase<T> {
         : MoveConstructorBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
 
-    CopyAssignmentBase(CopyAssignmentBase const & copy)
-            noexcept(std::is_nothrow_copy_constructible<T>::value) = default;
+    CopyAssignmentBase(CopyAssignmentBase const & copy) = default;
 
-    CopyAssignmentBase(CopyAssignmentBase && move)
-            noexcept(std::is_nothrow_move_constructible<T>::value) = default;
+    CopyAssignmentBase(CopyAssignmentBase && move) = default;
 
     CopyAssignmentBase & operator=(CopyAssignmentBase const & copy)
             noexcept(std::is_nothrow_copy_constructible<T>::value
@@ -261,9 +249,7 @@ struct CopyAssignmentBase<T, false>: MoveConstructorBase<T> {
         return *this;
     }
 
-    CopyAssignmentBase & operator=(CopyAssignmentBase &&)
-            noexcept(std::is_nothrow_move_constructible<T>::value
-                     && std::is_nothrow_move_assignable<T>::value) = default;
+    CopyAssignmentBase & operator=(CopyAssignmentBase &&) = default;
 
 };
 
@@ -274,7 +260,7 @@ struct MoveAssignmentBase: CopyAssignmentBase<T>
 template <typename T>
 struct MoveAssignmentBase<T, false>: CopyAssignmentBase<T> {
 
-    constexpr MoveAssignmentBase() noexcept = default;
+    constexpr MoveAssignmentBase() = default;
 
     constexpr explicit MoveAssignmentBase(bool const v) noexcept
         : CopyAssignmentBase<T>(v)
@@ -286,15 +272,11 @@ struct MoveAssignmentBase<T, false>: CopyAssignmentBase<T> {
         : CopyAssignmentBase<T>(std::move(ip), std::forward<Args>(args)...)
     {}
 
-    MoveAssignmentBase(MoveAssignmentBase const & copy)
-            noexcept(std::is_nothrow_copy_constructible<T>::value) = default;
+    MoveAssignmentBase(MoveAssignmentBase const & copy) = default;
 
-    MoveAssignmentBase(MoveAssignmentBase && move)
-            noexcept(std::is_nothrow_move_constructible<T>::value) = default;
+    MoveAssignmentBase(MoveAssignmentBase && move) = default;
 
-    MoveAssignmentBase & operator=(MoveAssignmentBase const & copy)
-            noexcept(std::is_nothrow_copy_constructible<T>::value
-                     && std::is_nothrow_copy_assignable<T>::value) = default;
+    MoveAssignmentBase & operator=(MoveAssignmentBase const & copy) = default;
 
     MoveAssignmentBase & operator=(MoveAssignmentBase && move)
             noexcept(std::is_nothrow_move_constructible<T>::value
