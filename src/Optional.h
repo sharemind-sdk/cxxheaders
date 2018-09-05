@@ -66,10 +66,13 @@ struct DestructorBase<T, true> {
 
 /* Methods: */
 
-    constexpr DestructorBase() noexcept : m_empty(), m_valid(false) {}
+    constexpr DestructorBase() noexcept
+        : m_noValuePlaceholder()
+        , m_valid(false)
+    {}
 
     constexpr explicit DestructorBase(bool const valid) noexcept
-        : m_empty()
+        : m_noValuePlaceholder()
         , m_valid(valid)
     {}
 
@@ -85,7 +88,7 @@ struct DestructorBase<T, true> {
 /* Fields: */
 
     union {
-        char m_empty;
+        char m_noValuePlaceholder;
         T m_data;
     };
     bool m_valid;
@@ -97,10 +100,13 @@ struct DestructorBase<T, false> {
 
 /* Methods: */
 
-    constexpr DestructorBase() noexcept : m_empty(), m_valid(false) {}
+    constexpr DestructorBase() noexcept
+        : m_noValuePlaceholder()
+        , m_valid(false)
+    {}
 
     constexpr explicit DestructorBase(bool const valid) noexcept
-        : m_empty()
+        : m_noValuePlaceholder()
         , m_valid(valid)
     {}
 
@@ -126,7 +132,7 @@ struct DestructorBase<T, false> {
 /* Fields: */
 
     union {
-        char m_empty;
+        char m_noValuePlaceholder;
         T m_data;
     };
     bool m_valid;
