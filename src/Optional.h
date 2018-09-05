@@ -404,6 +404,8 @@ public: /* Methods: */
     constexpr explicit operator bool() const noexcept
     { return this->m_containsValue; }
 
+    constexpr bool hasValue() const noexcept { return this->m_containsValue; }
+
     constexpr T const & value() const & noexcept
     { return (assert(this->m_containsValue), this->m_data); }
 
