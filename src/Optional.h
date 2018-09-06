@@ -125,6 +125,8 @@ struct DestructorBase<T, false> {
     void reset() noexcept {
         if (m_containsValue) {
             m_data.~T();
+            static_assert(std::is_nothrow_destructible<T>::value,
+                          "T is required to be model Destructible!");
             m_containsValue = false;
         }
     }
@@ -139,24 +141,36 @@ struct DestructorBase<T, false> {
 
 };
 
-template <typename T, bool = std::is_trivially_copy_constructible<T>::value>
+#define SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(name,base) \
+    constexpr name() noexcept = default; \
+    constexpr explicit name(bool const v) noexcept : base<T>(v) {} \
+    template <typename ... Args> \
+    constexpr explicit name(InPlace ip, Args && ... args) \
+            noexcept(std::is_nothrow_constructible<T, Args &&...>::value) \
+        : base<T>(std::move(ip), std::forward<Args>(args)...) \
+    {}
+
+template <typename T,
+          int = std::is_copy_constructible<T>::value
+                ? (std::is_trivially_copy_constructible<T>::value ? 1 : 2)
+                : 0>
 struct CopyConstructorBase: DestructorBase<T>
 { using DestructorBase<T>::DestructorBase; };
 
 template <typename T>
-struct CopyConstructorBase<T, false>: DestructorBase<T> {
+struct CopyConstructorBase<T, 0>: DestructorBase<T> {
+    SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(CopyConstructorBase, DestructorBase)
+    CopyConstructorBase(CopyConstructorBase const &)             = delete;
+    CopyConstructorBase(CopyConstructorBase &&)                  = default;
+    CopyConstructorBase & operator=(CopyConstructorBase const &) = default;
+    CopyConstructorBase & operator=(CopyConstructorBase &&)      = default;
 
-    constexpr CopyConstructorBase() = default;
+};
 
-    constexpr explicit CopyConstructorBase(bool const v) noexcept
-        : DestructorBase<T>(v)
-    {}
+template <typename T>
+struct CopyConstructorBase<T, 2>: DestructorBase<T> {
 
-    template <typename ... Args>
-    constexpr explicit CopyConstructorBase(InPlace ip, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
-        : DestructorBase<T>(std::move(ip), std::forward<Args>(args)...)
-    {}
+    SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(CopyConstructorBase, DestructorBase)
 
     CopyConstructorBase(CopyConstructorBase const & copy)
             noexcept(std::is_nothrow_copy_constructible<T>::value)
@@ -181,17 +195,8 @@ struct MoveConstructorBase: CopyConstructorBase<T>
 template <typename T>
 struct MoveConstructorBase<T, false>: CopyConstructorBase<T> {
 
-    constexpr MoveConstructorBase() = default;
-
-    constexpr explicit MoveConstructorBase(bool const v) noexcept
-        : CopyConstructorBase<T>(v)
-    {}
-
-    template <typename ... Args>
-    constexpr explicit MoveConstructorBase(InPlace ip, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
-        : CopyConstructorBase<T>(std::move(ip), std::forward<Args>(args)...)
-    {}
+    SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(MoveConstructorBase,
+                                           CopyConstructorBase)
 
     MoveConstructorBase(MoveConstructorBase const & copy) = default;
 
@@ -209,24 +214,24 @@ struct MoveConstructorBase<T, false>: CopyConstructorBase<T> {
 
 };
 
-template <typename T, bool = std::is_trivially_copy_assignable<T>::value>
-struct CopyAssignmentBase: MoveConstructorBase<T>
-{ using MoveConstructorBase<T>::MoveConstructorBase; };
+template <typename T,
+          bool = std::is_copy_constructible<T>::value
+                 && std::is_copy_assignable<T>::value>
+struct CopyAssignmentBase: MoveConstructorBase<T> {
+    SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(CopyAssignmentBase,
+                                           MoveConstructorBase)
+    CopyAssignmentBase(CopyAssignmentBase const &)             = default;
+    CopyAssignmentBase(CopyAssignmentBase &&)                  = default;
+    CopyAssignmentBase & operator=(CopyAssignmentBase const &) = delete;
+    CopyAssignmentBase & operator=(CopyAssignmentBase &&)      = default;
+
+};
 
 template <typename T>
-struct CopyAssignmentBase<T, false>: MoveConstructorBase<T> {
+struct CopyAssignmentBase<T, true>: MoveConstructorBase<T> {
 
-    constexpr CopyAssignmentBase() = default;
-
-    constexpr explicit CopyAssignmentBase(bool const v) noexcept
-        : MoveConstructorBase<T>(v)
-    {}
-
-    template <typename ... Args>
-    constexpr explicit CopyAssignmentBase(InPlace ip, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
-        : MoveConstructorBase<T>(std::move(ip), std::forward<Args>(args)...)
-    {}
+    SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(CopyAssignmentBase,
+                                           MoveConstructorBase)
 
     CopyAssignmentBase(CopyAssignmentBase const & copy) = default;
 
@@ -253,24 +258,23 @@ struct CopyAssignmentBase<T, false>: MoveConstructorBase<T> {
 
 };
 
-template <typename T, bool = std::is_trivially_move_assignable<T>::value>
-struct MoveAssignmentBase: CopyAssignmentBase<T>
-{ using CopyAssignmentBase<T>::CopyAssignmentBase; };
+template <typename T,
+          bool = std::is_move_constructible<T>::value
+                 && std::is_move_assignable<T>::value>
+struct MoveAssignmentBase: CopyAssignmentBase<T> {
+    SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(MoveAssignmentBase,
+                                           CopyAssignmentBase)
+    MoveAssignmentBase(MoveAssignmentBase const &)             = default;
+    MoveAssignmentBase(MoveAssignmentBase &&)                  = default;
+    MoveAssignmentBase & operator=(MoveAssignmentBase const &) = default;
+    MoveAssignmentBase & operator=(MoveAssignmentBase &&)      = delete;
+};
 
 template <typename T>
-struct MoveAssignmentBase<T, false>: CopyAssignmentBase<T> {
+struct MoveAssignmentBase<T, true>: CopyAssignmentBase<T> {
 
-    constexpr MoveAssignmentBase() = default;
-
-    constexpr explicit MoveAssignmentBase(bool const v) noexcept
-        : CopyAssignmentBase<T>(v)
-    {}
-
-    template <typename ... Args>
-    constexpr explicit MoveAssignmentBase(InPlace ip, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
-        : CopyAssignmentBase<T>(std::move(ip), std::forward<Args>(args)...)
-    {}
+    SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(MoveAssignmentBase,
+                                           CopyAssignmentBase)
 
     MoveAssignmentBase(MoveAssignmentBase const & copy) = default;
 
@@ -324,7 +328,8 @@ private: /* Types: */
 
 public: /* Methods: */
 
-    constexpr Impl() noexcept = default;
+    SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(Impl, MoveAssignmentBase)
+    #undef SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH
 
     constexpr Impl(NullOption) noexcept : Impl() {}
 
@@ -333,12 +338,6 @@ public: /* Methods: */
 
     constexpr Impl(Impl &&)
             noexcept(std::is_nothrow_move_constructible<T>::value) = default;
-
-    template <typename ... Args>
-    constexpr explicit Impl(InPlace ip, Args && ... args)
-            noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
-        : MoveAssignmentBase<T>(std::move(ip), std::forward<Args>(args)...)
-    {}
 
     template <typename U = T,
               typename std::enable_if<

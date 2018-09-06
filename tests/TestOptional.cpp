@@ -19,6 +19,8 @@
 
 #include "../src/Optional.h"
 
+#include <boost/preprocessor/seq/elem.hpp>
+#include <boost/preprocessor/seq/for_each_product.hpp>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -181,6 +183,184 @@ TEST_COMPARE(Ge, >=, true,  false, true)
 
 } // namespace TestCompare {
 
+namespace TestCopyMoveTyping {
+
+#define TS (Tr)(Ne)(Re)(De)
+#define P_Tr std::is_trivially
+#define P_Ne std::is_nothrow
+#define P_Re !std::is_nothrow
+#define P_De !std::is
+#define E(name,...) \
+    static_assert(__VA_ARGS__<name>::value, #__VA_ARGS__ "<" #name ">")
+#define E_CC2(name,pred) E(name,pred ## _copy_constructible)
+#define E_MC2(name,pred) E(name,pred ## _move_constructible)
+#define E_CA2(name,pred) E(name,pred ## _copy_assignable)
+#define E_MA2(name,pred) E(name,pred ## _move_assignable)
+#define E_CC(name,pred) E_CC2(name,pred)
+#define E_MC(name,pred) E_MC2(name,pred)
+#define E_CA(name,pred) E_CA2(name,pred)
+#define E_MA(name,pred) E_MA2(name,pred)
+
+// Construct test classes:
+#define M_Tr(...) = default;
+#define M_Ne(...) noexcept __VA_ARGS__
+#define M_Re(...) noexcept(false) __VA_ARGS__
+#define M_De(...) = delete;
+#define DEFINE_MC3(name, CC, MC, CA, MA) \
+    struct name { \
+        constexpr explicit name(int v) noexcept : m_v(v) {} \
+        constexpr name(name const & copy) M_ ## CC(: m_v(copy.m_v + 42) {}) \
+        constexpr name(name && move) M_ ## MC(: m_v(move.m_v * move.m_v) {}) \
+        name & operator=(name const & copy) \
+                M_ ## CA({ m_v = copy.m_v * 13; return *this; }) \
+        name & operator=(name && move) \
+                M_ ## MA({ m_v = move.m_v * 17; return *this; }) \
+        int m_v; \
+    }; \
+    E_CC(name, P_ ## CC); \
+    E_MC(name, P_ ## MC); \
+    E_CA(name, P_ ## CA); \
+    E_MA(name, P_ ## MA);
+#define DEFINE_MC2(CC, MC, CA, MA) DEFINE_MC3(CC##MC##CA##MA, CC, MC, CA, MA)
+#define DEFINE_MC(CC, MC, CA, MA) DEFINE_MC2(CC, MC, CA, MA)
+#define D(r, product) \
+    DEFINE_MC(BOOST_PP_SEQ_ELEM(0, product), \
+              BOOST_PP_SEQ_ELEM(1, product), \
+              BOOST_PP_SEQ_ELEM(2, product), \
+              BOOST_PP_SEQ_ELEM(3, product))
+BOOST_PP_SEQ_FOR_EACH_PRODUCT(D, (TS)(TS)(TS)(TS))
+#undef D
+#undef DEFINE_MC
+#undef DEFINE_MC2
+#undef M_De
+#undef M_Re
+#undef M_Ne
+#undef M_Tr
+
+// Test copy constructor:
+#define TEST_CC3(CC, MC, CA, MA) \
+    E_CC(SM::Optional<CC##MC##CA##MA>, \
+         std::is_copy_constructible<CC##MC##CA##MA>::value \
+         == std::is); \
+    E_CC(SM::Optional<CC##MC##CA##MA>, \
+         std::is_nothrow_copy_constructible<CC##MC##CA##MA>::value \
+         == std::is_nothrow); \
+    E_CC(SM::Optional<CC##MC##CA##MA>, \
+         std::is_trivially_copy_constructible<CC##MC##CA##MA>::value \
+         == std::is_trivially);
+#define TEST_CC2(CC, MC, CA, MA) TEST_CC3(CC, MC, CA, MA)
+#define TEST_CC(r, product) \
+    TEST_CC2(BOOST_PP_SEQ_ELEM(0, product), \
+             BOOST_PP_SEQ_ELEM(1, product), \
+             BOOST_PP_SEQ_ELEM(2, product), \
+             BOOST_PP_SEQ_ELEM(3, product))
+BOOST_PP_SEQ_FOR_EACH_PRODUCT(TEST_CC, (TS)(TS)(TS)(TS))
+#undef TEST_CC
+#undef TEST_CC2
+#undef TEST_CC3
+/// \todo Test constexpr of copy constructor
+
+// Test move constructor:
+template <typename T> struct RRefWrapper { operator T &&() noexcept; };
+#define TEST_MC3(CC, MC, CA, MA) \
+    static_assert( \
+            std::is_move_constructible<CC##MC##CA##MA>::value \
+            == std::is_constructible< \
+                        SM::Optional<CC##MC##CA##MA>, \
+                        RRefWrapper<CC##MC##CA##MA> &>::value, ""); \
+    static_assert( \
+            !std::is_move_constructible<CC##MC##CA##MA>::value \
+            || (std::is_nothrow_move_constructible<CC##MC##CA##MA>::value \
+                == std::is_nothrow_move_constructible< \
+                            SM::Optional<CC##MC##CA##MA> >::value), ""); \
+    static_assert( \
+            !std::is_move_constructible<CC##MC##CA##MA>::value \
+            || (std::is_trivially_move_constructible<CC##MC##CA##MA>::value \
+                == std::is_trivially_move_constructible< \
+                            SM::Optional<CC##MC##CA##MA> >::value), "");
+#define TEST_MC2(CC, MC, CA, MA) TEST_MC3(CC, MC, CA, MA)
+#define TEST_MC(r, product) \
+    TEST_MC2(BOOST_PP_SEQ_ELEM(0, product), \
+             BOOST_PP_SEQ_ELEM(1, product), \
+             BOOST_PP_SEQ_ELEM(2, product), \
+             BOOST_PP_SEQ_ELEM(3, product))
+BOOST_PP_SEQ_FOR_EACH_PRODUCT(TEST_MC, (TS)(TS)(TS)(TS))
+#undef TEST_MC
+#undef TEST_MC2
+#undef TEST_MC3
+
+// Test copy assignment:
+#define TEST_CA3(CC, MC, CA, MA) \
+    E_CA(SM::Optional<CC##MC##CA##MA>, \
+         (std::is_copy_constructible<CC##MC##CA##MA>::value \
+          && std::is_copy_assignable<CC##MC##CA##MA>::value) \
+         == std::is); \
+    E_CA(SM::Optional<CC##MC##CA##MA>, \
+         (std::is_nothrow_copy_constructible<CC##MC##CA##MA>::value \
+          && std::is_nothrow_copy_assignable<CC##MC##CA##MA>::value \
+          && std::is_nothrow_destructible<CC##MC##CA##MA>::value) \
+         == std::is_nothrow); \
+    E_CA(SM::Optional<CC##MC##CA##MA>, !std::is_trivially); // can do without?
+#define TEST_CA2(CC, MC, CA, MA) TEST_CA3(CC, MC, CA, MA)
+#define TEST_CA(r, product) \
+    TEST_CA2(BOOST_PP_SEQ_ELEM(0, product), \
+             BOOST_PP_SEQ_ELEM(1, product), \
+             BOOST_PP_SEQ_ELEM(2, product), \
+             BOOST_PP_SEQ_ELEM(3, product))
+BOOST_PP_SEQ_FOR_EACH_PRODUCT(TEST_CA, (TS)(TS)(TS)(TS))
+#undef TEST_CA
+#undef TEST_CA2
+#undef TEST_CA3
+
+// Test move assignment:
+template <typename T>
+struct HasMoveAssignOperator {
+    template <typename U, U & (U::*)(U &&)> struct Sfinae {};
+    template <typename U> static constexpr bool test(Sfinae<U, &U::operator=> *)
+    { return true; }
+    template <typename U> static constexpr bool test(...) { return false; }
+    static constexpr bool value = test<T>(nullptr);
+};
+#define TEST_MA3(CC, MC, CA, MA) \
+    static_assert( \
+            (std::is_move_constructible<CC##MC##CA##MA>::value \
+             && std::is_move_assignable<CC##MC##CA##MA>::value) \
+            == HasMoveAssignOperator<SM::Optional<CC##MC##CA##MA> >::value, \
+            #CC #MC #CA #MA); \
+    E_MA(SM::Optional<CC##MC##CA##MA>, \
+         !std::is_nothrow_move_constructible<CC##MC##CA##MA>::value \
+         || !std::is_nothrow_move_assignable<CC##MC##CA##MA>::value \
+         || std::is_nothrow); \
+    static_assert(!std::is_trivially_move_assignable< \
+                            SM::Optional<CC##MC##CA##MA> >::value, "");
+#define TEST_MA2(CC, MC, CA, MA) TEST_MA3(CC, MC, CA, MA)
+#define TEST_MA(r, product) \
+    TEST_MA2(BOOST_PP_SEQ_ELEM(0, product), \
+             BOOST_PP_SEQ_ELEM(1, product), \
+             BOOST_PP_SEQ_ELEM(2, product), \
+             BOOST_PP_SEQ_ELEM(3, product))
+BOOST_PP_SEQ_FOR_EACH_PRODUCT(TEST_MA, (TS)(TS)(TS)(TS))
+#undef TEST_MA
+#undef TEST_MA2
+#undef TEST_MA3
+
+#undef E_MA
+#undef E_CA
+#undef E_MC
+#undef E_CC
+#undef E_MA2
+#undef E_CA2
+#undef E_MC2
+#undef E_CC2
+#undef E
+#undef P_De
+#undef P_Re
+#undef P_Ne
+#undef P_Tr
+#undef TS
+
+} // namespace TestCopyMoveTyping {
+
 struct TestStats {
     TestStats() noexcept { ++m_total; }
 
@@ -321,6 +501,7 @@ bool operator==(TestType<T> const & lhs, T const & rhs) noexcept
 template <typename T>
 bool operator==(T const & lhs, TestType<T> const & rhs) noexcept
 { return lhs == rhs.m_value; };
+
 
 int main() {
     using T = TestType<char>;
