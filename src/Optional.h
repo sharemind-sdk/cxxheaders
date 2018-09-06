@@ -301,6 +301,8 @@ struct MoveAssignmentBase<T, true>: CopyAssignmentBase<T> {
 
 };
 
+} /* namespace Optional { */
+} /* namespace Detail { */
 
 /* Constexpr implied const in C++11, but not in C++14. */
 #if __cplusplus >= 201402L
@@ -310,7 +312,7 @@ struct MoveAssignmentBase<T, true>: CopyAssignmentBase<T> {
 #endif
 
 template <typename T>
-class Impl : private MoveAssignmentBase<T> {
+class Optional: private Detail::Optional::MoveAssignmentBase<T> {
 
     static_assert(std::is_object<T>::value, "");
 
@@ -321,46 +323,49 @@ private: /* Types: */
             std::integral_constant<
                 bool,
                 !std::is_same<RemoveCvrefT<U>, InPlace>::value
-                && !std::is_same<RemoveCvrefT<U>, Impl>::value
+                && !std::is_same<RemoveCvrefT<U>, Optional>::value
                 && std::is_constructible<T, U &&>::value
                 && (std::is_convertible<U &&, T>::value != isExplicit)
             >;
 
 public: /* Methods: */
 
-    SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(Impl, MoveAssignmentBase)
+    SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(Optional,
+                                           Detail::Optional::MoveAssignmentBase)
     #undef SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH
 
-    constexpr Impl(NullOption) noexcept : Impl() {}
+    constexpr Optional(NullOption) noexcept : Optional() {}
 
-    constexpr Impl(Impl const &)
+    constexpr Optional(Optional const &)
             noexcept(std::is_nothrow_copy_constructible<T>::value) = default;
 
-    constexpr Impl(Impl &&)
+    constexpr Optional(Optional &&)
             noexcept(std::is_nothrow_move_constructible<T>::value) = default;
 
     template <typename U = T,
               typename std::enable_if<
                     IsPassThroughConstructorArg<U, false>::value,
                     int>::type = 0>
-    constexpr Impl(U && v) : Impl(inPlace, std::forward<U>(v)) {}
+    constexpr Optional(U && v) : Optional(inPlace, std::forward<U>(v)) {}
 
     template <typename U = T,
               typename std::enable_if<
                     IsPassThroughConstructorArg<U, true>::value,
                     int>::type = 0>
-    explicit constexpr Impl(U && v) : Impl(inPlace, std::forward<U>(v)) {}
+    explicit constexpr Optional(U && v)
+        : Optional(inPlace, std::forward<U>(v))
+    {}
 
-    Impl & operator=(NullOption) noexcept {
+    Optional & operator=(NullOption) noexcept {
         this->reset();
         return *this;
     }
 
-    Impl & operator=(Impl const &)
+    Optional & operator=(Optional const &)
             noexcept(std::is_nothrow_copy_constructible<T>::value
                      && std::is_nothrow_copy_assignable<T>::value) = default;
 
-    Impl & operator=(Impl &&)
+    Optional & operator=(Optional &&)
             noexcept(std::is_nothrow_move_constructible<T>::value
                      && std::is_nothrow_move_assignable<T>::value) = default;
 
@@ -446,7 +451,7 @@ public: /* Methods: */
 #undef SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR
 
 template <typename T, typename U>
-constexpr auto operator==(Impl<T> const & lhs, Impl<U> const & rhs)
+constexpr auto operator==(Optional<T> const & lhs, Optional<U> const & rhs)
         noexcept(noexcept(*lhs == *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, EqualityComparable(T, U))
 {
@@ -456,7 +461,7 @@ constexpr auto operator==(Impl<T> const & lhs, Impl<U> const & rhs)
 }
 
 template <typename T, typename U>
-constexpr auto operator!=(Impl<T> const & lhs, Impl<U> const & rhs)
+constexpr auto operator!=(Optional<T> const & lhs, Optional<U> const & rhs)
         noexcept(noexcept(*lhs == *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, InequalityComparable(T, U))
 {
@@ -466,35 +471,35 @@ constexpr auto operator!=(Impl<T> const & lhs, Impl<U> const & rhs)
 }
 
 template <typename T, typename U>
-constexpr auto operator<(Impl<T> const & lhs, Impl<U> const & rhs)
+constexpr auto operator<(Optional<T> const & lhs, Optional<U> const & rhs)
         noexcept(noexcept(*lhs < *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, LessThanComparable(T, U))
 { return !rhs ? false : (!lhs ? true : (*lhs < *rhs)); }
 
 template <typename T, typename U>
-constexpr auto operator<=(Impl<T> const & lhs, Impl<U> const & rhs)
+constexpr auto operator<=(Optional<T> const & lhs, Optional<U> const & rhs)
         noexcept(noexcept(*lhs <= *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, LessOrEqualComparable(T, U))
 { return !lhs ? true : (!rhs ? false : (*lhs <= *rhs)); }
 
 template <typename T, typename U>
-constexpr auto operator>(Impl<T> const & lhs, Impl<U> const & rhs)
+constexpr auto operator>(Optional<T> const & lhs, Optional<U> const & rhs)
         noexcept(noexcept(*lhs > *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, GreaterThanComparable(T, U))
 { return !lhs ? false : (!rhs ? true : (*lhs > *rhs)); }
 
 template <typename T, typename U>
-constexpr auto operator>=(Impl<T> const & lhs, Impl<U> const & rhs)
+constexpr auto operator>=(Optional<T> const & lhs, Optional<U> const & rhs)
         noexcept(noexcept(*lhs >= *rhs))
         -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, GreaterOrEqualComparable(T, U))
 { return !rhs ? true : (!lhs ? false : (*lhs >= *rhs)); }
 
 #define SHAREMIND_OPTIONAL_H_NULLCOMPARE(op,r1,r2) \
     template <typename T> \
-    constexpr bool operator op(Impl<T> const & x, NullOption) noexcept \
+    constexpr bool operator op(Optional<T> const & x, NullOption) noexcept \
     { return r1; } \
     template <typename T> \
-    constexpr bool operator op(NullOption, Impl<T> const & x) noexcept \
+    constexpr bool operator op(NullOption, Optional<T> const & x) noexcept \
     { return r2; }
 SHAREMIND_OPTIONAL_H_NULLCOMPARE(==, !x, !x)
 SHAREMIND_OPTIONAL_H_NULLCOMPARE(!=, bool(x), bool(x))
@@ -506,10 +511,10 @@ SHAREMIND_OPTIONAL_H_NULLCOMPARE(>=, (static_cast<void>(x), true), !x)
 
 #define SHAREMIND_OPTIONAL_H_VALUECOMPARE(op,r1,r2) \
     template <typename T, typename U> \
-    constexpr bool operator op(Impl<T> const & x, U const & v) noexcept \
+    constexpr bool operator op(Optional<T> const & x, U const & v) noexcept \
     { return bool(x) ? (*x op v) : r1; } \
     template <typename T, typename U> \
-    constexpr bool operator op(T const & v, Impl<U> const & x) noexcept \
+    constexpr bool operator op(T const & v, Optional<U> const & x) noexcept \
     { return bool(x) ? (v op *x) : r2; }
 SHAREMIND_OPTIONAL_H_VALUECOMPARE(==, false, false)
 SHAREMIND_OPTIONAL_H_VALUECOMPARE(!=, true,  true)
@@ -518,12 +523,6 @@ SHAREMIND_OPTIONAL_H_VALUECOMPARE(<=, true,  false)
 SHAREMIND_OPTIONAL_H_VALUECOMPARE(>,  false, true)
 SHAREMIND_OPTIONAL_H_VALUECOMPARE(>=, false, true)
 #undef SHAREMIND_OPTIONAL_H_VALUECOMPARE
-
-} /* namespace Optional { */
-} /* namespace Detail { */
-
-template <typename T>
-using Optional = Detail::Optional::Impl<T>;
 
 template <typename T>
 constexpr Optional<typename std::decay<T>::type> makeOptional(T && v)
