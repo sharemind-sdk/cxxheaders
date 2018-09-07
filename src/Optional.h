@@ -125,8 +125,6 @@ struct DestructorBase<T, false> {
     void reset() noexcept {
         if (m_containsValue) {
             m_data.~T();
-            static_assert(std::is_nothrow_destructible<T>::value,
-                          "T is required to be model Destructible!");
             m_containsValue = false;
         }
     }
@@ -314,6 +312,8 @@ struct MoveAssignmentBase<T, true>: CopyAssignmentBase<T> {
 template <typename T>
 class Optional: private Detail::Optional::MoveAssignmentBase<T> {
 
+    static_assert(std::is_nothrow_destructible<T>::value,
+                  "T is required to be model Destructible!");
     static_assert(std::is_object<T>::value, "");
 
 private: /* Types: */
