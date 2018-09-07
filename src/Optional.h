@@ -325,7 +325,7 @@ class Optional
         , private Detail::Optional::EnableMoveCtor<T>
 {
 
-    static_assert(std::is_nothrow_destructible<T>::value,
+    static_assert(std::is_destructible<T>::value,
                   "T is required to be model Destructible!");
     static_assert(std::is_object<T>::value, "");
 
