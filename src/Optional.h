@@ -419,7 +419,9 @@ public: /* Methods: */
 
     template <typename ... Args>
     SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T valueOrConstruct(Args && ... args) &&
-            noexcept
+            noexcept(std::is_nothrow_move_constructible<T>::value
+                     && std::is_nothrow_copy_constructible<T>::value // needed?
+                     && std::is_nothrow_constructible<T, Args && ...>::value)
     {
         return this->m_containsValue
                ? std::move(this->m_data)
@@ -427,7 +429,11 @@ public: /* Methods: */
     }
 
     template <typename ... Args>
-    constexpr T valueOrConstruct(Args && ... args) const & noexcept {
+    constexpr T valueOrConstruct(Args && ... args) const &
+            noexcept(std::is_nothrow_copy_constructible<T>::value
+                     && std::is_nothrow_move_constructible<T>::value // needed?
+                     && std::is_nothrow_constructible<T, Args && ...>::value)
+    {
         return this->m_containsValue
                ? T(SHAREMIND_CLANGPR22637_WORKAROUND(this->m_data))
                : T(std::forward<Args>(args)...);
