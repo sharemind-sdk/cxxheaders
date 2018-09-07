@@ -418,7 +418,7 @@ public: /* Methods: */
     { return (assert(this->m_containsValue), std::move(this->m_data)); }
 
     template <typename ... Args>
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T value(Args && ... args) &&
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T valueOrConstruct(Args && ... args) &&
             noexcept
     {
         return this->m_containsValue
@@ -427,7 +427,7 @@ public: /* Methods: */
     }
 
     template <typename ... Args>
-    constexpr T value(Args && ... args) const & noexcept {
+    constexpr T valueOrConstruct(Args && ... args) const & noexcept {
         return this->m_containsValue
                ? T(SHAREMIND_CLANGPR22637_WORKAROUND(this->m_data))
                : T(std::forward<Args>(args)...);

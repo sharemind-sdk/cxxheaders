@@ -536,9 +536,9 @@ int main() {
     DEBUG_MSG("Nothing\n");
     SHAREMIND_TESTASSERT(!OT());
     TestStats::assumeAndReset(0u);
-    { OT x; SHAREMIND_TESTASSERT(x.value(TMP_('x')) == 'x'); }
+    { OT x; SHAREMIND_TESTASSERT(x.valueOrConstruct(TMP_('x')) == 'x'); }
     TestStats::assumeAndReset(1u);
-    SHAREMIND_TESTASSERT(OT().value(TMP_('x')) == 'x');
+    SHAREMIND_TESTASSERT(OT().valueOrConstruct(TMP_('x')) == 'x');
     TestStats::assumeAndReset(1u);
 
     DEBUG_MSG("\nJust\n");
