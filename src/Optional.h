@@ -299,6 +299,16 @@ struct MoveAssignmentBase<T, true>: CopyAssignmentBase<T> {
 
 };
 
+template <typename T, bool enable = std::is_move_constructible<T>::value>
+struct EnableMoveCtor {};
+template <typename T> struct EnableMoveCtor<T, false> {
+    constexpr EnableMoveCtor() noexcept = default;
+    constexpr EnableMoveCtor(EnableMoveCtor const &) noexcept = default;
+    EnableMoveCtor(EnableMoveCtor &&) = delete;
+    EnableMoveCtor & operator=(EnableMoveCtor const &) = default;
+    EnableMoveCtor & operator=(EnableMoveCtor &&) = default;
+};
+
 } /* namespace Optional { */
 } /* namespace Detail { */
 
@@ -310,7 +320,10 @@ struct MoveAssignmentBase<T, true>: CopyAssignmentBase<T> {
 #endif
 
 template <typename T>
-class Optional: private Detail::Optional::MoveAssignmentBase<T> {
+class Optional
+        : private Detail::Optional::MoveAssignmentBase<T>
+        , private Detail::Optional::EnableMoveCtor<T>
+{
 
     static_assert(std::is_nothrow_destructible<T>::value,
                   "T is required to be model Destructible!");
