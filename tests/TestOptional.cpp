@@ -183,7 +183,7 @@ TEST_COMPARE(Ge, >=, true,  false, true)
 
 } // namespace TestCompare {
 
-namespace TestCopyMoveTyping {
+namespace TestCopyMoveDestructTyping {
 
 #define TS (Tr)(Ne)(Re)(De)
 #define DTS (Tr)(Ne)
@@ -304,6 +304,7 @@ BOOST_PP_SEQ_FOR_EACH_PRODUCT(TEST_MC, (TS)(TS)(TS)(TS)(DTS))
 #undef TEST_MC
 #undef TEST_MC2
 #undef TEST_MC3
+/// \todo Test constexpr of move constructor
 
 // Test copy assignment:
 #define TEST_CA3(CC, MC, CA, MA, DS) \
@@ -377,7 +378,7 @@ BOOST_PP_SEQ_FOR_EACH_PRODUCT(TEST_MA, (TS)(TS)(TS)(TS)(DTS))
 #undef P_Tr
 #undef TS
 
-} // namespace TestCopyMoveTyping {
+} // namespace TestCopyMoveDestructTyping {
 
 struct TestStats {
     TestStats() noexcept { ++m_total; }
