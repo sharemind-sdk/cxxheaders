@@ -38,7 +38,47 @@ template <typename ...> struct ValidTypes;
 
 namespace Detail {
 
+/* Work around unknown bug in GCC before version 8 which causes this strange
+   error:
+
+    19:27: error: no matching function for call to 'f(Huh<int>)'
+     static_assert(f(Huh<int>()), "");
+                               ^
+    17:16: note: candidate: template<class T> constexpr bool f(const Huh<T>&)
+     constexpr bool f(Huh<T> const &) noexcept { return true; }
+                    ^
+    17:16: note:   template argument deduction/substitution failed:
+    19:27: note:   template argument '(type)0u' does not match 'EnumValue'
+     static_assert(f(Huh<int>()), "");
+                               ^
+
+   with code like the following:
+
+    enum Enum { EnumValue };
+
+    template <typename>
+    struct Pred { constexpr static bool const value = true; };
+
+    template <typename T,
+              typename ::std::enable_if<Pred<T>::value, Enum>::type = EnumValue>
+    class Huh {};
+
+    template <typename T>
+    constexpr bool f(Huh<T> const &) noexcept { return true; }
+
+    static_assert(f(Huh<int>()), "");
+
+   The workaround is to use int instead of an enum.
+*/
+#if !defined(SHAREMIND_GCC_VERSION) || (SHAREMIND_GCC_VERSION >= 80000)
 enum class RequiresConceptResult { Succeed };
+#define SHAREMIND_CONCEPTS_H_RESULT_TYPE \
+    ::sharemind::Detail::RequiresConceptResult
+#define SHAREMIND_CONCEPTS_H_SUCCEED SHAREMIND_CONCEPTS_H_RESULT_TYPE::Succeed
+#else
+#define SHAREMIND_CONCEPTS_H_RESULT_TYPE int
+#define SHAREMIND_CONCEPTS_H_SUCCEED 0
+#endif
 
 template <typename Concept, typename = void>
 struct ModelsConcept: std::false_type {};
@@ -59,10 +99,9 @@ using Models = TemplateAll<Detail::ModelsConcept<Cs>::value...>;
     typename ::std::enable_if<(__VA_ARGS__), r>::type
 
 #define SHAREMIND_REQUIRE(...) \
-    SHAREMIND_REQUIRE_R(::sharemind::Detail::RequiresConceptResult,__VA_ARGS__)
+    SHAREMIND_REQUIRE_R(SHAREMIND_CONCEPTS_H_RESULT_TYPE,__VA_ARGS__)
 
-#define SHAREMIND_REQUIRE_DEFAULTVALUE \
-    ::sharemind::Detail::RequiresConceptResult::Succeed
+#define SHAREMIND_REQUIRE_DEFAULTVALUE SHAREMIND_CONCEPTS_H_SUCCEED
 
 #define SHAREMIND_REQUIRE_CONCEPTS(...) \
     SHAREMIND_REQUIRE(::sharemind::Models<__VA_ARGS__>::value)
