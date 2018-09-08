@@ -319,14 +319,12 @@ template <typename T> struct EnableMoveCtor<T, false> {
 #define SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR
 #endif
 
-template <typename T>
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Destructible(T))>
 class Optional
         : private Detail::Optional::MoveAssignmentBase<T>
         , private Detail::Optional::EnableMoveCtor<T>
 {
 
-    static_assert(std::is_destructible<T>::value,
-                  "T is required to be model Destructible!");
     static_assert(std::is_object<T>::value, "");
 
 private: /* Types: */
