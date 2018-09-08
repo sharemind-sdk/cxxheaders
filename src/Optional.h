@@ -415,6 +415,7 @@ public: /* Methods: */
     constexpr T const && value() const && noexcept
     { return (assert(this->m_containsValue), std::move(this->m_data)); }
 
+    /// \todo Adjust noexcept wrt guaranteed copy elision:
     template <typename ... Args>
     SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T valueOrConstruct(Args && ... args) &&
             noexcept(std::is_nothrow_move_constructible<T>::value
@@ -426,6 +427,7 @@ public: /* Methods: */
                : T(std::forward<Args>(args)...);
     }
 
+    /// \todo Adjust noexcept wrt guaranteed copy elision:
     template <typename ... Args>
     constexpr T valueOrConstruct(Args && ... args) const &
             noexcept(std::is_nothrow_copy_constructible<T>::value
