@@ -693,6 +693,11 @@ SHAREMIND_OPTIONAL_H_VALUECOMPARE(>=, false, true)
 #undef SHAREMIND_OPTIONAL_H_VALUECOMPARE
 
 template <typename T>
+std::enable_if<std::is_move_constructible<T>::value && IsSwappable<T>::value,
+               void>
+swap(Optional<T> & a, Optional<T> & b) { return a.swap(b); }
+
+template <typename T>
 constexpr Optional<typename std::decay<T>::type> makeOptional(T && v)
 { return Optional<typename std::decay<T>::type>(std::forward<T>(v)); }
 
