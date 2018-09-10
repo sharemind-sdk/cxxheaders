@@ -339,6 +339,20 @@ private: /* Types: */
                 && (std::is_convertible<U &&, T>::value != isExplicit)
             >;
 
+    template <typename U, typename PlainU = RemoveCvrefT<U> >
+    using CanGetValueFromOptional =
+            std::integral_constant<
+                bool,
+                   std::is_constructible<T, Optional<PlainU> &>::value
+                || std::is_constructible<T, Optional<PlainU> &&>::value
+                || std::is_constructible<T, Optional<PlainU> const &>::value
+                || std::is_constructible<T, Optional<PlainU> const &&>::value
+                || std::is_convertible<Optional<PlainU> &, T>::value
+                || std::is_convertible<Optional<PlainU> &&, T>::value
+                || std::is_convertible<Optional<PlainU> const &, T>::value
+                || std::is_convertible<Optional<PlainU> const &&, T>::value
+            >;
+
 public: /* Methods: */
 
     SHAREMIND_OPTIONAL_H_PROXY_PASSTHROUGH(Optional,
@@ -365,6 +379,46 @@ public: /* Methods: */
                     int>::type = 0>
     explicit constexpr Optional(U && v)
         : Optional(inPlace, std::forward<U>(v))
+    {}
+
+    template <
+            typename U = T,
+            typename std::enable_if<
+                std::is_constructible<T, U const &>::value
+                && !CanGetValueFromOptional<U>::value
+                && std::is_convertible<U const &, T>::value,
+                int>::type = 0>
+    constexpr Optional(Optional<U> const & v) : Optional(inPlace, *v) {}
+
+    template <
+            typename U = T,
+            typename std::enable_if<
+                std::is_constructible<T, U const &>::value
+                && !CanGetValueFromOptional<U>::value
+                && !std::is_convertible<U const &, T>::value,
+                int>::type = 0>
+    explicit constexpr Optional(Optional<U> const & v)
+        : Optional(inPlace, *v)
+    {}
+
+    template <
+            typename U = T,
+            typename std::enable_if<
+                std::is_constructible<T, U &&>::value
+                && !CanGetValueFromOptional<U>::value
+                && std::is_convertible<U, T>::value,
+                int>::type = 0>
+    constexpr Optional(Optional<U> && v) : Optional(inPlace, std::move(*v)) {}
+
+    template <
+            typename U = T,
+            typename std::enable_if<
+                std::is_constructible<T, U &&>::value
+                && !CanGetValueFromOptional<U>::value
+                && !std::is_convertible<U, T>::value,
+                int>::type = 0>
+    explicit constexpr Optional(Optional<U> && v)
+        : Optional(inPlace, std::move(*v))
     {}
 
     Optional & operator=(NullOption) noexcept {
