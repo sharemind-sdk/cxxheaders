@@ -416,6 +416,35 @@ public: /* Methods: */
     { return (assert(this->m_containsValue), std::move(this->m_data)); }
 
     /// \todo Adjust noexcept wrt guaranteed copy elision:
+    template <typename DefaultValue>
+    constexpr T valueOr(DefaultValue && defaultValue) const &
+            noexcept(
+                std::is_nothrow_copy_constructible<T>::value
+                && std::is_nothrow_move_constructible<T>::value
+                && noexcept(static_cast<T>(std::forward<DefaultValue>(
+                                               defaultValue))))
+    {
+        return this->m_containsValue
+               ? T(SHAREMIND_CLANGPR22637_WORKAROUND(this->m_data))
+               : static_cast<T>(std::forward<DefaultValue>(defaultValue));
+    }
+
+    /// \todo Adjust noexcept wrt guaranteed copy elision:
+    template <typename DefaultValue>
+    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T valueOr(
+            DefaultValue && defaultValue) &&
+            noexcept(
+                std::is_nothrow_copy_constructible<T>::value
+                && std::is_nothrow_move_constructible<T>::value
+                && noexcept(static_cast<T>(std::forward<DefaultValue>(
+                                               defaultValue))))
+    {
+        return this->m_containsValue
+               ? std::move(this->m_data)
+               : static_cast<T>(std::forward<DefaultValue>(defaultValue));
+    }
+
+    /// \todo Adjust noexcept wrt guaranteed copy elision:
     template <typename ... Args>
     SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T valueOrConstruct(Args && ... args) &&
             noexcept(std::is_nothrow_move_constructible<T>::value
