@@ -27,6 +27,7 @@
 #include <utility>
 #include "compiler-support/ClangPR22637.h"
 #include "Concepts.h"
+#include "IsSwappable.h"
 #include "RemoveCvref.h"
 
 
@@ -588,6 +589,30 @@ public: /* Methods: */
         new (std::addressof(this->m_data)) T(il, std::forward<Args>(args)...);
         this->m_containsValue = true;
         return this->m_data;
+    }
+
+    void swap(Optional & rhs)
+        noexcept(std::is_nothrow_move_constructible<T>::value
+                 && IsNothrowSwappable<T>::value)
+    {
+        static auto const doMove =
+                [](Optional & from, Optional & to)
+                    noexcept(std::is_nothrow_move_constructible<T>::value)
+                {
+                    new (std::addressof(to.m_data)) T(std::move(from.m_data));
+                    to.m_containsValue = true;
+                    from.m_data.~T();
+                    from.m_containsValue = false;
+                };
+        if (rhs.m_containsValue) {
+            if (this->m_containsValue) {
+                std::swap(this->m_data, rhs.m_data);
+            } else {
+                doMove(rhs, *this);
+            }
+        } else if (this->m_containsValue) {
+            doMove(*this, rhs);
+        }
     }
 };
 
