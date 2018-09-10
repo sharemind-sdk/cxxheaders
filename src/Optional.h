@@ -235,22 +235,23 @@ struct CopyAssignmentBase<T, true>: MoveConstructorBase<T> {
 
     CopyAssignmentBase(CopyAssignmentBase && move) = default;
 
+#define SHAREMIND_OPTIONAL_H_COPY_ASSIGN(fromOptional) \
+    if (fromOptional.m_containsValue) { \
+        if (this->m_containsValue) { \
+            this->m_data = fromOptional.m_data; \
+        } else { \
+            new (std::addressof(this->m_data)) T(fromOptional.m_data); \
+            this->m_containsValue = true; \
+        } \
+    } else { \
+        this->reset(); \
+    } \
+    return *this;
+
     CopyAssignmentBase & operator=(CopyAssignmentBase const & copy)
             noexcept(std::is_nothrow_copy_constructible<T>::value
                      && std::is_nothrow_copy_assignable<T>::value)
-    {
-        if (copy.m_containsValue) {
-            if (this->m_containsValue) {
-                this->m_data = copy.m_data;
-            } else {
-                new (std::addressof(this->m_data)) T(copy.m_data);
-                this->m_containsValue = true;
-            }
-        } else {
-            this->reset();
-        }
-        return *this;
-    }
+    { SHAREMIND_OPTIONAL_H_COPY_ASSIGN(copy); }
 
     CopyAssignmentBase & operator=(CopyAssignmentBase &&) = default;
 
@@ -280,22 +281,24 @@ struct MoveAssignmentBase<T, true>: CopyAssignmentBase<T> {
 
     MoveAssignmentBase & operator=(MoveAssignmentBase const & copy) = default;
 
+#define SHAREMIND_OPTIONAL_H_MOVE_ASSIGN(fromOptional) \
+        if (fromOptional.m_containsValue) { \
+            if (this->m_containsValue) { \
+                this->m_data = std::move(fromOptional.m_data); \
+            } else { \
+                new (std::addressof(this->m_data)) T( \
+                        std::move(fromOptional.m_data)); \
+                this->m_containsValue = true; \
+            } \
+        } else { \
+            this->reset(); \
+        } \
+        return *this;
+
     MoveAssignmentBase & operator=(MoveAssignmentBase && move)
             noexcept(std::is_nothrow_move_constructible<T>::value
                      && std::is_nothrow_move_assignable<T>::value)
-    {
-        if (move.m_containsValue) {
-            if (this->m_containsValue) {
-                this->m_data = std::move(move.m_data);
-            } else {
-                new (std::addressof(this->m_data)) T(std::move(move.m_data));
-                this->m_containsValue = true;
-            }
-        } else {
-            this->reset();
-        }
-        return *this;
-    }
+    { SHAREMIND_OPTIONAL_H_MOVE_ASSIGN(move); }
 
 };
 
@@ -351,6 +354,16 @@ private: /* Types: */
                 || std::is_convertible<Optional<PlainU> &&, T>::value
                 || std::is_convertible<Optional<PlainU> const &, T>::value
                 || std::is_convertible<Optional<PlainU> const &&, T>::value
+            >;
+
+    template <typename U>
+    using IsOptionalAssignable =
+            std::integral_constant<
+                bool,
+                   std::is_assignable<T &, Optional<U> &>::value
+                || std::is_assignable<T &, Optional<U> &&>::value
+                || std::is_assignable<T &, Optional<U> const &>::value
+                || std::is_assignable<T &, Optional<U> const &&>::value
             >;
 
 public: /* Methods: */
@@ -433,6 +446,34 @@ public: /* Methods: */
     Optional & operator=(Optional &&)
             noexcept(std::is_nothrow_move_constructible<T>::value
                      && std::is_nothrow_move_assignable<T>::value) = default;
+
+    template <
+            typename U = T,
+            typename std::enable_if<
+                std::is_constructible<T, U const &>::value
+                && std::is_assignable<T &, U const &>::value
+                && !CanGetValueFromOptional<U>::value
+                && !IsOptionalAssignable<U>::value,
+                int>::type = 0>
+    Optional & operator=(Optional<U> const & rhs)
+            noexcept(std::is_nothrow_constructible<T, U const &>::value
+                     && std::is_nothrow_assignable<T, U const &>::value)
+    { SHAREMIND_OPTIONAL_H_COPY_ASSIGN(rhs); }
+#undef SHAREMIND_OPTIONAL_H_COPY_ASSIGN
+
+    template <
+            typename U = T,
+            typename std::enable_if<
+                std::is_constructible<T, U>::value
+                && std::is_assignable<T &, U>::value
+                && !CanGetValueFromOptional<U>::value
+                && !IsOptionalAssignable<U>::value,
+                int>::type = 0>
+    Optional & operator=(Optional<U> && rhs)
+            noexcept(std::is_nothrow_constructible<T, U &&>::value
+                     && std::is_nothrow_assignable<T, U &&>::value)
+    { SHAREMIND_OPTIONAL_H_MOVE_ASSIGN(rhs); }
+#undef SHAREMIND_OPTIONAL_H_MOVE_ASSIGN
 
     constexpr T const * operator->() const noexcept
     { return (assert(this->m_containsValue), std::addressof(this->m_data)); }
