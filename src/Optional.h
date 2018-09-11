@@ -499,18 +499,6 @@ public: /* Methods: */
 
     constexpr bool hasValue() const noexcept { return this->m_containsValue; }
 
-    constexpr T const & value() const & noexcept
-    { return (assert(this->m_containsValue), this->m_data); }
-
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & value() & noexcept
-    { return (assert(this->m_containsValue), this->m_data); }
-
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && value() && noexcept
-    { return (assert(this->m_containsValue), std::move(this->m_data)); }
-
-    constexpr T const && value() const && noexcept
-    { return (assert(this->m_containsValue), std::move(this->m_data)); }
-
     /// \todo Adjust noexcept wrt guaranteed copy elision:
     template <typename DefaultValue>
     constexpr T valueOr(DefaultValue && defaultValue) const &
