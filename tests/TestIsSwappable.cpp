@@ -30,7 +30,7 @@ struct NotSwappableBase {
 
 #define CASE_WITH_ONE(name, r1, r2, r3, r4, ...) \
     namespace name { \
-    namespace Test { C(A); __VA_ARGS__ } \
+    namespace Test { __VA_ARGS__ } \
     static_assert(S::IsSwappable<Test::A>::value == r1, ""); \
     static_assert(S::IsNothrowSwappable<Test::A>::value == r2, ""); \
     static_assert(S::IsSwappableWith<Test::A &, Test::A &>::value == r3, ""); \
@@ -40,9 +40,25 @@ struct NotSwappableBase {
 
 #define SW(a,b) void swap(a &, b &)
 
-CASE_WITH_ONE(Case1, false, false, false, false,)
-CASE_WITH_ONE(Case2, true,  false, true,  false, SW(A,A);)
-CASE_WITH_ONE(Case3, true,  true,  true,  true,  SW(A,A) noexcept;)
+CASE_WITH_ONE(Case1, false, false, false, false, C(A); )
+CASE_WITH_ONE(Case2, true,  false, true,  false, C(A); SW(A,A);)
+CASE_WITH_ONE(Case3, true,  true,  true,  true,  C(A); SW(A,A) noexcept;)
+
+#define C2(name,mc,ma) \
+    struct name { \
+        name(name &&) mc; \
+        name & operator=(name &&) ma; \
+    }
+
+CASE_WITH_ONE(Case4,  false, false, false, false, C2(A, = delete, = delete);)
+CASE_WITH_ONE(Case5,  false, false, false, false, C2(A, = delete,);)
+CASE_WITH_ONE(Case6,  false, false, false, false, C2(A, = delete, noexcept);)
+CASE_WITH_ONE(Case7,  false, false, false, false, C2(A,, = delete);)
+CASE_WITH_ONE(Case8,  true,  false, true,  false, C2(A,,);)
+CASE_WITH_ONE(Case9,  true,  false, true,  false, C2(A,, noexcept);)
+CASE_WITH_ONE(Case10, false, false, false, false, C2(A, noexcept, = delete);)
+CASE_WITH_ONE(Case11, true,  false, true,  false, C2(A, noexcept,);)
+CASE_WITH_ONE(Case12, true,  true,  true,  true,  C2(A, noexcept, noexcept);)
 
 
 #define CASE_WITH_TWO(name, r1, r2, ...) \
