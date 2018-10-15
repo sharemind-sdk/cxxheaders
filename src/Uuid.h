@@ -54,10 +54,8 @@ public: /* Methods: */
 };
 
 template <typename ... Args>
-inline Uuid generateSharemindNameUuid(Args && ... args) noexcept {
-    static SharemindUuidGenerator generator;
-    return generator(std::forward<Args>(args)...);
-}
+inline Uuid generateSharemindNameUuid(Args && ... args) noexcept
+{ return SharemindUuidGenerator()(std::forward<Args>(args)...); }
 
 /**
  * \brief Convert a sharemind::Uuid to a std::string representation
