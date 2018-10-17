@@ -89,7 +89,7 @@ public:
 
         reference (block_type& b, block_type pos)
             : m_block (b)
-            , m_mask (block_type (1) << pos)
+            , m_mask(static_cast<block_type>(static_cast<block_type>(1) << pos))
         { }
 
         void operator& (); // DO NOT IMPLEMENT
@@ -138,7 +138,11 @@ public: /* Methods: */
 
     explicit
     BitVec (size_type num_bits, bool val = false, const Alloc& alloc = Alloc ())
-        : m_blocks (compute_block_count (num_bits), val ? ~ block_type (0) : block_type (0), alloc)
+        : m_blocks(compute_block_count(num_bits),
+                   static_cast<typename decltype(m_blocks)::value_type>(
+                       val ? ~static_cast<block_type>(0)
+                           : static_cast<block_type>(0)),
+                   alloc)
         , m_num_bits (num_bits)
     { }
 
