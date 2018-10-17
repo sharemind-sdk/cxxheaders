@@ -96,6 +96,9 @@ public:
 
     public:
 
+        reference(reference const & copy) = default;
+        reference(reference && move) noexcept = default;
+
         operator bool () const { return (m_block & m_mask) != 0; }
         bool operator ~ () const { return (m_block & m_mask) == 0; }
 
