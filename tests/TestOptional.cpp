@@ -787,5 +787,7 @@ int main() {
         static_assert(std::is_same<decltype(x), SMO<int> >::value, "");
         SHAREMIND_TESTASSERT(x);
         SHAREMIND_TESTASSERT(*x == 42);
+        x.reset();
+        SHAREMIND_TESTASSERT(!x);
     }
 }

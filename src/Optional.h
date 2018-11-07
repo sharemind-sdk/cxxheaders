@@ -84,7 +84,7 @@ struct DestructorBase<T, true> {
         , m_containsValue(true)
     {}
 
-    void reset() noexcept { this->m_containsValue = false; }
+    void reset_() noexcept { this->m_containsValue = false; }
 
 /* Fields: */
 
@@ -123,7 +123,7 @@ struct DestructorBase<T, false> {
             m_data.~T();
     }
 
-    void reset() noexcept {
+    void reset_() noexcept {
         if (m_containsValue) {
             m_data.~T();
             m_containsValue = false;
@@ -245,7 +245,7 @@ struct CopyAssignmentBase<T, true>: MoveConstructorBase<T> {
             this->m_containsValue = true; \
         } \
     } else { \
-        this->reset(); \
+        this->reset_(); \
     } \
     return *this;
 
@@ -292,7 +292,7 @@ struct MoveAssignmentBase<T, true>: CopyAssignmentBase<T> {
                 this->m_containsValue = true; \
             } \
         } else { \
-            this->reset(); \
+            this->reset_(); \
         } \
         return *this;
 
@@ -436,7 +436,7 @@ public: /* Methods: */
     {}
 
     Optional & operator=(NullOption) noexcept {
-        this->reset();
+        this->reset_();
         return *this;
     }
 
@@ -556,7 +556,7 @@ public: /* Methods: */
     T & emplace(Args && ... args)
             noexcept(std::is_nothrow_constructible<T, Args &&...>::value)
     {
-        this->reset();
+        this->reset_();
         new (std::addressof(this->m_data)) T(std::forward<Args>(args)...);
         this->m_containsValue = true;
         return this->m_data;
@@ -573,11 +573,13 @@ public: /* Methods: */
                     >::value,
                     T &>::type
     {
-        this->reset();
+        this->reset_();
         new (std::addressof(this->m_data)) T(il, std::forward<Args>(args)...);
         this->m_containsValue = true;
         return this->m_data;
     }
+
+    void reset() noexcept { this->reset_(); }
 
     void swap(Optional & rhs)
         noexcept(std::is_nothrow_move_constructible<T>::value
