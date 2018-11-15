@@ -53,7 +53,7 @@
 */
 
 
-#if defined(SHAREMIND_CLANG_VERSION)
+#if defined(SHAREMIND_CLANG_VERSION) && (SHAREMIND_CLANG_VERSION < 70000L)
 #include <type_traits>
 
 #define SHAREMIND_CLANGPR22637 1
