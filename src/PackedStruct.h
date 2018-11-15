@@ -22,7 +22,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include "compiler-support/ClangPR26692.h"
 #include "ConstPackedStructAccessor.h"
 #include "PackedStructAccessor.h"
 #include "PackedRawData.h"
@@ -46,14 +45,14 @@ public: /* Types: */
     template <std::size_t I>
     using PrefixType =
             TemplateInstantiateWithTypeParams_t<
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackedStruct,
+                PackedStruct,
                 TemplatePrefixTypes_t<I, Ts...>
             >;
 
     template <std::size_t I>
     using SuffixType =
             TemplateInstantiateWithTypeParams_t<
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackedStruct,
+                PackedStruct,
                 TemplateSuffixTypes_t<I, Ts...>
             >;
 

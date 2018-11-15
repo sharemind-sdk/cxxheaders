@@ -21,7 +21,6 @@
 
 #include <cstdlib>
 #include <memory>
-#include "../src/compiler-support/GccNoreturn.h"
 #include "../src/TestAssert.h"
 #ifndef NDEBUG
 #include <signal.h>
@@ -55,7 +54,7 @@ static_assert(noexcept(sharemind::assertReturn(std::declval<B>())), "");
 
 
 #ifndef NDEBUG
-SHAREMIND_GCC_NORETURN_PART1 void handleAbort(int) SHAREMIND_GCC_NORETURN_PART2;
+[[noreturn]] void handleAbort(int);
 void handleAbort(int) { exit(0); }
 #endif
 

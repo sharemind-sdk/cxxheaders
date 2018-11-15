@@ -27,7 +27,6 @@
 #include <iostream>
 #include <ostream>
 #include <typeinfo>
-#include "compiler-support/GccNoreturn.h"
 
 
 namespace sharemind {
@@ -62,8 +61,7 @@ inline void verbosePrintException(std::exception_ptr e,
     #undef SHAREMIND_T
 }
 
-SHAREMIND_GCC_NORETURN_PART1
-inline void verboseTerminateHandler() noexcept SHAREMIND_GCC_NORETURN_PART2;
+[[noreturn]] inline void verboseTerminateHandler() noexcept;
 
 inline void verboseTerminateHandler() noexcept {
     if (std::exception_ptr const e = std::current_exception()) {
@@ -78,8 +76,7 @@ inline void verboseTerminateHandler() noexcept {
 }
 
 
-SHAREMIND_GCC_NORETURN_PART1
-inline void verboseUnexpectedHandler() noexcept SHAREMIND_GCC_NORETURN_PART2;
+[[noreturn]] inline void verboseUnexpectedHandler() noexcept;
 
 inline void verboseUnexpectedHandler() noexcept {
     if (std::exception_ptr const e = std::current_exception()) {

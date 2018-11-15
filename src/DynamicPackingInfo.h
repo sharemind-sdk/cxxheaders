@@ -25,7 +25,6 @@
 #include <limits>
 #include <type_traits>
 #include <utility>
-#include "compiler-support/ClangPR26692.h"
 #include "ConstUnalignedReference.h"
 #include "PackingInfo.h"
 #include "SizeOfTypes.h"
@@ -472,20 +471,20 @@ struct DynamicPackingInfo {
     template <std::size_t I>
     using PrefixType =
             TemplateInstantiateWithTypeParams_t<
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) DynamicPackingInfo,
+                DynamicPackingInfo,
                 TemplatePrefixTypes_t<I, Ts...>
             >;
 
     template <std::size_t I>
     using SuffixType =
             TemplateInstantiateWithTypeParams_t<
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) DynamicPackingInfo,
+                DynamicPackingInfo,
                 TemplateSuffixTypes_t<I, Ts...>
             >;
 
     using StaticPrefixType =
             TemplateInstantiateWithTypeParams_t<
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind) PackingInfo,
+                PackingInfo,
                 TemplateCommonPrefixTypes_t<
                     TemplateTypeList<Ts...>,
                     Detail::DynamicPacking::StaticFieldFilter<Ts...>

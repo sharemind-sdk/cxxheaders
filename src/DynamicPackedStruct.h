@@ -26,7 +26,6 @@
 #include <memory>
 #include <type_traits>
 #include <utility>
-#include "compiler-support/ClangPR26692.h"
 #include "DynamicPackingInfo.h"
 #include "GlobalDeleter.h"
 #include "TemplateInstantiateWithTypeParams.h"
@@ -90,23 +89,20 @@ public: /* Types: */
     template <std::size_t I>
     using PrefixType =
             TemplateInstantiateWithTypeParams_t<
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)
-                    DynamicPackedStruct,
+                DynamicPackedStruct,
                 TemplatePrefixTypes_t<I, Ts...>
             >;
 
     template <std::size_t I>
     using SuffixType =
             TemplateInstantiateWithTypeParams_t<
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)
-                    DynamicPackedStruct,
+                DynamicPackedStruct,
                 TemplateSuffixTypes_t<I, Ts...>
             >;
 
     using StaticPrefixType =
             TemplateInstantiateWithTypeParams_t<
-                SHAREMIND_CLANGPR26692_WORKAROUND(sharemind)
-                    DynamicPackedStruct,
+                DynamicPackedStruct,
                 typename DynamicPackingInfo<Ts...>::StaticPrefixType
             >;
 

@@ -28,7 +28,6 @@
 #include <sharemind/compiler-support/GccVersion.h>
 #include <type_traits>
 #include <utility>
-#include "compiler-support/GccInheritConstructor.h"
 #include "FunctionTraits.h"
 #include "PotentiallyVoidTypeInfo.h"
 
@@ -568,9 +567,7 @@ class CircBufferBase2<T, Locking, false>: public CircBufferBase<T, Locking> {
 
 public: /* Methods: */
 
-    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(CircBufferBase2,
-                                        CircBufferBase,
-                                        CircBufferBase<T, Locking>)
+    using CircBufferBase<T, Locking>::CircBufferBase;
 
 }; /* class CircBufferBase2<T, Locking, false> */
 
@@ -592,9 +589,7 @@ private: /* Types: */
 
 public: /* Methods: */
 
-    SHAREMIND_GCC_INHERITED_CONSTRUCTOR(CircBufferBase2,
-                                        CircBufferBase,
-                                        CircBufferBase<T, Locking>)
+    using CircBufferBase<T, Locking>::CircBufferBase;
 
     /**
      * \brief Waits until there is data pending.

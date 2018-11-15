@@ -23,7 +23,6 @@
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
-#include "compiler-support/GccPR54526.h"
 #include "StripAndDecay.h"
 #include "TemplateInverseCondAppendType.h"
 

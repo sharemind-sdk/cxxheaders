@@ -23,7 +23,6 @@
 #include <chrono>
 #include <thread>
 #include <type_traits>
-#include "../src/compiler-support/GccIsNothrowDestructible.h"
 #include "../src/TestAssert.h"
 
 
@@ -64,7 +63,7 @@ struct StaticAssertions
             && !noexcept(std::declval<Waiter &>().template waitReady<X>())
             && !noexcept(std::declval<Waiter &>().template waitReady<E>(EA1(X()), EA2(X())))
             && std::is_nothrow_default_constructible<Waiter>::value
-            && sharemind::is_nothrow_destructible<Waiter>::value
+            && std::is_nothrow_destructible<Waiter>::value
             && !std::is_copy_constructible<Waiter>::value
             && !std::is_move_constructible<Waiter>::value
             && !std::is_copy_assignable<Waiter>::value

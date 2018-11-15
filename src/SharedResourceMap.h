@@ -26,7 +26,6 @@
 #include <memory>
 #include <mutex>
 #include <utility>
-#include "compiler-support/GccPR44436.h"
 
 
 namespace sharemind {
@@ -194,7 +193,7 @@ public: /* Methods: */
             return createShared(obj);
         } else {
             auto const rp =
-                    m_inner->m_data.SHAREMIND_GCCPR44436_METHOD(
+                    m_inner->m_data.emplace(
                         typename Map_::value_type{key, {}});
             assert(rp.second);
             try {

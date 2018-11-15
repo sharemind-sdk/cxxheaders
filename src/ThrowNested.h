@@ -23,21 +23,17 @@
 #include <exception>
 #include <utility>
 #include "ThrowWithNested.h"
-#include "compiler-support/GccNoreturn.h"
 
 namespace sharemind {
 
 template <typename Exception>
-SHAREMIND_GCC_NORETURN_PART1
-inline void throwNested(Exception && exception) SHAREMIND_GCC_NORETURN_PART2
+[[noreturn]] inline void throwNested(Exception && exception)
 { throw std::forward<Exception>(exception); }
 
 template <typename Exception, typename Exception2, typename ... Exceptions>
-SHAREMIND_GCC_NORETURN_PART1
-inline void throwNested(Exception && exception,
-                        Exception2 && exception2,
-                        Exceptions && ... exceptions)
-        SHAREMIND_GCC_NORETURN_PART2
+[[noreturn]] inline void throwNested(Exception && exception,
+                                     Exception2 && exception2,
+                                     Exceptions && ... exceptions)
 {
     try {
         throw std::forward<Exception>(exception);

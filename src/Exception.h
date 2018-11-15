@@ -32,7 +32,6 @@
 #include <sys/cdefs.h>
 #endif
 #include <utility>
-#include "compiler-support/GccNoreturn.h"
 #include "detail/ExceptionMacros.h"
 
 
