@@ -24,7 +24,6 @@
 #include <tuple>
 #include <type_traits>
 #include "compiler-support/GccPR54526.h"
-#include "IsNullPointer.h"
 #include "StripAndDecay.h"
 #include "TemplateInverseCondAppendType.h"
 
@@ -35,7 +34,7 @@ template <typename ... Ts>
 struct NoNullTuple {
     using type =
             TemplateInverseCondAppendType_t<
-                IsNullPointer,
+                std::is_null_pointer,
                 std::tuple<>,
                 Ts...
             >;
@@ -52,7 +51,7 @@ template <std::size_t I, typename Tpl> struct IndexInNonNullTuple;
 template <typename T, typename ... Ts>
 struct IndexInNonNullTuple<0u, std::tuple<T, Ts...> >
         : std::enable_if<
-              !IsNullPointer<T>::value,
+              !std::is_null_pointer<T>::value,
               std::integral_constant<std::size_t, 0u>
           >::type
 {};
@@ -60,7 +59,7 @@ template <std::size_t I, typename T, typename ... Ts>
 struct IndexInNonNullTuple<I, std::tuple<T, Ts...> >
         : std::integral_constant<
                 std::size_t,
-                (IsNullPointer<T>::value ? 0u : 1u)
+                (std::is_null_pointer<T>::value ? 0u : 1u)
                 + IndexInNonNullTuple<I - 1u, std::tuple<Ts...> >::value>
 {};
 
