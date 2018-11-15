@@ -27,7 +27,6 @@
 #include <thread>
 #include <type_traits>
 #include <utility>
-#include "MakeUnique.h"
 
 
 namespace sharemind {
@@ -179,7 +178,7 @@ public: /* Methods: */
 
         };
 
-        return makeUnique<TaskImpl>(std::forward<F>(f));
+        return std::make_unique<TaskImpl>(std::forward<F>(f));
     }
 
     template <typename F>
@@ -204,7 +203,7 @@ public: /* Methods: */
 
         };
 
-        return makeUnique<TaskImpl>(std::forward<F>(f));
+        return std::make_unique<TaskImpl>(std::forward<F>(f));
     }
 
     void addTimeoutTask(Clock::duration const & duration,
@@ -264,7 +263,7 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    std::unique_ptr<Task> m_stopTask{makeUnique<StopTask>()};
+    std::unique_ptr<Task> m_stopTask{std::make_unique<StopTask>()};
     std::mutex m_mutex;
     std::condition_variable m_cond;
     Tasks m_tasks;

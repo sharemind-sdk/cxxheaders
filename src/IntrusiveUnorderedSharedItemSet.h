@@ -26,7 +26,6 @@
 #include <memory>
 #include <type_traits>
 #include <utility>
-#include "MakeUnique.h"
 
 
 namespace sharemind {
@@ -246,7 +245,7 @@ private: /* Fields: */
 
     std::size_t const m_numBuckets;
     std::unique_ptr<typename Container::bucket_type[]> const m_buckets{
-        makeUnique<typename Container::bucket_type[]>(m_numBuckets)};
+            std::make_unique<typename Container::bucket_type[]>(m_numBuckets)};
     Container m_container{
         typename Container::bucket_traits(m_buckets.get(), m_numBuckets)};
 

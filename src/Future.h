@@ -32,7 +32,6 @@
 #include <utility>
 #include "detail/ExceptionMacros.h"
 #include "Exception.h"
-#include "MakeUnique.h"
 #include "StripReferenceWrapper.h"
 
 
@@ -359,7 +358,8 @@ public: /* Methods: */
         using C = Detail::Future::Continuation<Promise, Future<T>, F>;
         assert(m_state);
         auto & state = *m_state;
-        auto continuation(makeUnique<C>(std::move(*this), std::forward<F>(f)));
+        auto continuation(
+                std::make_unique<C>(std::move(*this), std::forward<F>(f)));
         auto r(continuation->m_promise.takeFuture());
         state.then(std::move(continuation));
         return r;
@@ -380,7 +380,8 @@ public: /* Methods: */
         using C = Detail::Future::Continuation<Promise, Future<void>, F>;
         assert(m_state);
         auto & state = *m_state;
-        auto continuation(makeUnique<C>(std::move(*this), std::forward<F>(f)));
+        auto continuation(
+                std::make_unique<C>(std::move(*this), std::forward<F>(f)));
         auto r(continuation->m_promise.takeFuture());
         state.then(std::move(continuation));
         return r;

@@ -24,7 +24,6 @@
 #include <memory>
 #include <type_traits>
 #include <utility>
-#include "MakeUnique.h"
 
 
 namespace sharemind {
@@ -60,7 +59,7 @@ public: /* Methods: */
 
     UninitializedDynamicArray(SizeType const size)
         : m_size(size)
-        , m_data(makeUnique<AllocType[]>(size))
+        , m_data(std::make_unique<AllocType[]>(size))
     {}
 
     virtual ~UninitializedDynamicArray() noexcept {}
