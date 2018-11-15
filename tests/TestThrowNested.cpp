@@ -19,39 +19,15 @@
 
 #include "../src/ThrowNested.h"
 
-#include <sharemind/compiler-support/GccVersion.h>
 #include "../src/TestAssert.h"
 
 
 using sharemind::throwNested;
 
-/* Workaround GCC PR 62154 (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=62154):
-
-  Sample error message:
-
- /usr/include/c++/4.9/bits/nested_exception.h:90:59: error: cannot dynamic_cast
-        ‘& __ex’ (of type ‘const struct A*’) to type ‘const class
-        std::nested_exception*’ (source type is not polymorphic)
-       { return dynamic_cast<const nested_exception*>(&__ex); }
-                                                           ^
-
-*/
-#if !defined(SHAREMIND_GCC_VERSION) || SHAREMIND_GCC_VERSION >= 50000
 using FirstException = int;
 struct A {};
 struct B {};
 struct C {};
-#else
-struct FirstException {
-    FirstException(int v) noexcept : m_v(v) {}
-    virtual ~FirstException() noexcept {}
-    bool operator==(int v) const noexcept { return m_v == v; }
-    int m_v;
-};
-struct A { virtual ~A() noexcept {} };
-struct B { virtual ~B() noexcept {} };
-struct C { virtual ~C() noexcept {} };
-#endif
 
 int main() {
     try {

@@ -14,18 +14,9 @@
 #include <iterator>
 #include <list>
 #include <memory>
-#include <sharemind/compiler-support/ClangVersion.h>
-#include <sharemind/compiler-support/GccVersion.h>
 #include <type_traits>
 #include <unordered_map>
 
-
-#if (defined(SHAREMIND_CLANG_VERSION) && SHAREMIND_CLANG_VERSION < 30900) \
-    || (defined(SHAREMIND_GCC_VERSION) && SHAREMIND_GCC_VERSION < 40900)
-#define SHAREMIND_LRU_LIST_WORKAROUND(...) __VA_ARGS__
-#else
-#define SHAREMIND_LRU_LIST_WORKAROUND(...) c ## __VA_ARGS__
-#endif
 
 namespace sharemind {
 
@@ -120,18 +111,16 @@ public: /* Methods: */
             // found an element
             if (it->second->isStrong()) {
                 // Move found item to front of LRU list:
-                m_cacheList.splice(
-                            m_cacheList.SHAREMIND_LRU_LIST_WORKAROUND(begin)(),
-                            m_cacheList,
-                            it->second);
+                m_cacheList.splice(m_cacheList.cbegin(),
+                                   m_cacheList,
+                                   it->second);
             } else {
                 // keep a strong pointer
                 it->second->promote(ptr);
                 // move found item from weakList to cacheList
-                m_cacheList.splice(
-                            m_cacheList.SHAREMIND_LRU_LIST_WORKAROUND(begin)(),
-                            m_weakList,
-                            it->second);
+                m_cacheList.splice(m_cacheList.cbegin(),
+                                   m_weakList,
+                                   it->second);
                 // make sure to throw out element from cacheList
                 grow();
             }
@@ -162,15 +151,14 @@ private: /* Methods: */
             // decrease ref count
             m_cacheList.back().demote();
             // move from cacheList to weakList
-            m_weakList.splice(
-                m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(begin)(),
-                m_cacheList,
-                std::prev(m_cacheList.SHAREMIND_LRU_LIST_WORKAROUND(end)()));
+            m_weakList.splice(m_weakList.cbegin(),
+                              m_cacheList,
+                              std::prev(m_cacheList.cend()));
         }
 
         // then do garbage collection
-        for (auto it = m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(begin)();
-             it != m_weakList.SHAREMIND_LRU_LIST_WORKAROUND(end)();)
+        for (auto it = m_weakList.cbegin();
+             it != m_weakList.cend();)
         {
             if (it->expired()) {
                 m_cacheMap.erase(it->key());
@@ -193,7 +181,5 @@ private: /* Fields */
 }; /* class LRU { */
 
 } /* namespace sharemind { */
-
-#undef SHAREMIND_LRU_LIST_WORKAROUND
 
 #endif /* SHAREMIND_LRU_H */

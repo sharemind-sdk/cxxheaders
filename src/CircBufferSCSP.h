@@ -25,7 +25,6 @@
 #include <condition_variable>
 #include <cstddef>
 #include <mutex>
-#include <sharemind/compiler-support/GccVersion.h>
 #include <type_traits>
 #include <utility>
 #include "FunctionTraits.h"
@@ -152,13 +151,7 @@ class CircBufferBase {
 private: /* Types: */
 
     using Locking = Locking_;
-
-    #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
-    #warning Using workaround for unknown GCC 4.7 bug.
-    #define Self CircBufferBase<T, Locking>
-    #else
     using Self = CircBufferBase<T, Locking>;
-    #endif
 
 public: /* Types: */
 
@@ -546,10 +539,6 @@ public: /* Methods */
                                 typename Self::ReadActions>(
                                     outputConsumerActor)))
     { return operate<ReadActions>(outputConsumerActor); }
-
-    #if defined(SHAREMIND_GCC_VERSION) && (SHAREMIND_GCC_VERSION < 40800)
-    #undef Self
-    #endif
 
 private: /* Fields :*/
 

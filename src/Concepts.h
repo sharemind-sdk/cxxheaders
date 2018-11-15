@@ -317,26 +317,9 @@ namespace Concepts {
 
 using ::std::swap;
 
-#if !defined(SHAREMIND_GCC_VERSION) || SHAREMIND_GCC_VERSION >= 60000
 template <typename T, typename U>
 auto adl_swap(T && t, U && u) ->
         decltype(swap(std::forward<T>(t), std::forward<U>(u)));
-#else
-/* Work around GCC PR 63860: */
-template <typename T, typename U>
-auto adl_swap(T && t, U && u) -> ValidTypes<
-            SHAREMIND_REQUIRE_CONCEPTS( \
-                MoveConstructible(T), \
-                MoveAssignable(T) \
-            ), \
-            decltype(swap(std::forward<T>(t), std::forward<U>(u)))
-        >;
-template <typename T, std::size_t N, typename U>
-auto adl_swap(T (&t)[N], U (&u)[N]) -> ValidTypes<
-            decltype(swap(std::forward<T>(t), std::forward<U>(u))),
-            decltype(adl_swap(std::declval<T>(), std::declval<U>()))
-        >;
-#endif
 
 } /* namespace Concepts { */
 } /* namespace Detail { */

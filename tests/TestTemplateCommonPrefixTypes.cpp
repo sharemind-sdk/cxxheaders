@@ -17,14 +17,6 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#include <sharemind/compiler-support/GccVersion.h>
-
-/** GCC 4.8.4 and 4.8.5, possibly other versions of GCC 4.8 ICE while compiling
-    these EmptyTest things. These don't fail on other platforms, so I guess it's
-    safe to skip those for all versions of GCC 4.8. */
-#if !defined(SHAREMIND_GCC_VERSION) || !(SHAREMIND_GCC_VERSION >= 40800 \
-                                         && SHAREMIND_GCC_VERSION < 40900)
-
 #include "../src/TemplateCommonPrefixTypes.h"
 
 #include <type_traits>
@@ -230,11 +222,3 @@ static_assert(Test<R<T, U>, A<T, U, U>, B<T, U, V> >::value, "");
 static_assert(Test<R<T, U, V>, A<T, U, V>, B<T, U, V> >::value, "");
 
 int main() {}
-
-#else
-
-#include <iostream>
-
-int main() { std::cerr << "Skipping test for GCC 4.8." << std::endl; }
-
-#endif
