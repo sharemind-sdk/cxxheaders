@@ -316,13 +316,6 @@ template <typename T> struct EnableMoveCtor<T, false> {
 } /* namespace Optional { */
 } /* namespace Detail { */
 
-/* Constexpr implied const in C++11, but not in C++14. */
-#if __cplusplus >= 201402L
-#define SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR constexpr
-#else
-#define SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR
-#endif
-
 template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Destructible(T))>
 class Optional
         : private Detail::Optional::MoveAssignmentBase<T>
@@ -479,16 +472,16 @@ public: /* Methods: */
     constexpr T const * operator->() const noexcept
     { return (assert(this->m_containsValue), std::addressof(this->m_data)); }
 
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T * operator->() noexcept
+    constexpr T * operator->() noexcept
     { return (assert(this->m_containsValue), std::addressof(this->m_data)); }
 
     constexpr T const & operator*() const & noexcept
     { return (assert(this->m_containsValue), this->m_data); }
 
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T & operator*() & noexcept
+    constexpr T & operator*() & noexcept
     { return (assert(this->m_containsValue), this->m_data); }
 
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T && operator*() && noexcept
+    constexpr T && operator*() && noexcept
     { return (assert(this->m_containsValue), std::move(this->m_data)); }
 
     constexpr T const && operator*() const && noexcept
@@ -515,8 +508,7 @@ public: /* Methods: */
 
     /// \todo Adjust noexcept wrt guaranteed copy elision:
     template <typename DefaultValue>
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T valueOr(
-            DefaultValue && defaultValue) &&
+    constexpr T valueOr(DefaultValue && defaultValue) &&
             noexcept(
                 std::is_nothrow_copy_constructible<T>::value
                 && std::is_nothrow_move_constructible<T>::value
@@ -530,7 +522,7 @@ public: /* Methods: */
 
     /// \todo Adjust noexcept wrt guaranteed copy elision:
     template <typename ... Args>
-    SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR T valueOrConstruct(Args && ... args) &&
+    constexpr T valueOrConstruct(Args && ... args) &&
             noexcept(std::is_nothrow_move_constructible<T>::value
                      && std::is_nothrow_copy_constructible<T>::value // needed?
                      && std::is_nothrow_constructible<T, Args && ...>::value)
@@ -605,8 +597,6 @@ public: /* Methods: */
         }
     }
 };
-
-#undef SHAREMIND_OPTIONAL_H_CXX14_CONSTEXPR
 
 template <typename T, typename U>
 constexpr auto operator==(Optional<T> const & lhs, Optional<U> const & rhs)
