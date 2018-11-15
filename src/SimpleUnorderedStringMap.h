@@ -31,9 +31,7 @@
 #include <sharemind/compiler-support/GccVersion.h>
 #include <utility>
 #include "Concepts.h"
-#if __cplusplus < 201402L
 #include "IntegralComparisons.h"
-#endif
 #include "Range.h"
 #include "StringHasher.h"
 
