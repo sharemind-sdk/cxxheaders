@@ -41,14 +41,7 @@ private: /* Fields: */
 };
 
 template <typename F>
-#if __cplusplus >= 201402L
-[[deprecated]]
-#endif
-inline ScopeExit makeScopeExit(F && f)
-#if __cplusplus < 201402L
-    __attribute__ ((deprecated))
-#endif
-        ;
+[[deprecated]] inline ScopeExit makeScopeExit(F && f);
 
 template <typename F>
 inline ScopeExit makeScopeExit(F && f)

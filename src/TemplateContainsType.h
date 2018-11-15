@@ -30,11 +30,9 @@ using TemplateContainsType =
         std::integral_constant<bool,
                                TemplateCountTypes<Needle, Haystack...>::value>;
 
-#if __cplusplus >= 201402L
 template <typename Needle, typename ... Haystack>
 constexpr auto TemplateContainsType_v =
         TemplateContainsType<Needle, Haystack...>::value;
-#endif
 
 } /* namespace sharemind { */
 

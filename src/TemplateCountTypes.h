@@ -39,11 +39,9 @@ struct TemplateCountTypes<Needle, T, Ts...>
         + (std::is_same<Needle, T>::value ? 1u : 0u)>
 {};
 
-#if __cplusplus >= 201402L
 template <typename Needle, typename ... Haystack>
 constexpr auto TemplateCountTypes_v =
         TemplateCountTypes<Needle, Haystack...>::value;
-#endif
 
 } /* namespace sharemind { */
 
