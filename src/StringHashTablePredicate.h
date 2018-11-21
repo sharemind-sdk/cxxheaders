@@ -242,8 +242,6 @@ template <typename T,
 auto getOrCreateTemporaryStringHashTablePredicate(T && t)
         noexcept(noexcept(Detail::createTemporaryStringHashTablePredicate(
                               std::forward<T>(t))))
-        -> decltype(Detail::createTemporaryStringHashTablePredicate(
-                        std::forward<T>(t)))
 { return Detail::createTemporaryStringHashTablePredicate(std::forward<T>(t)); }
 
 /**
@@ -258,8 +256,6 @@ template <typename T,
 constexpr auto getOrCreateTemporaryStringHashTablePredicate(
         T && t,
         std::size_t hash) noexcept
-        -> decltype(Detail::createTemporaryStringHashTablePredicate(
-                        std::forward<T>(t), hash))
 {
     static_assert(noexcept(
                       Detail::createTemporaryStringHashTablePredicate(

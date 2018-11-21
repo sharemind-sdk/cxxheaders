@@ -20,10 +20,6 @@
 #ifndef SHAREMIND_MIN_H
 #define SHAREMIND_MIN_H
 
-#include <type_traits>
-#include "TemplateAll.h"
-
-
 namespace sharemind {
 namespace Detail {
 
@@ -37,16 +33,7 @@ constexpr T min(T a, T b, Ts ... vs) noexcept
 } /* namespace Detail { */
 
 template <typename ... Ts>
-constexpr auto min(Ts && ... vs) ->
-    typename std::enable_if<
-        TemplateAll<
-            std::is_arithmetic<
-                typename std::decay<Ts>::type
-            >::value...
-        >::value,
-        typename std::common_type<Ts...>::type
-    >::type
-{ return Detail::min(vs...); }
+constexpr auto min(Ts && ... vs) { return Detail::min(vs...); }
 
 } /* namespace Sharemind { */
 

@@ -45,7 +45,6 @@ struct Arith {
 
     constexpr static inline auto dist(T * const a, T * const b)
             noexcept(noexcept(std::distance(a, b)))
-            -> decltype(std::distance(a, b))
     { return std::distance(a, b); }
 
     template <typename Diff>
@@ -69,7 +68,6 @@ struct Arith<T, true> {
 
     constexpr static inline auto dist(T * const a, T * const b)
             noexcept(noexcept(ACT::dist(toCT(a), toCT(b))))
-            -> decltype(ACT::dist(toCT(a), toCT(b)))
     { return ACT::dist(toCT(a), toCT(b)); }
 
     template <typename Diff>
@@ -140,7 +138,6 @@ constexpr T * ptrSub(T * const ptr, Diff const size)
 template <typename T>
 constexpr auto ptrDist(T * const a, T * const b)
         noexcept(noexcept(Detail::PotentiallyVoidTypeInfo::Arith<T>::dist(a,b)))
-        -> decltype(Detail::PotentiallyVoidTypeInfo::Arith<T>::dist(a, b))
 { return Detail::PotentiallyVoidTypeInfo::Arith<T>::dist(a, b); }
 
 template <typename T>

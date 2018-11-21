@@ -31,8 +31,6 @@ namespace sharemind {
 template <std::size_t I, typename ... Args>
 auto makeSharedTupleElementPtr(
         std::shared_ptr<std::tuple<Args...> > const & value) noexcept
-    -> std::shared_ptr<
-        typename std::tuple_element<I, std::tuple<Args...> >::type>
 {
     assert(value);
     return std::shared_ptr<
@@ -43,7 +41,6 @@ auto makeSharedTupleElementPtr(
 template <std::size_t ... Is, typename ... Args>
 auto makeSharedTupleElementPtrs(
         std::shared_ptr<std::tuple<Args...> > const & value) noexcept
-    -> std::tuple<decltype(makeSharedTupleElementPtr<Is>(value))...>
 {
     assert(value);
     return std::tuple<decltype(makeSharedTupleElementPtr<Is>(value))...>{

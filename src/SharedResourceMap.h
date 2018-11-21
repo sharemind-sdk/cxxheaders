@@ -91,15 +91,15 @@ private: /* Types: */
             m_cond.wait(lock, [this]() noexcept { return m_data.empty(); });
         }
 
-        auto empty() const noexcept(noexcept(std::declval<Map_ const &>().empty()))
-                -> decltype(std::declval<Map_ const &>().empty())
+        auto empty() const
+                noexcept(noexcept(std::declval<Map_ const &>().empty()))
         {
             std::lock_guard<std::mutex> const guard(m_mutex);
             return m_data.empty();
         }
 
-        auto size() const noexcept(noexcept(std::declval<Map_ const &>().size()))
-                -> decltype(std::declval<Map_ const &>().size())
+        auto size() const
+                noexcept(noexcept(std::declval<Map_ const &>().size()))
         {
             std::lock_guard<std::mutex> const guard(m_mutex);
             return m_data.size();
@@ -125,23 +125,18 @@ public: /* Methods: */
             noexcept(noexcept(
                          std::declval<Inner const *>()->forEach(
                              std::forward<F>(f))))
-            -> decltype(std::declval<Inner const *>()->forEach(
-                            std::forward<F>(f)))
     { return m_inner->forEach(std::forward<F>(f)); }
 
     auto waitForEmpty() const
             noexcept(noexcept(std::declval<Inner const *>()->waitForEmpty()))
-            -> decltype(std::declval<Inner const *>()->waitForEmpty())
     { return m_inner->waitForEmpty(); }
 
     auto empty() const
             noexcept(noexcept(std::declval<Inner const *>()->empty()))
-            -> decltype(std::declval<Inner const *>()->empty())
     { return m_inner->empty(); }
 
     auto size() const
             noexcept(noexcept(std::declval<Inner const *>()->size()))
-            -> decltype(std::declval<Inner const *>()->size())
     { return m_inner->size(); }
 
     template <typename K>

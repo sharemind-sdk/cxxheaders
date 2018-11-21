@@ -353,8 +353,7 @@ class Future {
 public: /* Methods: */
 
     template <typename F>
-    auto then(F && f) -> Future<Detail::Future::UnwrappedReturnType<F, Future> >
-    {
+    auto then(F && f) {
         using C = Detail::Future::Continuation<Promise, Future<T>, F>;
         assert(m_state);
         auto & state = *m_state;
@@ -375,8 +374,7 @@ class Future<void> {
 public: /* Methods: */
 
     template <typename F>
-    auto then(F && f) -> Future<Detail::Future::UnwrappedReturnType<F, Future> >
-    {
+    auto then(F && f) {
         using C = Detail::Future::Continuation<Promise, Future<void>, F>;
         assert(m_state);
         auto & state = *m_state;
@@ -509,9 +507,7 @@ inline Future<void> makeReadyFuture() {
 }
 
 template <typename T>
-auto makeReadyFuture(T && value)
-        -> Future<StripReferenceWrapper_t<typename std::decay<T>::type> >
-{
+auto makeReadyFuture(T && value) {
     Promise<StripReferenceWrapper_t<typename std::decay<T>::type> > p;
     p.setValue(std::forward<T>(value));
     return p.takeFuture();

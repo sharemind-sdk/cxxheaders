@@ -135,8 +135,7 @@ struct PackingInfo {
     { return cref<I>(data); }
 
     template <std::size_t I>
-    static auto set(void * const data, ElemType<I> const & v) noexcept ->
-            decltype(ref<I>(data) = v)
+    static auto set(void * const data, ElemType<I> const & v) noexcept
     { return ref<I>(data) = v; }
 
 }; /* struct PackingInfo */

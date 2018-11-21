@@ -20,9 +20,7 @@
 namespace sharemind {
 
 template <typename E, typename F, typename P, typename ... Args>
-inline auto syscallLoop(F f, P okPred, Args && ... args) noexcept(false)
-        -> decltype(f(std::forward<Args>(args)...))
-{
+inline auto syscallLoop(F f, P okPred, Args && ... args) noexcept(false) {
     for (;;) {
         auto r = f(std::forward<Args>(args)...);
         if (okPred(r))

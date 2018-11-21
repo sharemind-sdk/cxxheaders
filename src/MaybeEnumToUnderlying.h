@@ -37,7 +37,6 @@ template <bool> struct Impl {
 template <> struct Impl<true> {
     template <typename T>
     constexpr static auto get(T && v) noexcept
-            -> decltype(enumToUnderlying(std::forward<T>(v)))
     { return enumToUnderlying(std::forward<T>(v)); }
 
 };
@@ -46,12 +45,7 @@ template <> struct Impl<true> {
 } /* namespace Detail { */
 
 template <typename T>
-constexpr auto maybeEnumToUnderlying(T && v) noexcept
-    -> decltype(
-        Detail::MaybeEnumToUnderlying::Impl<
-            std::is_enum<typename std::decay<T>::type>::value>::get(
-                std::forward<T>(v)))
-{
+constexpr auto maybeEnumToUnderlying(T && v) noexcept {
     return Detail::MaybeEnumToUnderlying::Impl<
         std::is_enum<typename std::decay<T>::type>::value>::get(
             std::forward<T>(v));

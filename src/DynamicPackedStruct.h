@@ -210,15 +210,11 @@ public: /* Methods: */
     { return m_sizes.template ref<I>(m_data.get()); }
 
     template <std::size_t I>
-    auto get() const noexcept ->
-            decltype(std::declval<AccumArray const &>().template get<I>(
-                         std::declval<void const *>()))
+    auto get() const noexcept
     { return m_sizes.template get<I>(m_data.get()); }
 
     template <std::size_t I>
-    auto set(ElemType<I> const & v) noexcept ->
-            decltype(std::declval<AccumArray const &>().template set<I>(
-                         std::declval<void *>(), v))
+    auto set(ElemType<I> const & v) noexcept
     { return m_sizes.template set<I>(m_data.get(), v); }
 
     bool operator==(type const & rhs) const noexcept {

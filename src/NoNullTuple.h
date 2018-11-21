@@ -90,9 +90,7 @@ makeNoNullTuple_(std::tuple<Ts...> tpl, T && t, Args && ... args)
 } /* namespace Detail { */
 
 template <std::size_t I, typename OriginalTuple, typename Tpl>
-constexpr auto noNullGet(Tpl && t) ->
-        decltype(
-            std::get<Detail::IndexInNonNullTuple<I, OriginalTuple>::value>(t))
+constexpr auto noNullGet(Tpl && t)
 { return std::get<Detail::IndexInNonNullTuple<I, OriginalTuple>::value>(t); }
 
 template <typename ... Ts>

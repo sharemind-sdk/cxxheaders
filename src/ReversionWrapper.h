@@ -28,13 +28,11 @@ struct ReversionWrapper { T & iterable; };
 template <typename T>
 auto begin(ReversionWrapper<T> const & rw)
         noexcept(noexcept(rw.iterable.rbegin()))
-    -> decltype(rw.iterable.rbegin())
 { return rw.iterable.rbegin(); }
 
 template <typename T>
 auto end(ReversionWrapper<T> const & rw)
         noexcept(noexcept(rw.iterable.rend()))
-    -> decltype(rw.iterable.rend())
 { return rw.iterable.rend(); }
 
 template <typename T>

@@ -59,14 +59,12 @@ inline HashValue hashRawData(Args && ... args) noexcept
 struct HashMemberCaller {
     template <typename T>
     auto operator()(T const & t) const noexcept(noexcept(t.hash()))
-            -> decltype(t.hash())
     { return t.hash(); }
 };
 
 template <typename T>
 struct HashMemberCallerT {
     auto operator()(T const & t) const noexcept(noexcept(t.hash()))
-            -> decltype(t.hash())
     { return t.hash(); }
 };
 

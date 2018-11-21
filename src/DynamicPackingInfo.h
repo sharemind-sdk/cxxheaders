@@ -582,15 +582,13 @@ struct DynamicPackingInfo {
 
     template <std::size_t I>
     constexpr static auto get(void const * const data,
-                              AccumArrayType const & accumSizes) noexcept ->
-            decltype(accumSizes.template get<I>(data))
+                              AccumArrayType const & accumSizes) noexcept
     { return accumSizes.template get<I>(data); }
 
     template <std::size_t I>
     constexpr static auto set(void * const data,
                               AccumArrayType const & accumSizes,
-                              ElemType<I> const & v) noexcept ->
-            decltype(accumSizes.template set<I>(data, v))
+                              ElemType<I> const & v) noexcept
     { return accumSizes.template set<I>(data, v); }
 
 }; /* struct DynamicPackingInfo */
