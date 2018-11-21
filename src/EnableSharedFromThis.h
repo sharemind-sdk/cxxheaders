@@ -27,8 +27,8 @@ namespace sharemind {
 
 /**
   Similar to std::enable_shared_from_this<T>, but also provides aliasing forms
-  weakFromThis(U *) and sharedFromThis(U *), as well as weakFromThis(), which is
-  not available in C++14 and earlier.
+  weakFromThis(U *) and sharedFromThis(U *), as well as weakFromThis(), which
+  was introduced in C++17 and is not available in C++14 and earlier.
 */
 template <typename T>
 class EnableSharedFromThis: public std::enable_shared_from_this<T> {
@@ -58,7 +58,7 @@ public: /* Methods: */
     }
 
     std::weak_ptr<T> weakFromThis() noexcept {
-        #if __cplusplus > 201402
+        #if __cplusplus >= 201703
         static_assert(noexcept(this->weak_from_this()), "");
         return this->weak_from_this();
         #else
@@ -71,7 +71,7 @@ public: /* Methods: */
     }
 
     std::weak_ptr<T const> weakFromThis() const noexcept {
-        #if __cplusplus > 201402
+        #if __cplusplus >= 201703
         static_assert(noexcept(this->weak_from_this()), "");
         return this->weak_from_this();
         #else
