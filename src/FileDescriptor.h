@@ -48,7 +48,14 @@ public: /* Methods: */
 
     FileDescriptor & operator=(FileDescriptor const &) = delete;
 
-    bool valid() const noexcept { return m_fd != -1; }
+    bool valid() const noexcept {
+        /* POSIX defines a file descriptor as a non-negative integer. It is not
+           possible to check the upper limit against OPEN_MAX, because it may
+           change during the execution of the process, hence one might end up
+           with valid file descriptors which are greater than or equal to
+           OPEN_MAX. */
+        return m_fd >= 0;
+    }
 
     FileDescriptor duplicate() const {
         return syscallLoop<FailedToDuplicateException>(
