@@ -26,84 +26,36 @@
 #include <mutex>
 #include <thread>
 #include <utility>
+#include "Future.h"
 
 
 namespace sharemind {
 
 class NoStartThread {
 
-private: /* Types: */
-
-    struct Inner {
-
-    /* Types: */
-
-        enum State { WAITING_SIGNAL, DESTROY, START };
-
-    /* Methods: */
-
-        inline Inner() {}
-
-        template <typename F, typename ... Args>
-        inline Inner(F && f, Args && ... args)
-            : m_func(std::forward<F>(f), std::forward<Args>(args)...) {}
-
-        inline void run() noexcept {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            while (m_state == WAITING_SIGNAL)
-                m_cond.wait(lock);
-            assert(m_state == DESTROY || m_state == START);
-            if (m_state == START) {
-                lock.unlock();
-                m_func();
-            }
-        }
-
-        inline void startThread() noexcept {
-            std::lock_guard<std::mutex> guard(m_mutex);
-            assert(m_state == WAITING_SIGNAL);
-            m_state = START;
-            m_cond.notify_one();
-        }
-
-        inline void destroyPrivate() noexcept {
-            std::lock_guard<std::mutex> guard(m_mutex);
-            m_state = DESTROY;
-            m_cond.notify_one();
-        }
-
-    /* Fields: */
-
-        std::mutex m_mutex;
-        std::condition_variable m_cond;
-        std::function<void () noexcept> m_func;
-        State m_state = WAITING_SIGNAL;
-
-    }; /* struct Inner { */
-
 public: /* Methods: */
 
-    inline NoStartThread() : m_thread(&Inner::run, &m_inner) {}
+    NoStartThread() : m_thread(&NoStartThread::run_, this) {}
 
     template <typename F, typename ... Args>
-    inline NoStartThread(F && f, Args && ... args)
-        : m_inner(std::forward<F>(f), std::forward<Args>(args)...)
-        , m_thread(&Inner::run, &m_inner)
+    NoStartThread(F && f, Args && ... args)
+        : m_func(std::forward<F>(f), std::forward<Args>(args)...)
+        , m_thread(&NoStartThread::run_, this)
     {}
 
-    inline ~NoStartThread() noexcept { stop(); }
+    ~NoStartThread() noexcept { stop(); }
 
     template <typename F, typename ... Args>
     void setFunction(F && f, Args && ... args) {
-        m_inner.m_func = std::function<void () noexcept>(
+        m_func = std::function<void () noexcept>(
                     std::forward<F>(f),
                     std::forward<Args>(args)...);
     }
 
-    inline void start() noexcept { m_inner.startThread(); }
+    void start() noexcept { m_startPromise.setValue(true); }
 
     inline void stop() noexcept {
-        m_inner.destroyPrivate();
+        m_startPromise.setValue(false);
         if (m_thread.joinable())
             m_thread.join();
     }
@@ -111,9 +63,17 @@ public: /* Methods: */
     inline void join() noexcept { m_thread.join(); }
     inline bool joinable() noexcept { return m_thread.joinable(); }
 
+private: /* Methods: */
+
+    void run_() noexcept {
+        if (m_startPromise.takeFuture().takeValue())
+            m_func();
+    }
+
 private: /* Fields: */
 
-    Inner m_inner;
+    Promise<bool> m_startPromise;
+    std::function<void () noexcept> m_func;
     std::thread m_thread;
 
 }; /* class NoStartThread { */
