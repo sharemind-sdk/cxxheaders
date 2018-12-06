@@ -28,9 +28,9 @@
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
-#include "../src/TestAssert.h"
 #include "../src/StringHasher.h"
 #include "../src/StringHashTablePredicate.h"
+#include "../src/TestAssert.h"
 
 
 namespace {
