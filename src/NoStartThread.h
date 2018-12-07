@@ -52,7 +52,10 @@ public: /* Methods: */
                     std::forward<Args>(args)...);
     }
 
-    void start() noexcept { m_startPromise.setValue(true); }
+    void start() noexcept {
+        assert(m_startPromise.isValid());
+        m_startPromise.setValue(true);
+    }
 
     inline void stop() noexcept {
         if (m_startPromise.isValid())
