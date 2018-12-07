@@ -250,8 +250,10 @@ struct Type {
 
 template <typename ... Args>
 struct Types {
-    using UM = typename Type<sharemind::UnorderedMap<Args...> >::type;
-    using RUM = typename Type<std::unordered_map<Args...> >::type;
+    using TUM = Type<sharemind::UnorderedMap<Args...> >;
+    using TRUM = Type<std::unordered_map<Args...> >;
+    using UM = typename TUM::type;
+    using RUM = typename TRUM::type;
     TEST_SAME_FIELD(key_type);
     TEST_SAME_FIELD(value_type);
     TEST_SAME_FIELD(mapped_type);
@@ -268,8 +270,6 @@ struct Types {
     TEST_IT_TRAIT_EQ(const_iterator);
     TEST_IT_TRAIT_EQ(local_iterator);
     TEST_IT_TRAIT_EQ(const_local_iterator);
-    using TUM = Type<UM>;
-    using TRUM = Type<RUM>;
 };
 
 template <typename ... Args>
