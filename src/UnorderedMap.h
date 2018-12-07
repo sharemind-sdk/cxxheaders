@@ -44,6 +44,101 @@ namespace sharemind {
 namespace Detail {
 namespace UnorderedMap {
 
+template <typename Hash, typename = void>
+struct HasTransparentKeyEqual : std::false_type {};
+
+template <typename Hash>
+struct HasTransparentKeyEqual<Hash,
+                              Void_t<typename Hash::transparent_key_equal> >
+        : std::true_type
+{};
+
+
+template <typename T, typename = void>
+struct HasIsTransparent : std::false_type {};
+
+template <typename T>
+struct HasIsTransparent<T, Void_t<typename T::is_transparent> > : std::true_type
+{};
+
+
+template <typename Hash,
+          typename KeyEqual,
+          bool = HasTransparentKeyEqual<Hash>::value>
+struct ChooseKeyEqual { using type = typename Hash::transparent_key_equal; };
+
+template <typename Hash, typename KeyEqual>
+struct ChooseKeyEqual<Hash, KeyEqual, false> { using type = KeyEqual; };
+
+
+template <typename Hash, typename Key, typename K, typename R>
+struct TransparentKeyEqualOverload
+        : std::enable_if<
+                HasTransparentKeyEqual<Hash>::value
+                && Models<Not(HashTablePredicate<Key>(K))>::value,
+                R
+            >
+{};
+
+
+template <typename Hash_, typename Key,
+          bool = Models<Hash(Hash_, Key const &)>::value>
+struct TransparentFind {
+    template <typename Container, typename Hasher, typename Pred>
+    static auto find(Container & container, Key const & key, Hasher & hasher, Pred & pred) {
+        auto const hash(hasher(key));
+        for (auto er(container.equal_range(hash));
+             er.first != er.second;
+             ++er.first)
+            if (pred(er.first->second->first, key))
+                return er.first;
+        return container.end();
+    }
+};
+
+template <typename Hash_, typename Key>
+struct TransparentFind<Hash_, Key, false> {
+    template <typename Container, typename Hasher, typename Pred>
+    static auto find(Container & container, Key const & key, Hasher &, Pred & pred) {
+        auto it = container.begin();
+        for (; it != container.end(); ++it)
+            if (pred(it->second->first, key))
+                return it;
+        return it;
+    }
+};
+
+
+template <typename Hash_, typename Key,
+          bool = Models<Hash(Hash_, Key const &)>::value>
+struct TransparentErase {
+    template <typename Container, typename Hasher, typename Pred>
+    static auto erase(Container & container, Key const & key, Hasher & hasher, Pred & pred) {
+        auto const hash(hasher(key));
+        for (auto er(container.equal_range(hash));
+             er.first != er.second;
+             ++er.first)
+            if (pred(er.first->second->first, key)) {
+                container.erase(er.first);
+                return 1u;
+            }
+        return 0u;
+    }
+};
+
+template <typename Hash_, typename Key>
+struct TransparentErase<Hash_, Key, false> {
+    template <typename Container, typename Hasher, typename Pred>
+    static auto erase(Container & container, Key const & key, Hasher &, Pred & pred) {
+        for (auto it = container.begin(); it != container.end(); ++it)
+            if (pred(it->second->first, key)) {
+                container.erase(it);
+                return 1u;
+            }
+        return 0u;
+    }
+};
+
 template <bool T> struct PropagateAllocator {
 
     template <typename Alloc>
@@ -78,7 +173,7 @@ template <> struct PropagateAllocator<false> {
 template <
     typename Key,
     typename T,
-    typename Hash = std::hash<Key>,
+    typename Hash_ = std::hash<Key>,
     typename KeyEqual = std::equal_to<Key>,
     typename Allocator = std::allocator<std::pair<const Key, T> >
 >
@@ -89,16 +184,32 @@ public: /* Types: */
     using key_type = Key;
     using value_type = std::pair<Key const, T>;
     using mapped_type = T;
-    using hasher = Hash;
+
+    using hasher = Hash_;
+    static_assert(Models<Hash(hasher, key_type)>::value,
+                  "Hash_ does not model Hash for key_type.");
+
     using hash_type =
             decltype(
                     std::declval<hasher &>()(std::declval<key_type const &>()));
-    using key_equal = KeyEqual;
+    using key_equal =
+            typename Detail::UnorderedMap::ChooseKeyEqual<hasher,
+                                                          KeyEqual>::type;
     using allocator_type = Allocator;
     using pointer = typename allocator_type::pointer;
     using const_pointer = typename allocator_type::const_pointer;
     using reference = typename allocator_type::reference;
     using const_reference = typename allocator_type::const_reference;
+
+
+    static_assert(!Detail::UnorderedMap::HasTransparentKeyEqual<hasher>::value
+                  || Detail::UnorderedMap::HasIsTransparent<key_equal>::value,
+                  "Hash_::transparent_key_equal is not transparent!");
+
+    static_assert(!Detail::UnorderedMap::HasTransparentKeyEqual<hasher>::value
+                  || std::is_same<KeyEqual, std::equal_to<Key> >::value
+                  || std::is_same<KeyEqual, key_equal>::value,
+                  "Invalid KeyEqual provided!");
 
 private: /* Types: */
 
@@ -279,7 +390,9 @@ public: /* Methods: */
         , m_allocator(allocator)
     {}
 
-    ~UnorderedMap() noexcept {}
+
+    virtual ~UnorderedMap() noexcept = default;
+
 
     UnorderedMap & operator=(UnorderedMap const & rhs) {
         if (&rhs != this) {
@@ -421,6 +534,18 @@ public: /* Methods: */
         return 0u;
     }
 
+    template <typename K>
+    auto erase(K const & key)
+            -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
+                            Hash_, Key, K, size_type>::type
+    {
+        return Detail::UnorderedMap::TransparentErase<hasher, K>::erase(
+                    m_container,
+                    key,
+                    m_hasher,
+                    m_pred);
+    }
+
     iterator erase(const_iterator first, const_iterator last)
     { return iterator(m_container.erase(first.base(), last.base())); }
 
@@ -469,6 +594,33 @@ public: /* Methods: */
             if (m_pred(er.first->second->first, key))
                 return const_iterator(er.first);
         return end();
+    }
+
+    /** \note Introduced to std::unordered_map in C++20. */
+    template <typename K>
+    auto find(K const & key)
+            -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
+                            Hash_, Key, K, iterator>::type
+    {
+        return iterator(Detail::UnorderedMap::TransparentFind<hasher, K>::find(
+                            m_container,
+                            key,
+                            m_hasher,
+                            m_pred));
+    }
+
+    /** \note Introduced to std::unordered_map in C++20. */
+    template <typename K>
+    auto find(K const & key) const
+            -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
+                            Hash_, Key, K, const_iterator>::type
+    {
+        return const_iterator(
+                    Detail::UnorderedMap::TransparentFind<hasher, K>::find(
+                        m_container,
+                        key,
+                        m_hasher,
+                        m_pred));
     }
 
     /** \note not in std::unordered_map */
@@ -579,6 +731,13 @@ public: /* Methods: */
                 ++r;
         return r;
     }
+
+    /** \note Introduced to std::unordered_map in C++20. */
+    template <typename K>
+    auto count(K const & key) const
+            -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
+                            Hash_, Key, K, std::size_t>::type
+    { return find(key) != end(); }
 
     /** \note not in std::unordered_map */
     template <typename Pred,

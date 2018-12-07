@@ -20,13 +20,16 @@
 #ifndef SHAREMIND_STRINGHASHER_H
 #define SHAREMIND_STRINGHASHER_H
 
+#include <algorithm>
 #include <boost/functional/hash.hpp>
 #include <cstddef>
+#include <cstring>
 #include <iterator>
 #include <string>
 #include <utility>
 #include "Concepts.h"
 #include "Range.h"
+#include "RemoveCvref.h"
 
 
 namespace sharemind {
@@ -61,6 +64,60 @@ auto operator!=(Iter const & it, TerminatingNullCharacterSentinel const &)
 } /* namespace Detail { */
 
 struct StringHasher {
+
+    struct transparent_key_equal {
+
+        using is_transparent = void;
+
+        template <typename T>
+        auto operator()(std::string const & a, T && b) const noexcept
+            -> SHAREMIND_REQUIRE_CONCEPTS_R(bool,
+                                            RandomAccessRangeTo(T, char),
+                                            BoundedRange(T))
+        {
+            auto bIt(std::begin(b));
+            auto bEnd(std::end(b)); // Don't change to const, might break stuff
+            if (!integralEqual(a.size(), std::distance(bIt, bEnd)))
+                return false;
+            return std::equal(bIt, bEnd, a.begin());
+        }
+
+        template <typename T>
+        auto operator()(std::string const & a, T && b) const noexcept
+                -> SHAREMIND_REQUIRE_CONCEPTS_R(
+                        bool,
+                        InputRangeTo(T, char),
+                        Not(All(RandomAccessRange(T), BoundedRange(T)))
+                )
+        {
+            auto aIt(a.begin());
+            auto aEnd(a.end()); // Don't change to const, might break stuff
+            auto bIt(std::begin(b));
+            auto bEnd(std::end(b)); // Don't change to const, might break stuff
+            for (; aIt != aEnd; ++aIt, ++bIt)
+                if ((bIt == bEnd) || (*aIt != *bIt))
+                    return false;
+            return bIt == bEnd;
+        }
+
+        template <typename T>
+        auto operator()(T && a, std::string const & b) const noexcept
+                -> SHAREMIND_REQUIRE_CONCEPTS_R(bool, InputRangeTo(T, char))
+        { return this->operator()(b, std::forward<T>(a)); }
+
+        bool operator()(std::string const & a, std::string const & b)
+                const noexcept
+        { return a == b; }
+
+        bool operator()(char const * const a, std::string const & b)
+                const noexcept
+        { return std::strcmp(a, b.c_str()) == 0; }
+
+        bool operator()(std::string const & a, char const * const b)
+                const noexcept
+        { return std::strcmp(a.c_str(), b) == 0; }
+
+    };
 
     template <typename Iterator_, typename Sentinel_>
     auto operator()(Iterator_ first, Sentinel_ last) const
