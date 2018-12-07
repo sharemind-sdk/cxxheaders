@@ -89,6 +89,9 @@ struct Type {
 
     using I = V const *;
     using IL = std::initializer_list<V>;
+    using ITBP = std::pair<typename UM::iterator, bool>;
+    using ITP = std::pair<IT, IT>;
+    using CITP = std::pair<CIT, CIT>;
 
     static_assert(std::is_same<std::pair<K const, M>, V>::value, "");
 
@@ -175,7 +178,6 @@ struct Type {
 
     // Modifiers:
 
-    using ITBP = std::pair<typename UM::iterator, bool>;
     TEST_MEMBER_RETURN(UM &, ITBP, emplace());
     TEST_MEMBER_RETURN(UM &, ITBP, emplace(D(X1)));
     TEST_MEMBER_RETURN(UM &, ITBP, emplace(D(X1), D(X2)));
@@ -209,8 +211,6 @@ struct Type {
 
     // Lookup:
 
-    using ITP = std::pair<IT, IT>;
-    using CITP = std::pair<CIT, CIT>;
     TEST_MEMBER_RETURN(UM &, IT, find(D(K const &)));
     TEST_MEMBER_RETURN(UM const &, CIT, find(D(K const &)));
     TEST_MEMBER_RETURN(UM const &, S, count(D(K const &)));
