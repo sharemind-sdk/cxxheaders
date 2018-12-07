@@ -382,18 +382,89 @@ void testUnorderedMap() {
 
     {
         UM<unsigned, std::string> m;
-        m.emplace(32, "asdf");
-        SHAREMIND_TESTASSERT(m.find(32u) == m.begin());
-        SHAREMIND_TESTASSERT(m.find(32u)->first == 32u);
-        SHAREMIND_TESTASSERT(m.find(32u)->second == "asdf");
-        auto er42(m.equal_range(42u));
-        SHAREMIND_TESTASSERT(er42.first == er42.second);
-        SHAREMIND_TESTASSERT(er42.first == m.end());
-        SHAREMIND_TESTASSERT(er42.second == m.end());
-        auto er32(m.equal_range(32u));
-        SHAREMIND_TESTASSERT(er32.first != er32.second);
-        SHAREMIND_TESTASSERT(er32.first == m.begin());
-        SHAREMIND_TESTASSERT(er32.second == m.end());
+        m.emplace(32u, "asdf");
+        {
+            auto const f32(m.find(32u));
+            SHAREMIND_TESTASSERT(f32 == m.begin());
+            SHAREMIND_TESTASSERT(f32 != m.end());
+            SHAREMIND_TESTASSERT(f32->first == 32u);
+            SHAREMIND_TESTASSERT(f32->second == "asdf");
+            auto const er42(m.equal_range(42u));
+            SHAREMIND_TESTASSERT(er42.first == er42.second);
+            SHAREMIND_TESTASSERT(er42.first == m.end());
+            SHAREMIND_TESTASSERT(er42.second == m.end());
+            auto const er32(m.equal_range(32u));
+            SHAREMIND_TESTASSERT(er32.first != er32.second);
+            SHAREMIND_TESTASSERT(er32.first == f32);
+            SHAREMIND_TESTASSERT(er32.second == std::next(er32.first));
+        }
+        m.emplace(11u, "haha");
+        {
+            auto const f32(m.find(32u));
+            SHAREMIND_TESTASSERT(f32 != m.end());
+            SHAREMIND_TESTASSERT(f32->first == 32u);
+            SHAREMIND_TESTASSERT(f32->second == "asdf");
+            auto const f11(m.find(11u));
+            SHAREMIND_TESTASSERT(f11 != f32);
+            SHAREMIND_TESTASSERT(f11 != m.end());
+            SHAREMIND_TESTASSERT(f11->first == 11u);
+            SHAREMIND_TESTASSERT(f11->second == "haha");
+            SHAREMIND_TESTASSERT((f11 == m.begin()) || (f32 == m.begin()));
+            SHAREMIND_TESTASSERT((std::next(f11) == m.end())
+                                 || (std::next(f32) == m.end()));
+            auto const er42(m.equal_range(42u));
+            SHAREMIND_TESTASSERT(er42.first == er42.second);
+            SHAREMIND_TESTASSERT(er42.first == m.end());
+            SHAREMIND_TESTASSERT(er42.second == m.end());
+            auto const er32(m.equal_range(32u));
+            SHAREMIND_TESTASSERT(er32.first != er32.second);
+            SHAREMIND_TESTASSERT(er32.first == f32);
+            SHAREMIND_TESTASSERT(er32.second == std::next(er32.first));
+            auto const er11(m.equal_range(11u));
+            SHAREMIND_TESTASSERT(er11.first != er11.second);
+            SHAREMIND_TESTASSERT(er11.first == f11);
+            SHAREMIND_TESTASSERT(er11.second == std::next(er11.first));
+        }
+        m.emplace(50u, "x");
+        {
+            auto const f32(m.find(32u));
+            SHAREMIND_TESTASSERT(f32 != m.end());
+            SHAREMIND_TESTASSERT(f32->first == 32u);
+            SHAREMIND_TESTASSERT(f32->second == "asdf");
+            auto const f11(m.find(11u));
+            SHAREMIND_TESTASSERT(f11 != f32);
+            SHAREMIND_TESTASSERT(f11 != m.end());
+            SHAREMIND_TESTASSERT(f11->first == 11u);
+            SHAREMIND_TESTASSERT(f11->second == "haha");
+            auto const f50(m.find(50u));
+            SHAREMIND_TESTASSERT(f50 != f32);
+            SHAREMIND_TESTASSERT(f50 != f11);
+            SHAREMIND_TESTASSERT(f50 != m.end());
+            SHAREMIND_TESTASSERT(f50->first == 50u);
+            SHAREMIND_TESTASSERT(f50->second == "x");
+            SHAREMIND_TESTASSERT((f11 == m.begin())
+                                 || (f32 == m.begin())
+                                 || (f50 == m.begin()));
+            SHAREMIND_TESTASSERT((std::next(f11) == m.end())
+                                 || (std::next(f32) == m.end())
+                                 || (std::next(f50) == m.end()));
+            auto const er42(m.equal_range(42u));
+            SHAREMIND_TESTASSERT(er42.first == er42.second);
+            SHAREMIND_TESTASSERT(er42.first == m.end());
+            SHAREMIND_TESTASSERT(er42.second == m.end());
+            auto const er32(m.equal_range(32u));
+            SHAREMIND_TESTASSERT(er32.first != er32.second);
+            SHAREMIND_TESTASSERT(er32.first == f32);
+            SHAREMIND_TESTASSERT(er32.second == std::next(er32.first));
+            auto const er11(m.equal_range(11u));
+            SHAREMIND_TESTASSERT(er11.first != er11.second);
+            SHAREMIND_TESTASSERT(er11.first == f11);
+            SHAREMIND_TESTASSERT(er11.second == std::next(er11.first));
+            auto const er50(m.equal_range(50u));
+            SHAREMIND_TESTASSERT(er50.first != er50.second);
+            SHAREMIND_TESTASSERT(er50.first == f50);
+            SHAREMIND_TESTASSERT(er50.second == std::next(er50.first));
+        }
 
         SHAREMIND_TESTASSERT(m[32u] == "asdf");
         SHAREMIND_TESTASSERT(m.at(32u) == "asdf");
