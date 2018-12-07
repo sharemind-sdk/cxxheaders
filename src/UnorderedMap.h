@@ -520,6 +520,56 @@ public: /* Methods: */
     void insert(std::initializer_list<value_type> values)
     { return insert(values.begin(), values.end()); }
 
+    template <typename Value>
+    std::pair<iterator, bool> insert_or_assign(key_type const & k, Value && v) {
+        using R = std::pair<iterator, bool>;
+        auto const hash(m_hasher(k));
+        for (auto er = m_container.equal_range(hash);
+             er.first != er.second;
+             ++er.first)
+            if (m_pred(k, er.first->second->first)) {
+                er.first->second->second = std::forward<Value>(v);
+                return R(iterator(std::move(er.first)), false);
+            }
+        return R(iterator(m_container.emplace(std::move(hash),
+                                              std::allocate_shared<value_type>(
+                                                  m_allocator,
+                                                  k,
+                                                  std::forward<Value>(v)))),
+                 true);
+    }
+
+    template <typename Value>
+    iterator insert_or_assign(const_iterator /* hint */,
+                              key_type const & k,
+                              Value && v)
+    { return insert_or_assign(k, std::forward<Value>(v)).first; }
+
+    template <typename Value>
+    std::pair<iterator, bool> insert_or_assign(key_type && k, Value && v) {
+        using R = std::pair<iterator, bool>;
+        auto const hash(m_hasher(k));
+        for (auto er = m_container.equal_range(hash);
+             er.first != er.second;
+             ++er.first)
+            if (m_pred(k, er.first->second->first)) {
+                er.first->second->second = std::forward<Value>(v);
+                return R(iterator(std::move(er.first)), false);
+            }
+        return R(iterator(m_container.emplace(std::move(hash),
+                                              std::allocate_shared<value_type>(
+                                                  m_allocator,
+                                                  std::move(k),
+                                                  std::forward<Value>(v)))),
+                 true);
+    }
+
+    template <typename Value>
+    iterator insert_or_assign(const_iterator /* hint */,
+                              key_type && k,
+                              Value && v)
+    { return insert_or_assign(std::move(k), std::forward<Value>(v)); }
+
     iterator erase(const_iterator position)
     { return iterator(m_container.erase(position.base())); }
 

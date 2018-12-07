@@ -73,7 +73,7 @@ struct X1 {}; struct X2 {}; struct X3{};
     TEST_TRAIT(is_same, r, decltype(D(T).__VA_ARGS__))
 
 template <typename UM>
-struct Type {
+struct TypeBase {
     using type = UM;
     using K = typename UM::key_type;
     using V = typename UM::value_type;
@@ -195,6 +195,23 @@ struct Type {
     TEST_MEMBER_RETURN(UM &, void, insert(D(CIT), D(CIT)));
     TEST_MEMBER_RETURN(UM &, void, insert(D(IL)));
 
+    /* For pre-C++17 the insert_or_assign already exist in the Type
+       specialization for sharemind::UnorderedMap: */
+    #if __cplusplus >= 201703L
+    TEST_MEMBER_RETURN(UM &, ITBP,
+                       insert_or_assign(D(K const &), D(V const &)));
+    TEST_MEMBER_RETURN(UM &, ITBP, insert_or_assign(D(K const &), D(V &&)));
+    TEST_MEMBER_RETURN(UM &, ITBP, insert_or_assign(D(K &&), D(V const &)));
+    TEST_MEMBER_RETURN(UM &, ITBP, insert_or_assign(D(K &&), D(V &&)));
+    TEST_MEMBER_RETURN(UM &, IT,
+                       insert_or_assign(D(IT), D(K const &), D(V const &)));
+    TEST_MEMBER_RETURN(UM &, IT,
+                       insert_or_assign(D(IT), D(K const &), D(V &&)));
+    TEST_MEMBER_RETURN(UM &, IT,
+                       insert_or_assign(D(IT), D(K &&), D(V const &)));
+    TEST_MEMBER_RETURN(UM &, IT, insert_or_assign(D(IT), D(K &&), D(V &&)));
+    #endif
+
     TEST_MEMBER_RETURN(UM &, IT, erase(D(CIT)));
     TEST_MEMBER_RETURN(UM &, S, erase(D(K const &)));
     TEST_MEMBER_RETURN(UM &, IT, erase(D(CIT), D(CIT)));
@@ -246,6 +263,35 @@ struct Type {
     TEST_MEMBER_RETURN(UM &, void, max_load_factor(D(float)));
     TEST_MEMBER_RETURN(UM &, void, rehash(D(S)));
     TEST_MEMBER_RETURN(UM &, void, reserve(D(S)));
+};
+
+
+template <typename UM> struct Type: TypeBase<UM> {};
+
+template <typename ... Ts>
+struct Type<sharemind::UnorderedMap<Ts...> >
+        : TypeBase<sharemind::UnorderedMap<Ts...> >
+{
+    #define B typename TypeBase<sharemind::UnorderedMap<Ts...> >
+    using B::type; using B::ITBP; using B::K; using B::V;
+    using B::IT; using B::CIT;
+    #undef B
+
+    /* The insert_or_assign already exist in TypeBase for C++17 and later: */
+    #if __cplusplus < 201703L
+    TEST_MEMBER_RETURN(type &, ITBP,
+                       insert_or_assign(D(K const &), D(V const &)));
+    TEST_MEMBER_RETURN(type &, ITBP, insert_or_assign(D(K const &), D(V &&)));
+    TEST_MEMBER_RETURN(type &, ITBP, insert_or_assign(D(K &&), D(V const &)));
+    TEST_MEMBER_RETURN(type &, ITBP, insert_or_assign(D(K &&), D(V &&)));
+    TEST_MEMBER_RETURN(type &, IT,
+                       insert_or_assign(D(CIT), D(K const &), D(V const &)));
+    TEST_MEMBER_RETURN(type &, IT,
+                       insert_or_assign(D(CIT), D(K const &), D(V &&)));
+    TEST_MEMBER_RETURN(type &, IT,
+                       insert_or_assign(D(CIT), D(K &&), D(V const &)));
+    TEST_MEMBER_RETURN(type &, IT, insert_or_assign(D(CIT), D(K &&), D(V &&)));
+    #endif
 };
 
 template <typename ... Args>
@@ -581,6 +627,46 @@ int main() {
                 auto bucket(m.bucket(key));
                 SHAREMIND_TESTASSERT(m.hash_bucket(MyHash()(key)) == bucket);
                 SHAREMIND_TESTASSERT(m.bucket(it) == bucket);
+            }
+        }
+
+        { // Test insert_or_replace:
+            using T = std::shared_ptr<int>;
+            auto key(std::make_shared<int>(42));
+            auto value(std::make_shared<int>(42));
+            auto value2(std::make_shared<int>(42));
+
+            {
+                sharemind::UnorderedMap<T, T> m;
+                auto r1(m.insert_or_assign(key, value));
+                SHAREMIND_TESTASSERT(r1.second);
+                SHAREMIND_TESTASSERT(r1.first != m.end());
+                SHAREMIND_TESTASSERT(r1.first->first == key);
+                SHAREMIND_TESTASSERT(r1.first->second == value);
+                SHAREMIND_TESTASSERT(!value.unique());
+                auto r2(m.insert_or_assign(key, value2));
+                SHAREMIND_TESTASSERT(!r2.second);
+                SHAREMIND_TESTASSERT(r2.first == r1.first);
+                SHAREMIND_TESTASSERT(r2.first->first == key);
+                SHAREMIND_TESTASSERT(r2.first->second == value2);
+                SHAREMIND_TESTASSERT(value.unique());
+                SHAREMIND_TESTASSERT(!value2.unique());
+                auto it(m.find(key));
+                SHAREMIND_TESTASSERT(it == r2.first);
+            }
+            { // With hint:
+                sharemind::UnorderedMap<T, T> m;
+                auto r1(m.insert_or_assign(m.begin(), key, value));
+                SHAREMIND_TESTASSERT(r1 != m.end());
+                SHAREMIND_TESTASSERT(r1->first == key);
+                SHAREMIND_TESTASSERT(r1->second == value);
+                SHAREMIND_TESTASSERT(!value.unique());
+                auto r2(m.insert_or_assign(m.begin(), key, value2));
+                SHAREMIND_TESTASSERT(r2 == r1);
+                SHAREMIND_TESTASSERT(r2->first == key);
+                SHAREMIND_TESTASSERT(r2->second == value2);
+                SHAREMIND_TESTASSERT(value.unique());
+                SHAREMIND_TESTASSERT(!value2.unique());
             }
         }
     } catch (...) {
