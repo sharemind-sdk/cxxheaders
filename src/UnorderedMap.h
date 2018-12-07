@@ -721,16 +721,7 @@ public: /* Methods: */
         return end();
     }
 
-    size_type count(key_type const & key) const {
-        size_type r = 0u;
-        auto const hash(m_hasher(key));
-        for (auto er(m_container.equal_range(hash));
-             er.first != er.second;
-             ++er.first)
-            if (m_pred(er.first->second->first, key))
-                ++r;
-        return r;
-    }
+    size_type count(key_type const & key) const { return find(key) != end(); }
 
     /** \note Introduced to std::unordered_map in C++20. */
     template <typename K>
@@ -743,21 +734,14 @@ public: /* Methods: */
     template <typename Pred,
               SHAREMIND_REQUIRES_CONCEPTS(
                     UnaryPredicate(Pred, key_type const &))>
-    size_type count(hash_type hash, Pred && pred) const {
-        size_type r = 0u;
-        for (auto er(m_container.equal_range(hash));
-             er.first != er.second;
-             ++er.first)
-            if (pred(er.first->second->first))
-                ++r;
-        return r;
-    }
+    size_type count(hash_type hash, Pred && pred) const
+    { return find(std::move(hash), std::forward<Pred>(pred)) != end(); }
 
     /** \note not in std::unordered_map */
     template <typename Pred,
               SHAREMIND_REQUIRES_CONCEPTS(HashTablePredicate<Key>(Pred))>
     size_type count(Pred && pred) const {
-        std::size_t const hash(pred.hash());
+        std::size_t hash(pred.hash());
         return count(hash, std::forward<Pred>(pred));
     }
 
@@ -768,15 +752,7 @@ public: /* Methods: */
                     BinaryPredicate(Pred, key_type const &, Key_ const &))>
     size_type count(hash_type hash, Pred && pred, Key_ const & key)
             const
-    {
-        size_type r = 0u;
-        for (auto er(m_container.equal_range(hash));
-             er.first != er.second;
-             ++er.first)
-            if (pred(er.first->second->first, key))
-                ++r;
-        return r;
-    }
+    { return find(std::move(hash), std::forward<Pred>(pred), key) != end(); }
 
     /** \note some not in std::unordered_map */
     template <typename ... Args>
