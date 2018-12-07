@@ -55,7 +55,8 @@ public: /* Methods: */
     void start() noexcept { m_startPromise.setValue(true); }
 
     inline void stop() noexcept {
-        m_startPromise.setValue(false);
+        if (m_startPromise.isValid())
+            m_startPromise.setValue(false);
         if (m_thread.joinable())
             m_thread.join();
     }
