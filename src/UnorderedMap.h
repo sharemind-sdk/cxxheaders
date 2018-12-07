@@ -721,6 +721,39 @@ public: /* Methods: */
         return end();
     }
 
+    /** \note Introduced to std::unordered_map in C++20. */
+    bool contains(key_type const & key) const { return find(key) != end(); }
+
+    /** \note Introduced to std::unordered_map in C++20. */
+    template <typename K>
+    auto contains(K const & key) const
+            -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
+                            Hash_, Key, K, bool>::type
+    { return find(key) != end(); }
+
+    /** \note not in std::unordered_map */
+    template <typename Pred,
+              SHAREMIND_REQUIRES_CONCEPTS(
+                    UnaryPredicate(Pred, key_type const &))>
+    bool contains(hash_type hash, Pred && pred) const
+    { return find(std::move(hash), std::forward<Pred>(pred)) != end(); }
+
+    /** \note not in std::unordered_map */
+    template <typename Pred,
+              SHAREMIND_REQUIRES_CONCEPTS(HashTablePredicate<Key>(Pred))>
+    bool contains(Pred && pred) const {
+        std::size_t hash(pred.hash());
+        return count(hash, std::forward<Pred>(pred));
+    }
+
+    /** \note not in std::unordered_map */
+    template <typename Pred,
+              typename Key_,
+              SHAREMIND_REQUIRES_CONCEPTS(
+                    BinaryPredicate(Pred, key_type const &, Key_ const &))>
+    bool contains(hash_type hash, Pred && pred, Key_ const & key) const
+    { return find(std::move(hash), std::forward<Pred>(pred), key) != end(); }
+
     size_type count(key_type const & key) const { return find(key) != end(); }
 
     /** \note Introduced to std::unordered_map in C++20. */

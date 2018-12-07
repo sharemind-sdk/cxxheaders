@@ -181,32 +181,38 @@ int main() {
             SHAREMIND_TESTASSERT(cm.find(rangeOf(tmp)) == cm.end());
         }
 
-        // Count:
+        // Count and contains:
+        auto const testCC =
+                [](auto & c, auto && v) {
+                    auto r = c.contains(v);
+                    SHAREMIND_TESTASSERT(r == c.count(v));
+                    return r;
+                };
         for (auto const & vp: valuePairs) {
-            SHAREMIND_TESTASSERT(m.count(vp.first) == 1u);
-            SHAREMIND_TESTASSERT(cm.count(vp.first) == 1u);
-            SHAREMIND_TESTASSERT(m.count(vp.first.c_str()) == 1u);
-            SHAREMIND_TESTASSERT(cm.count(vp.first.c_str()) == 1u);
-            SHAREMIND_TESTASSERT(m.count(constRangeOf(vp.first)) == 1u);
-            SHAREMIND_TESTASSERT(cm.count(constRangeOf(vp.first)) == 1u);
+            SHAREMIND_TESTASSERT(testCC(m, vp.first));
+            SHAREMIND_TESTASSERT(testCC(cm, vp.first));
+            SHAREMIND_TESTASSERT(testCC(m, vp.first.c_str()));
+            SHAREMIND_TESTASSERT(testCC(cm, vp.first.c_str()));
+            SHAREMIND_TESTASSERT(testCC(m, constRangeOf(vp.first)));
+            SHAREMIND_TESTASSERT(testCC(cm, constRangeOf(vp.first)));
             {
                 auto tmp(vp.first);
-                SHAREMIND_TESTASSERT(m.count(rangeOf(tmp)) == 1u);
+                SHAREMIND_TESTASSERT(testCC(m, rangeOf(tmp)));
             }{
                 auto tmp(vp.first);
-                SHAREMIND_TESTASSERT(cm.count(rangeOf(tmp)) == 1u);
+                SHAREMIND_TESTASSERT(testCC(cm, rangeOf(tmp)));
             }
         }
-        SHAREMIND_TESTASSERT(m.count(noSuchValue) == 0u);
-        SHAREMIND_TESTASSERT(cm.count(noSuchValue) == 0u);
-        SHAREMIND_TESTASSERT(m.count(noSuchValue.c_str()) == 0u);
-        SHAREMIND_TESTASSERT(cm.count(noSuchValue.c_str()) == 0u);
-        SHAREMIND_TESTASSERT(m.count(constRangeOf(noSuchValue)) == 0u);
-        SHAREMIND_TESTASSERT(cm.count(constRangeOf(noSuchValue)) == 0u);
+        SHAREMIND_TESTASSERT(!testCC(m, noSuchValue));
+        SHAREMIND_TESTASSERT(!testCC(cm, noSuchValue));
+        SHAREMIND_TESTASSERT(!testCC(m, noSuchValue.c_str()));
+        SHAREMIND_TESTASSERT(!testCC(cm, noSuchValue.c_str()));
+        SHAREMIND_TESTASSERT(!testCC(m, constRangeOf(noSuchValue)));
+        SHAREMIND_TESTASSERT(!testCC(cm, constRangeOf(noSuchValue)));
         {
             auto tmp(noSuchValue);
-            SHAREMIND_TESTASSERT(m.count(rangeOf(tmp)) == 0u);
-            SHAREMIND_TESTASSERT(cm.count(rangeOf(tmp)) == 0u);
+            SHAREMIND_TESTASSERT(!testCC(m, rangeOf(tmp)));
+            SHAREMIND_TESTASSERT(!testCC(cm, rangeOf(tmp)));
         }
 
         // Equal range:
