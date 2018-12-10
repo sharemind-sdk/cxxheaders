@@ -592,7 +592,7 @@ public: /* Methods: */
     template <typename K>
     auto erase(K const & key)
             -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
-                    RemoveCvrefT<decltype(*this)>, K, size_type>::type
+                    RemoveCvrefT<decltype(*this)>, K const &, size_type>::type
     {
         return Detail::UnorderedMap::TransparentErase<hasher, K>::erase(
                     m_container,
@@ -655,7 +655,9 @@ public: /* Methods: */
     template <typename K>
     auto find(K const & key)
             -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
-                            RemoveCvrefT<decltype(*this)>, K, iterator>::type
+                            RemoveCvrefT<decltype(*this)>,
+                            K const &,
+                            iterator>::type
     {
         return iterator(Detail::UnorderedMap::TransparentFind<hasher, K>::find(
                             m_container,
@@ -668,7 +670,9 @@ public: /* Methods: */
     template <typename K>
     auto find(K const & key) const
             -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
-                            RemoveCvrefT<decltype(*this)>, K, const_iterator>::type
+                            RemoveCvrefT<decltype(*this)>,
+                            K const &,
+                            const_iterator>::type
     {
         return const_iterator(
                     Detail::UnorderedMap::TransparentFind<hasher, K>::find(
@@ -783,7 +787,9 @@ public: /* Methods: */
     template <typename K>
     auto contains(K const & key) const
             -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
-                            RemoveCvrefT<decltype(*this)>, K, bool>::type
+                            RemoveCvrefT<decltype(*this)>,
+                            K const &,
+                            bool>::type
     { return find(key) != end(); }
 
     /** \note not in std::unordered_map */
@@ -815,7 +821,9 @@ public: /* Methods: */
     template <typename K>
     auto count(K const & key) const
             -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
-                            RemoveCvrefT<decltype(*this)>, K, std::size_t>::type
+                            RemoveCvrefT<decltype(*this)>,
+                            K const &,
+                            std::size_t>::type
     { return contains(key); }
 
     /** \note not in std::unordered_map */
