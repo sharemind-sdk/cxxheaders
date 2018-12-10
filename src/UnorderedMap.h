@@ -37,6 +37,7 @@
 #include <type_traits>
 #include "Concepts.h"
 #include "HashTablePredicate.h"
+#include "RemoveCvref.h"
 #include "Void.h"
 
 
@@ -71,11 +72,15 @@ template <typename Hash, typename KeyEqual>
 struct ChooseKeyEqual<Hash, KeyEqual, false> { using type = KeyEqual; };
 
 
-template <typename Hash, typename Key, typename K, typename R>
+template <typename UM, typename K, typename R>
 struct TransparentKeyEqualOverload
         : std::enable_if<
-                HasTransparentKeyEqual<Hash>::value
-                && Models<Not(HashTablePredicate<Key>(K))>::value,
+                HasTransparentKeyEqual<typename UM::hasher>::value
+                && Models<
+                        Not(HashTablePredicate<typename UM::key_type>(K)),
+                        Not(ConvertibleTo(K, typename UM::const_iterator)),
+                        Not(ConvertibleTo(K, typename UM::iterator))
+                    >::value,
                 R
             >
 {};
@@ -587,7 +592,7 @@ public: /* Methods: */
     template <typename K>
     auto erase(K const & key)
             -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
-                            Hash_, Key, K, size_type>::type
+                    RemoveCvrefT<decltype(*this)>, K, size_type>::type
     {
         return Detail::UnorderedMap::TransparentErase<hasher, K>::erase(
                     m_container,
@@ -650,7 +655,7 @@ public: /* Methods: */
     template <typename K>
     auto find(K const & key)
             -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
-                            Hash_, Key, K, iterator>::type
+                            RemoveCvrefT<decltype(*this)>, K, iterator>::type
     {
         return iterator(Detail::UnorderedMap::TransparentFind<hasher, K>::find(
                             m_container,
@@ -663,7 +668,7 @@ public: /* Methods: */
     template <typename K>
     auto find(K const & key) const
             -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
-                            Hash_, Key, K, const_iterator>::type
+                            RemoveCvrefT<decltype(*this)>, K, const_iterator>::type
     {
         return const_iterator(
                     Detail::UnorderedMap::TransparentFind<hasher, K>::find(
@@ -778,7 +783,7 @@ public: /* Methods: */
     template <typename K>
     auto contains(K const & key) const
             -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
-                            Hash_, Key, K, bool>::type
+                            RemoveCvrefT<decltype(*this)>, K, bool>::type
     { return find(key) != end(); }
 
     /** \note not in std::unordered_map */
@@ -810,7 +815,7 @@ public: /* Methods: */
     template <typename K>
     auto count(K const & key) const
             -> typename Detail::UnorderedMap::TransparentKeyEqualOverload<
-                            Hash_, Key, K, std::size_t>::type
+                            RemoveCvrefT<decltype(*this)>, K, std::size_t>::type
     { return contains(key); }
 
     /** \note not in std::unordered_map */
