@@ -46,7 +46,17 @@ class SimpleUnorderedStringMap
                 StringHasher::transparent_key_equal,
                 Allocator
             >
-{};
+{
+
+    using UnorderedMap<
+                std::string,
+                T,
+                StringHasher,
+                StringHasher::transparent_key_equal,
+                Allocator
+            >::UnorderedMap;
+
+};
 
 } /* namespace Sharemind { */
 
