@@ -570,9 +570,6 @@ public: /* Methods: */
                               Value && v)
     { return insert_or_assign(std::move(k), std::forward<Value>(v)); }
 
-    iterator erase(iterator position)
-    { return iterator(m_container.erase(position.base())); }
-
     iterator erase(const_iterator position)
     { return iterator(m_container.erase(position.base())); }
 
