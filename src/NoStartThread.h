@@ -41,13 +41,19 @@ public: /* Methods: */
     NoStartThread(F && f)
         : m_func(std::forward<F>(f))
         , m_thread(&NoStartThread::run_, this)
-    {}
+    {
+        static_assert(noexcept(std::declval<F &&>()()),
+                      "NoStartThread function must be noexcept!");
+    }
 
     ~NoStartThread() noexcept { stop(); }
 
     template <typename F>
-    void setFunction(F && f)
-    { m_func = std::function<void()>(std::forward<F>(f)); }
+    void setFunction(F && f) {
+        static_assert(noexcept(std::declval<F &&>()()),
+                      "NoStartThread function must be noexcept!");
+        m_func = std::function<void()>(std::forward<F>(f));
+    }
 
     void start() noexcept {
         assert(m_startPromise.isValid());
