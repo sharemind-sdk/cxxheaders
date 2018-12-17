@@ -32,11 +32,11 @@ public: /* Methods: */
 
     template <typename ... Args>
     inline ScopeExit(Args && ... args) : m_f{std::forward<Args>(args)...} {}
-    inline ~ScopeExit() noexcept { m_f(); }
+    inline ~ScopeExit() noexcept(false) { m_f(); }
 
 private: /* Fields: */
 
-    std::function<void () noexcept> m_f;
+    std::function<void()> m_f;
 
 };
 
