@@ -70,7 +70,7 @@ public: /* Methods: */
 private: /* Methods: */
 
     void run_() noexcept {
-        if (m_startPromise.takeFuture().takeValue())
+        if (m_startPromise.takeFuture().takeValue() && m_func)
             m_func();
     }
 
