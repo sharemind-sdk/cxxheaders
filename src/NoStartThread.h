@@ -80,7 +80,7 @@ private: /* Methods: */
 private: /* Fields: */
 
     Promise<bool> m_startPromise;
-    std::function<void () noexcept> m_func;
+    std::function<void()> m_func;
     std::thread m_thread;
 
 }; /* class NoStartThread { */
