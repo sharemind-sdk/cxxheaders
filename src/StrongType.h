@@ -109,7 +109,7 @@ SHAREMIND_STRONGTYPE_H_(GreaterThan,>)
 SHAREMIND_STRONGTYPE_H_(GreaterOrEqual,>=)
 #undef SHAREMIND_STRONGTYPE_H_
 
-struct StrongTypeRegularComparable {
+struct StrongTypeBasicComparable {
     template <typename T>
     struct impl
             : StrongTypeEqualityComparable::impl<T>
@@ -117,10 +117,12 @@ struct StrongTypeRegularComparable {
     {};
 };
 
-struct StrongTypeSortComparable {
+using StrongTypeSortComparable = StrongTypeLessThanComparable;
+
+struct StrongTypeFullyComparable {
     template <typename T>
     struct impl
-            : StrongTypeRegularComparable::impl<T>
+            : StrongTypeBasicComparable::impl<T>
             , StrongTypeLessThanComparable::impl<T>
             , StrongTypeLessOrEqualComparable::impl<T>
             , StrongTypeGreaterThanComparable::impl<T>
