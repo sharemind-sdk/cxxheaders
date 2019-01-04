@@ -61,6 +61,9 @@ class StrongType
         : public Mixins::template impl<StrongType<T, Tag, Mixins...> > ...
 {
 
+    static_assert(std::is_fundamental<T>::value
+                  || std::is_pointer<T>::value
+                  || std::is_member_pointer<T>::value, "");
     static_assert(Detail::StrongTypeHashableCheck<Mixins...>::value,
                   "StrongTypeHashable needs to be the first mixin to work!");
 
@@ -70,14 +73,13 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    constexpr explicit StrongType(ValueType const & value)
-            noexcept(std::is_nothrow_copy_constructible<T>::value)
-        : m_value(std::move(value))
+    constexpr StrongType() noexcept {}
+
+    constexpr explicit StrongType(ValueType const & value) noexcept
         : m_value(value)
     {}
 
-    constexpr explicit StrongType(ValueType && value)
-            noexcept(std::is_nothrow_move_constructible<T>::value)
+    constexpr explicit StrongType(ValueType && value) noexcept
         : m_value(std::move(value))
     {}
 
