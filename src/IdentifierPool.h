@@ -28,6 +28,7 @@
 #include <type_traits>
 #include "detail/ExceptionMacros.h"
 #include "Exception.h"
+#include "StrongType.h"
 
 
 namespace sharemind {
@@ -106,11 +107,6 @@ public: /* Types: */
 
         IdHolder() {}
 
-        IdHolder(std::shared_ptr<State> state) noexcept
-            : m_id(state->reserve())
-            , m_state(std::move(state))
-        {}
-
         IdHolder(IdHolder const & copy) = delete;
         IdHolder & operator=(IdHolder const & copy) = delete;
 
@@ -144,6 +140,13 @@ public: /* Types: */
             }
         }
 
+    private: /* Methods: */
+
+        IdHolder(std::shared_ptr<State> state) noexcept
+            : m_id(state->reserve())
+            , m_state(std::move(state))
+        {}
+
     private: /* Fields: */
 
         T m_id;
@@ -165,6 +168,83 @@ public: /* Methods: */
 private: /* Fields: */
 
     std::shared_ptr<State> m_state{std::make_shared<State>()};
+
+};
+
+
+template <typename T, typename Tag, typename ... Mixins>
+class IdentifierPool<StrongType<T, Tag, Mixins...> > {
+
+public: /* Types: */
+
+    using ValueType = StrongType<T, Tag, Mixins...>;
+
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION(sharemind::Exception, Exception);
+    /**
+      \brief Signifies that ID reservation failed because the identifier space
+             in type T is exhausted.
+    */
+    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(
+            Exception,
+            ReserveException,
+            "No more identifiers can be reserved.");
+
+public: /* Types: */
+
+    class IdHolder {
+
+    public: /* Types: */
+
+        using ValueType = StrongType<T, Tag, Mixins...>;
+
+    public: /* Methods: */
+
+        IdHolder() {}
+
+        IdHolder(typename IdentifierPool<T>::IdHolder inner) noexcept
+            : m_inner(std::move(inner))
+        {}
+
+        IdHolder(IdHolder const & copy) = delete;
+        IdHolder & operator=(IdHolder const & copy) = delete;
+
+        IdHolder(IdHolder && move) noexcept
+            : m_inner(std::move(move.m_inner))
+        {}
+
+        IdHolder & operator=(IdHolder && move) noexcept {
+            m_inner = std::move(move.m_inner);
+            return *this;
+        }
+
+        ~IdHolder() noexcept = default;
+
+        operator bool() const noexcept { return m_inner.valid(); }
+        bool valid() const noexcept { return m_inner.valid(); }
+        ValueType id() const noexcept { return ValueType(m_inner.id()); }
+
+        void release() noexcept { m_inner.release(); }
+
+    private: /* Fields: */
+
+        typename IdentifierPool<T>::IdHolder m_inner;
+
+    };
+
+public: /* Methods: */
+
+    /**
+      \brief Generates, reserves and returns an unique ID from this pool.
+      \post the returned ID is reserved by the pool.
+      \returns the unique ID generated and reserved.
+      \throws ReserveException on pool exhaustion.
+      \throws std::bad_alloc when out of memory.
+    */
+    IdHolder reserve() { return m_inner.reserve(); }
+
+private: /* Fields: */
+
+    IdentifierPool<T> m_inner;
 
 };
 

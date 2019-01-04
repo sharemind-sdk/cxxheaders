@@ -22,52 +22,66 @@
 #include <algorithm>
 #include <random>
 #include <memory>
+#include "../src/StrongType.h"
 #include "../src/TestAssert.h"
 
 
-int main() {
+#define CHECK_INVARIANTS \
+    do { /* O(n^2) complexity, but in-place and noexcept: */ \
+        for (auto const & e1 : reserved) \
+            for (auto const & e2 : reserved) \
+                SHAREMIND_TESTASSERT( \
+                        (std::addressof(e1) == std::addressof(e2)) \
+                        || (e1.id() != e2.id())); \
+    } while (false)
+#define SHUFFLE \
+    do { std::shuffle(reserved.begin(), reserved.end(), g); } while (false)
+#define ADD(num) \
+    do { \
+        auto const n = (num); \
+        for (unsigned i = 0u; i < n; ++i) \
+            reserved.emplace_back(pool.reserve()); \
+        CHECK_INVARIANTS; \
+    } while(false);
+#define REMOVE(num) \
+    do { \
+        auto const n = (num); \
+        auto size = reserved.size(); \
+        SHAREMIND_TESTASSERT(size >= n); \
+        for (unsigned i = 0u; i < n; ++i) \
+            reserved.pop_back(); \
+        CHECK_INVARIANTS; \
+    } while (false)
+
+template <typename T>
+void test() {
     std::random_device rd;
     std::mt19937 g(rd());
 
-    sharemind::IdentifierPool<unsigned> pool;
-    std::vector<sharemind::IdHolder<unsigned> > reserved;
-    constexpr static unsigned ADD1 = 1000u;
-    constexpr static unsigned REMOVE1 = 700u; // 300u
-    constexpr static unsigned ADD2 = 900u;    // 1200u
-    constexpr static unsigned REMOVE2 = 300u; // 900u
-    constexpr static unsigned ADD3 = 500u;    // 1400u
-    constexpr static unsigned REMOVE3 = 400u; // 1000u
-
-    reserved.reserve(2000u);
-    #define CHECK_INVARIANTS \
-        do { /* O(n^2) complexity, but in-place and noexcept: */ \
-            for (auto const & e1 : reserved) \
-                for (auto const & e2 : reserved) \
-                    SHAREMIND_TESTASSERT( \
-                            (std::addressof(e1) == std::addressof(e2)) \
-                            || (e1.id() != e2.id())); \
-        } while (false)
-    #define SHUFFLE \
-        do { std::shuffle(reserved.begin(), reserved.end(), g); } while (false)
-    #define ADD(num) \
-        do { \
-            auto const n = (num); \
-            for (unsigned i = 0u; i < n; ++i) \
-                reserved.emplace_back(pool.reserve()); \
-            CHECK_INVARIANTS; \
-        } while(false);
-    #define REMOVE(num) \
-        do { \
-            auto const n = (num); \
-            auto size = reserved.size(); \
-            SHAREMIND_TESTASSERT(size >= n); \
-            for (unsigned i = 0u; i < n; ++i) \
-                reserved.pop_back(); \
-            CHECK_INVARIANTS; \
-        } while (false)
-
-    ADD(ADD1); SHUFFLE; REMOVE(REMOVE1);
-    ADD(ADD2); SHUFFLE; REMOVE(REMOVE2);
-    ADD(ADD3); SHUFFLE; REMOVE(REMOVE3);
+    sharemind::IdentifierPool<T> pool; \
+    std::vector<sharemind::IdHolder<T> > reserved; \
+    constexpr static unsigned ADD1 = 1000u; \
+    constexpr static unsigned REMOVE1 = 700u; /* 300u */ \
+    constexpr static unsigned ADD2 = 900u;    /* 1200u */ \
+    constexpr static unsigned REMOVE2 = 300u; /* 900u */ \
+    constexpr static unsigned ADD3 = 500u;    /* 1400u */ \
+    constexpr static unsigned REMOVE3 = 400u; /* 1000u */ \
+    reserved.reserve(2000u); \
+    ADD(ADD1); SHUFFLE; REMOVE(REMOVE1); \
+    ADD(ADD2); SHUFFLE; REMOVE(REMOVE2); \
+    ADD(ADD3); SHUFFLE; REMOVE(REMOVE3); \
     REMOVE(reserved.size());
+}
+
+int main() {
+    test<unsigned>();
+
+    using UST =
+            sharemind::StrongType<
+                unsigned,
+                struct UnsignedStrongTypeTag_Test,
+                sharemind::StrongTypeEqualityComparable,
+                sharemind::StrongTypeInequalityComparable
+            >;
+    test<UST>();
 }
