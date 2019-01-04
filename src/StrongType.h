@@ -73,6 +73,7 @@ public: /* Methods: */
     constexpr explicit StrongType(ValueType const & value)
             noexcept(std::is_nothrow_copy_constructible<T>::value)
         : m_value(std::move(value))
+        : m_value(value)
     {}
 
     constexpr explicit StrongType(ValueType && value)
