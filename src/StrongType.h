@@ -61,7 +61,7 @@ class StrongType
         : public Mixins::template impl<StrongType<T, Tag, Mixins...> > ...
 {
 
-    static_assert(std::is_fundamental<T>::value
+    static_assert(std::is_arithmetic<T>::value
                   || std::is_pointer<T>::value
                   || std::is_member_pointer<T>::value, "");
     static_assert(Detail::StrongTypeHashableCheck<Mixins...>::value,
