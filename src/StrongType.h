@@ -170,7 +170,16 @@ struct StrongTypeFullyComparable {
     };
 SHAREMIND_STRONGTYPE_H_(AddAssignable,+=)
 SHAREMIND_STRONGTYPE_H_(SubAssignable,-=)
+#if defined(SHAREMIND_STRONGTYPE_H_TEST) && defined(__GNUG__) \
+    && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-in-bool-context"
+#endif
 SHAREMIND_STRONGTYPE_H_(MulAssignable,*=)
+#if defined(SHAREMIND_STRONGTYPE_H_TEST) && defined(__GNUG__) \
+    && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 SHAREMIND_STRONGTYPE_H_(DivAssignable,/=)
 SHAREMIND_STRONGTYPE_H_(ModAssignable,%=)
 SHAREMIND_STRONGTYPE_H_(XorAssignable,^=)
