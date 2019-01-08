@@ -159,7 +159,7 @@ struct StrongTypeFullyComparable {
     }; \
     struct StrongType ## Name { \
         template <typename T> \
-        using impl = StrongType ## Name ## With<T>; \
+        using impl = typename StrongType ## Name ## With<T>::template impl<T>; \
     };
 SHAREMIND_STRONGTYPE_H_(AddAssignable,+=)
 SHAREMIND_STRONGTYPE_H_(SubAssignable,-=)
