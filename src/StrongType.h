@@ -187,6 +187,78 @@ SHAREMIND_STRONGTYPE_H_(AndAssignable,&=)
 SHAREMIND_STRONGTYPE_H_(OrAssignable,|=)
 #undef SHAREMIND_STRONGTYPE_H_
 
+struct StrongTypePreIncrementable {
+    template <typename T>
+    struct impl {
+        T & operator++() noexcept(noexcept(++(std::declval<T *>()->get()))) {
+            ++(this->get());
+            return static_cast<T &>(*this);
+        }
+    };
+};
+
+struct StrongTypePostIncrementable {
+    template <typename T>
+    struct impl {
+        T operator++(int) noexcept(
+                noexcept((std::declval<T *>()->get())++)
+                && std::is_nothrow_copy_constructible<T>::value
+                && std::is_nothrow_move_constructible<T>::value)
+        {
+            auto old(*static_cast<T *>(this));
+            (this->get())++;
+            return std::move(old);
+        }
+    };
+};
+
+struct StrongTypeIncrementable {
+    template <typename T>
+    struct impl
+            : StrongTypePreIncrementable::impl<T>
+            , StrongTypePostIncrementable::impl<T>
+    {
+        using StrongTypePreIncrementable::impl<T>::operator++;
+        using StrongTypePostIncrementable::impl<T>::operator++;
+    };
+};
+
+struct StrongTypePreDecrementable {
+    template <typename T>
+    struct impl {
+        T & operator--() noexcept(noexcept(--(std::declval<T *>()->get()))) {
+            --(this->get());
+            return static_cast<T &>(*this);
+        }
+    };
+};
+
+struct StrongTypePostDecrementable {
+    template <typename T>
+    struct impl {
+        T operator--(int) noexcept(
+                noexcept((std::declval<T *>()->get())--)
+                && std::is_nothrow_copy_constructible<T>::value
+                && std::is_nothrow_move_constructible<T>::value)
+        {
+            auto old(*static_cast<T *>(this));
+            (this->get())--;
+            return std::move(old);
+        }
+    };
+};
+
+struct StrongTypeDecrementable {
+    template <typename T>
+    struct impl
+            : StrongTypePreDecrementable::impl<T>
+            , StrongTypePostDecrementable::impl<T>
+    {
+        using StrongTypePreDecrementable::impl<T>::operator--;
+        using StrongTypePostDecrementable::impl<T>::operator--;
+    };
+};
+
 template <typename Stream>
 struct StrongTypeStreamableTo {
     template <typename T>

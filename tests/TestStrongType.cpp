@@ -113,6 +113,32 @@ struct TestAssignableInterfaces<STI, true>: std::true_type {
 }; // template <typename STI> struct TestAssignableInterfaces<STI>
 #undef TEST_IFACE
 
+template <typename STI,
+          bool = std::is_same<bool, typename STI::ValueType>::value>
+struct TestPreOpInterfaces: std::true_type {
+    SA(std::is_same<decltype(++(std::declval<STI &>())),
+                    STI &>::value);
+    SA(noexcept(++(std::declval<STI &>())));
+    SA(std::is_same<decltype(--(std::declval<STI &>())),
+                    STI &>::value);
+    SA(noexcept(--(std::declval<STI &>())));
+}; // template <typename STI, bool> struct TestPreOpInterfaces
+template <typename STI>
+struct TestPreOpInterfaces<STI, true> : std::true_type{};
+
+template <typename STI,
+          bool = std::is_same<bool, typename STI::ValueType>::value>
+struct TestPostOpInterfaces: std::true_type {
+    SA(std::is_same<decltype(std::declval<STI &>()++),
+                    STI>::value);
+    SA(noexcept(std::declval<STI &>()++));
+    SA(std::is_same<decltype(std::declval<STI &>()--),
+                    STI>::value);
+    SA(noexcept(std::declval<STI &>()--));
+}; // template <typename STI, bool> struct TestPostOpInterfaces
+template <typename STI>
+struct TestPostOpInterfaces<STI, true> : std::true_type {};
+
 template <typename STI>
 struct TestStreamableInterface: std::true_type {
     SA(std::is_same<
@@ -174,6 +200,8 @@ struct Test: std::true_type {
                 sharemind::StrongTypeXorAssignableWith<T>,
                 sharemind::StrongTypeAndAssignableWith<T>,
                 sharemind::StrongTypeOrAssignableWith<T>,
+                sharemind::StrongTypeIncrementable,
+                sharemind::StrongTypeDecrementable,
                 sharemind::StrongTypeSwappable,
                 sharemind::StrongTypeStreamable,
                 sharemind::StrongTypeStreamableTo<CustomOutputStream<T> >
@@ -182,6 +210,8 @@ struct Test: std::true_type {
     SA(TestHashableInterface<STI>::value);
     SA(TestComparableInterfaces<STI>::value);
     SA(TestAssignableInterfaces<STI>::value);
+    SA(TestPreOpInterfaces<STI>::value);
+    SA(TestPostOpInterfaces<STI>::value);
     SA(TestSwappableInterface<STI>::value);
     SA(TestStreamableInterface<STI>::value);
     SA(TestStreamableToInterface<STI, CustomOutputStream<T> >::value);
