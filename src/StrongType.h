@@ -101,8 +101,15 @@ private: /* Fields: */
             { return bool(a.get() op b.get()); } \
         }; \
     };
+#ifdef SHAREMIND_STRONGTYPE_H_TEST
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+#endif
 SHAREMIND_STRONGTYPE_H_(Equality,==)
 SHAREMIND_STRONGTYPE_H_(Inequality,!=)
+#ifdef SHAREMIND_STRONGTYPE_H_TEST
+#pragma GCC diagnostic pop
+#endif
 SHAREMIND_STRONGTYPE_H_(LessThan,<)
 SHAREMIND_STRONGTYPE_H_(LessOrEqual,<=)
 SHAREMIND_STRONGTYPE_H_(GreaterThan,>)
