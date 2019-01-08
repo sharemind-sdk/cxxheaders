@@ -34,7 +34,7 @@ namespace sharemind {
 struct StrongTypeHashable {
     template <typename T>
     struct impl {
-        auto hash() const {
+        auto hash() const noexcept {
             return std::hash<typename T::ValueType>()(
                         static_cast<T const &>(*this).get());
         }
