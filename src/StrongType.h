@@ -135,7 +135,7 @@ struct StrongTypeFullyComparable {
     struct StrongType ## Name ## With { \
         template <typename T> \
         struct impl { \
-            friend constexpr bool operator op(T & lhs, Other const & rhs) \
+            friend constexpr T & operator op(T & lhs, Other const & rhs) \
                     noexcept(noexcept(lhs.get() op rhs)) \
             { \
                 lhs.get() op rhs; \
@@ -147,7 +147,7 @@ struct StrongTypeFullyComparable {
     struct StrongType ## Name ## With<StrongType<Other, Tag, Mixins...> > { \
         template <typename T> \
         struct impl { \
-            friend constexpr bool operator op( \
+            friend constexpr T & operator op( \
                     T & lhs, \
                     StrongType<Other, Tag, Mixins...> const & rhs) \
                     noexcept(noexcept(lhs.get() op rhs.get())) \
