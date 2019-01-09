@@ -21,9 +21,11 @@
 #include "../src/StrongType.h"
 
 #include <cstdint>
+#include <memory>
 #include <ostream>
 #include <type_traits>
 #include <utility>
+#include "../src/TestAssert.h"
 
 
 #define SA(...) static_assert(__VA_ARGS__, "")
@@ -249,4 +251,25 @@ TEST_STD_W(uint); TEST_STD_W(uint_least); TEST_STD_W(uint_fast);
 TEST_STD(intptr_t); TEST_STD(uintptr_t);
 TEST_STD(intmax_t); TEST_STD(uintmax_t);
 
-int main() {}
+int main() {
+    {
+        using STI =
+                sharemind::StrongType<
+                    int,
+                    struct TestTag,
+                    sharemind::StrongTypeEqualityComparable,
+                    sharemind::StrongTypeIncrementable,
+                    sharemind::StrongTypeDecrementable
+                >;
+        STI i{0};
+        SHAREMIND_TESTASSERT(i.get() == 0);
+        SHAREMIND_TESTASSERT(std::addressof(++i) == std::addressof(i));
+        SHAREMIND_TESTASSERT(i.get() == 1);
+        SHAREMIND_TESTASSERT(std::addressof(--i) == std::addressof(i));
+        SHAREMIND_TESTASSERT(i.get() == 0);
+        SHAREMIND_TESTASSERT(i--.get() == 0);
+        SHAREMIND_TESTASSERT(i.get() == -1);
+        SHAREMIND_TESTASSERT(i++.get() == -1);
+        SHAREMIND_TESTASSERT(i.get() == 0);
+    }
+}

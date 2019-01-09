@@ -191,8 +191,9 @@ struct StrongTypePreIncrementable {
     template <typename T>
     struct impl {
         T & operator++() noexcept(noexcept(++(std::declval<T *>()->get()))) {
-            ++(this->get());
-            return static_cast<T &>(*this);
+            auto & v = *static_cast<T *>(this);
+            ++(v.get());
+            return v;
         }
     };
 };
@@ -205,8 +206,9 @@ struct StrongTypePostIncrementable {
                 && std::is_nothrow_copy_constructible<T>::value
                 && std::is_nothrow_move_constructible<T>::value)
         {
-            auto old(*static_cast<T *>(this));
-            (this->get())++;
+            auto & v = *static_cast<T *>(this);
+            auto old(v);
+            (v.get())++;
             return std::move(old);
         }
     };
@@ -227,8 +229,9 @@ struct StrongTypePreDecrementable {
     template <typename T>
     struct impl {
         T & operator--() noexcept(noexcept(--(std::declval<T *>()->get()))) {
-            --(this->get());
-            return static_cast<T &>(*this);
+            auto & v = *static_cast<T *>(this);
+            --(v.get());
+            return v;
         }
     };
 };
@@ -241,8 +244,9 @@ struct StrongTypePostDecrementable {
                 && std::is_nothrow_copy_constructible<T>::value
                 && std::is_nothrow_move_constructible<T>::value)
         {
-            auto old(*static_cast<T *>(this));
-            (this->get())--;
+            auto & v = *static_cast<T *>(this);
+            auto old(v);
+            (v.get())--;
             return std::move(old);
         }
     };
