@@ -215,6 +215,9 @@ struct Test: std::true_type {
     SA(TestSwappableInterface<STI>::value);
     SA(TestStreamableInterface<STI>::value);
     SA(TestStreamableToInterface<STI, CustomOutputStream<T> >::value);
+
+    SA(sharemind::IsStrongType<STI>::value);
+    SA(!sharemind::IsStrongType<T>::value);
 }; // template <typename T, typename Tag> struct Test_
 
 #define TEST_(tag, ...) SA(Test<__VA_ARGS__, struct TypeTag_ ## tag>::value)

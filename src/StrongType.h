@@ -280,6 +280,11 @@ struct StrongTypeSwappable {
     };
 };
 
+template <typename T> struct IsStrongType : std::false_type {};
+
+template <typename T, typename Tag, typename ... Mixins>
+struct IsStrongType<StrongType<T, Tag, Mixins...> > : std::true_type {};
+
 } /* namespace Sharemind { */
 
 namespace std {
