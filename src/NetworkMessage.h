@@ -135,7 +135,7 @@ public: /* Methods: */
 
     inline bool readEmptyBlock() noexcept __attribute__ ((warn_unused_result));
 
-    template<typename T>
+    template <typename T>
     inline bool read(T & val) noexcept __attribute__ ((warn_unused_result));
 
     inline bool read(std::string & val) __attribute__ ((warn_unused_result));
