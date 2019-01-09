@@ -79,6 +79,7 @@ private: /* Types: */
 
 public: /* Types: */
 
+    using DefaultSizeType = std::uint64_t;
     using BlockSizeType = std::uint32_t;
     static_assert(sizeof(BlockSizeType) <= sizeof(std::size_t),
                   "BlockSizeType too wide!");
@@ -142,6 +143,19 @@ public: /* Methods: */
 
     inline bool read(bool & val) noexcept __attribute__ ((warn_unused_result));
 
+    template <typename SerializedSizeType = DefaultSizeType,
+              typename OverflowException = std::bad_array_new_length,
+              typename SizeType>
+    inline bool readSize(SizeType & size)
+            noexcept(false) __attribute__ ((warn_unused_result));
+
+    template <typename SerializedSizeType = DefaultSizeType,
+              typename SizeType,
+              typename OverflowException>
+    inline bool readSize(SizeType & size,
+                         OverflowException && overflowException)
+            noexcept(false) __attribute__ ((warn_unused_result));
+
     template <typename T>
     inline bool readVector(std::vector<T> & vec)
             __attribute__ ((warn_unused_result));
@@ -169,6 +183,9 @@ public: /* Methods: */
 
     template<typename T>
     inline void write(T && val) noexcept(false);
+
+    template <typename SerializedSizeType = DefaultSizeType, typename SizeType>
+    inline void writeSize(SizeType size) noexcept(false);
 
     inline void writeBlock(void const * begin, void const * end)
             noexcept(false);
@@ -413,6 +430,42 @@ inline bool IncomingNetworkMessage::read(bool & val) noexcept {
     }
 }
 
+template <typename SerializedSizeType,
+          typename OverflowException,
+          typename SizeType>
+inline bool IncomingNetworkMessage::readSize(SizeType & size)
+        noexcept(false)
+{
+    SerializedSizeType rawSize;
+    auto const r(read(rawSize));
+    if (r) {
+        rawSize = sharemindNetToHostOrder(rawSize);
+        if (!SizeTypeInfo<SizeType>::fitsValue(rawSize))
+            throw OverflowException();
+        size = static_cast<SizeType>(rawSize);
+    }
+    return r;
+}
+
+template <typename SerializedSizeType,
+          typename SizeType,
+          typename OverflowException>
+inline bool IncomingNetworkMessage::readSize(
+        SizeType & size,
+        OverflowException && overflowException)
+        noexcept(false)
+{
+    SerializedSizeType rawSize;
+    auto const r(read(rawSize));
+    if (r) {
+        rawSize = sharemindNetToHostOrder(rawSize);
+        if (!SizeTypeInfo<SizeType>::fitsValue(rawSize))
+            throw std::forward<OverflowException>(overflowException);
+        size = static_cast<SizeType>(rawSize);
+    }
+    return r;
+}
+
 
 /*******************************************************************************
   Implementations of OutgoingNetworkMessage methods:
@@ -464,6 +517,13 @@ inline void OutgoingNetworkMessage::writeEmptyBlock() noexcept(false) {
     static BlockSizeType const zero =
             sharemind::hostToLittleEndian(static_cast<BlockSizeType>(0u));
     writeBytes(&zero, sizeof(zero));
+}
+
+template <typename SerializedSizeType, typename SizeType>
+inline void OutgoingNetworkMessage::writeSize(SizeType size) noexcept(false) {
+    static_assert(std::numeric_limits<decltype(size)>::max()
+                  <= std::numeric_limits<SerializedSizeType>::max(), "");
+    write(hostToSharemindNetOrder(static_cast<SerializedSizeType>(size)));
 }
 
 template <typename T>
