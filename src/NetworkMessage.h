@@ -156,10 +156,6 @@ public: /* Methods: */
                          OverflowException && overflowException)
             noexcept(false) __attribute__ ((warn_unused_result));
 
-    template <typename T>
-    inline bool readVector(std::vector<T> & vec)
-            __attribute__ ((warn_unused_result));
-
 }; /* class IncomingNetworkMessage { */
 
 class OutgoingNetworkMessage: public SeekableNetworkMessage {
@@ -193,9 +189,6 @@ public: /* Methods: */
     template <typename T>
     inline void writeBlock(T const * begin, T const * end) noexcept(false);
     inline void writeEmptyBlock() noexcept(false);
-
-    template <typename T>
-    inline void writeVector(std::vector<T> const & vec) noexcept(false);
 
     inline void writeBytes(void const * data, std::size_t const bytes)
             noexcept(false);
@@ -308,42 +301,6 @@ inline bool IncomingNetworkMessage::readBytes(void * buffer, std::size_t size)
 
     memcpy(buffer, static_cast<char const *>(this->data) + m_offset, size);
     m_offset += size;
-    return true;
-}
-
-template <typename T>
-inline bool IncomingNetworkMessage::readVector(std::vector<T> & vec) {
-    assert(this->data);
-    assert(m_offset <= this->size);
-
-    std::size_t const rollbackOffset = m_offset;
-
-    BlockSizeType size;
-    if (!read(size))
-        return false;
-    size = sharemind::littleEndianToHost(size);
-
-    if ((size > maxItemsInSizeT<T>()) // overflow check
-        || (this->size - m_offset < sizeof(T) * size))
-    {
-        m_offset = rollbackOffset;
-        return false;
-    }
-
-    if (size > 0u) {
-        void const * const o = static_cast<char const *>(this->data) + m_offset;
-        T const * const t = static_cast<T const *>(o);
-        try {
-            vec.assign(t, t + size);
-        } catch (...) {
-            m_offset = rollbackOffset;
-            throw;
-        }
-        m_offset += sizeof(T) * size;
-    } else {
-        vec.clear();
-    }
-
     return true;
 }
 
@@ -563,11 +520,6 @@ inline void OutgoingNetworkMessage::writeBlock(void const * const begin,
                                                void const * const end)
         noexcept(false)
 { writeBlock(static_cast<char const *>(begin), static_cast<char const *>(end));}
-
-template <typename T>
-inline void OutgoingNetworkMessage::writeVector(std::vector<T> const & vec)
-        noexcept(false)
-{ writeBlock(vec.data(), vec.data() + vec.size()); }
 
 inline void OutgoingNetworkMessage::writeBytes(void const * data,
                                                std::size_t const bytes)
