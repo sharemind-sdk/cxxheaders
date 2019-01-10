@@ -412,6 +412,9 @@ inline bool IncomingNetworkMessage::readSize(
         OverflowException && overflowException)
         noexcept(false)
 {
+    static_assert(std::is_unsigned<SerializedSizeType>::value, "");
+    static_assert(std::is_unsigned<SizeType>::value, "");
+
     SerializedSizeType rawSize;
     auto const r(read(rawSize));
     if (r) {
@@ -478,6 +481,8 @@ inline void OutgoingNetworkMessage::writeEmptyBlock() noexcept(false) {
 
 template <typename SerializedSizeType, typename SizeType>
 inline void OutgoingNetworkMessage::writeSize(SizeType size) noexcept(false) {
+    static_assert(std::is_unsigned<SerializedSizeType>::value, "");
+    static_assert(std::is_unsigned<SizeType>::value, "");
     static_assert(std::numeric_limits<decltype(size)>::max()
                   <= std::numeric_limits<SerializedSizeType>::max(), "");
     write(hostToSharemindNetOrder(static_cast<SerializedSizeType>(size)));
