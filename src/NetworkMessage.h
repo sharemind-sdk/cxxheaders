@@ -15,7 +15,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <iterator>
 #include <limits>
 #include <new>
 #include <sharemind/EndianMacros.h>
@@ -25,7 +24,6 @@
 #include <vector>
 #include "detail/ExceptionMacros.h"
 #include "Exception.h"
-#include "SignedToUnsigned.h"
 
 
 namespace sharemind {
@@ -49,10 +47,6 @@ public: /* Types: */
             LengthError,
             StringLengthError,
             "Outgoing message string size exceeds fundamental upper limit!");
-    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(
-            LengthError,
-            BlockLengthError,
-            "Outgoing message block size exceeds fundamental upper limit!");
 
 public: /* Methods: */
 
@@ -80,9 +74,6 @@ private: /* Types: */
 public: /* Types: */
 
     using DefaultSizeType = std::uint64_t;
-    using BlockSizeType = std::uint32_t;
-    static_assert(sizeof(BlockSizeType) <= sizeof(std::size_t),
-                  "BlockSizeType too wide!");
     using StringSizeType = std::uint16_t;
     static_assert(sizeof(StringSizeType) <= sizeof(std::size_t),
                   "StringSizeType too wide!");
@@ -109,9 +100,6 @@ private: /* Methods: */
 
     SeekableNetworkMessage & operator=(SeekableNetworkMessage const &) = delete;
 
-    template <typename T>
-    static inline std::size_t maxItemsInSizeT() noexcept;
-
 private: /* Fields: */
 
     std::size_t m_offset;
@@ -125,16 +113,7 @@ public: /* Methods: */
     inline IncomingNetworkMessage(void const * const data,
                                   std::size_t const size) noexcept;
 
-    inline bool readBlock(void * begin, void * end)
-            noexcept __attribute__ ((warn_unused_result));
-
-    template <typename T>
-    inline bool readBlock(T * begin, T * end)
-            noexcept __attribute__ ((warn_unused_result));
-
     inline bool readBytes(void * buffer, std::size_t size) noexcept;
-
-    inline bool readEmptyBlock() noexcept __attribute__ ((warn_unused_result));
 
     template <typename T>
     inline bool read(T & val) noexcept __attribute__ ((warn_unused_result));
@@ -196,13 +175,6 @@ public: /* Methods: */
     inline void writeSizeAndArray(T const * data, SizeType size)
             noexcept(false);
 
-    inline void writeBlock(void const * begin, void const * end)
-            noexcept(false);
-
-    template <typename T>
-    inline void writeBlock(T const * begin, T const * end) noexcept(false);
-    inline void writeEmptyBlock() noexcept(false);
-
     inline void writeBytes(void const * data, std::size_t const bytes)
             noexcept(false);
 
@@ -257,11 +229,6 @@ inline bool SeekableNetworkMessage::seek(std::size_t pos) noexcept {
     return true;
 }
 
-template <typename T>
-inline std::size_t SeekableNetworkMessage::maxItemsInSizeT() noexcept {
-    static_assert(sizeof(T) > 0u, "T must be a non-empty type!");
-    return std::numeric_limits<std::size_t>::max() / sizeof(T);
-}
 
 /*******************************************************************************
   Implementations of IncomingNetworkMessage methods:
@@ -272,36 +239,6 @@ inline IncomingNetworkMessage::IncomingNetworkMessage(
         std::size_t const size) noexcept
     : SeekableNetworkMessage{((void) assert(data || size == 0u), data), size}
 {}
-
-template <typename T>
-inline bool IncomingNetworkMessage::readBlock(T * begin, T * end) noexcept {
-    assert(this->data);
-    assert(m_offset <= this->size);
-
-    std::size_t const rollbackOffset = m_offset;
-
-    BlockSizeType size;
-    if (!read(size))
-        return false;
-    size = sharemind::littleEndianToHost(size);
-
-    if ((size > maxItemsInSizeT<T>()) // overflow check
-        || (size > signedToUnsigned(std::distance(begin, end)))
-        || (this->size - m_offset < sizeof(T) * size))
-    {
-        m_offset = rollbackOffset;
-        return false;
-    }
-
-    memcpy(begin,
-           static_cast<char const *>(this->data) + m_offset,
-           sizeof(T) * size);
-    m_offset += sizeof(T) * size;
-    return true;
-}
-
-inline bool IncomingNetworkMessage::readBlock(void * begin, void * end) noexcept
-{ return readBlock(static_cast<char *>(begin), static_cast<char *>(end)); }
 
 inline bool IncomingNetworkMessage::readBytes(void * buffer, std::size_t size)
         noexcept
@@ -317,16 +254,6 @@ inline bool IncomingNetworkMessage::readBytes(void * buffer, std::size_t size)
     return true;
 }
 
-inline bool IncomingNetworkMessage::readEmptyBlock() noexcept {
-    assert(this->data);
-    assert(m_offset <= this->size);
-
-    BlockSizeType size = 0;
-    if (! read (size))
-        return false;
-    size = sharemind::littleEndianToHost(size);
-    return size == 0;
-}
 
 template <typename T>
 inline bool IncomingNetworkMessage::read(T & val) noexcept {
@@ -511,12 +438,6 @@ template <typename T>
 inline void OutgoingNetworkMessage::write(T && val) noexcept(false)
 { writeBytes(&val, sizeof(T)); }
 
-inline void OutgoingNetworkMessage::writeEmptyBlock() noexcept(false) {
-    static BlockSizeType const zero =
-            sharemind::hostToLittleEndian(static_cast<BlockSizeType>(0u));
-    writeBytes(&zero, sizeof(zero));
-}
-
 template <typename SerializedSizeType, typename SizeType>
 inline void OutgoingNetworkMessage::writeSize(SizeType size) noexcept(false) {
     static_assert(std::is_unsigned<SerializedSizeType>::value, "");
@@ -566,44 +487,6 @@ inline void OutgoingNetworkMessage::writeSizeAndArray(T const * data,
     pokeBytes(&serializedSize, sizeof(serializedSize));
     pokeBytes(data, arraySizeInBytes);
 }
-
-template <typename T>
-inline void OutgoingNetworkMessage::writeBlock(T const * begin, T const * end)
-        noexcept(false)
-{
-    assert(begin <= end);
-    std::size_t const numItems = signedToUnsigned(std::distance(begin, end));
-    if (numItems > 0u) {
-        if (!SizeTypeInfo<BlockSizeType>::fitsValue(numItems))
-            throw BlockLengthError{};
-        if (numItems > maxItemsInSizeT<T>())
-            throw MessageLengthError{};
-        std::size_t const totalDataSize = numItems * sizeof(T);
-        if (std::numeric_limits<std::size_t>::max() - sizeof(BlockSizeType)
-            < totalDataSize)
-            throw MessageLengthError{};
-        std::size_t const totalSize = totalDataSize + sizeof(BlockSizeType);
-        if (totalSize > spaceLeft())
-            throw MessageLengthError{};
-
-        addBytes(totalSize);
-        BlockSizeType const  serializedNumItems =
-                sharemind::hostToLittleEndian(
-                    static_cast<BlockSizeType>(numItems));
-        pokeBytes(&serializedNumItems, sizeof(BlockSizeType));
-        pokeBytes(begin, totalDataSize);
-    } else {
-        addBytes(sizeof(BlockSizeType));
-        static BlockSizeType const zeroItems =
-                sharemind::hostToLittleEndian(static_cast<BlockSizeType>(0u));
-        pokeBytes(&zeroItems, sizeof(zeroItems));
-    }
-}
-
-inline void OutgoingNetworkMessage::writeBlock(void const * const begin,
-                                               void const * const end)
-        noexcept(false)
-{ writeBlock(static_cast<char const *>(begin), static_cast<char const *>(end));}
 
 inline void OutgoingNetworkMessage::writeBytes(void const * data,
                                                std::size_t const bytes)
