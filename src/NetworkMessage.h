@@ -156,6 +156,10 @@ public: /* Methods: */
                          OverflowException && overflowException)
             noexcept(false) __attribute__ ((warn_unused_result));
 
+    template <typename T, typename SizeType>
+    inline bool readArray(T * data, SizeType const size)
+            noexcept __attribute__ ((warn_unused_result));
+
 }; /* class IncomingNetworkMessage { */
 
 class OutgoingNetworkMessage: public SeekableNetworkMessage {
@@ -182,6 +186,15 @@ public: /* Methods: */
 
     template <typename SerializedSizeType = DefaultSizeType, typename SizeType>
     inline void writeSize(SizeType size) noexcept(false);
+
+    template <typename T, typename SizeType>
+    inline void writeArray(T const * data, SizeType size) noexcept(false);
+
+    template <typename SerializedSizeType = DefaultSizeType,
+              typename T,
+              typename SizeType>
+    inline void writeSizeAndArray(T const * data, SizeType size)
+            noexcept(false);
 
     inline void writeBlock(void const * begin, void const * end)
             noexcept(false);
@@ -426,6 +439,31 @@ inline bool IncomingNetworkMessage::readSize(
     return r;
 }
 
+template <typename T, typename SizeType>
+inline bool IncomingNetworkMessage::readArray(T * data, SizeType const size)
+        noexcept
+{
+    static_assert(std::is_unsigned<SizeType>::value, "");
+
+    assert(this->data);
+    assert(m_offset <= this->size);
+
+    using S = decltype(sizeof(T) * size);
+    static_assert(std::numeric_limits<S>::max()
+                  >= std::numeric_limits<std::size_t>::max(), "");
+    if (std::numeric_limits<S>::max() / sizeof(T) < size)
+        return false;
+    auto const sizeInBytes(sizeof(T) * size);
+    if (getRemainingSize() < sizeInBytes)
+        return false;
+
+    std::memcpy(data,
+                static_cast<char const *>(this->data) + m_offset,
+                sizeInBytes);
+    m_offset += sizeInBytes;
+    return true;
+}
+
 
 /*******************************************************************************
   Implementations of OutgoingNetworkMessage methods:
@@ -486,6 +524,47 @@ inline void OutgoingNetworkMessage::writeSize(SizeType size) noexcept(false) {
     static_assert(std::numeric_limits<decltype(size)>::max()
                   <= std::numeric_limits<SerializedSizeType>::max(), "");
     write(hostToSharemindNetOrder(static_cast<SerializedSizeType>(size)));
+}
+
+template <typename T, typename SizeType>
+inline void OutgoingNetworkMessage::writeArray(T const * data, SizeType size)
+        noexcept(false)
+{
+    static_assert(std::is_unsigned<SizeType>::value, "");
+
+    if (size <= 0u)
+        return;
+    if (spaceLeft() / sizeof(T) < size)
+        throw MessageLengthError();
+    auto const arraySizeInBytes(size * sizeof(T));
+    addBytes(arraySizeInBytes);
+    pokeBytes(data, arraySizeInBytes);
+}
+
+template <typename SerializedSizeType, typename T, typename SizeType>
+inline void OutgoingNetworkMessage::writeSizeAndArray(T const * data,
+                                                      SizeType size)
+        noexcept(false)
+{
+    static_assert(std::is_unsigned<SerializedSizeType>::value, "");
+    static_assert(std::is_unsigned<SizeType>::value, "");
+
+    if (size <= 0)
+        return writeSize<SerializedSizeType, SizeType>(size);
+
+    auto bytesLeft(spaceLeft());
+    if (sizeof(SerializedSizeType) > bytesLeft)
+        throw MessageLengthError();
+    bytesLeft -= sizeof(SerializedSizeType);
+    if (bytesLeft / sizeof(T) < size)
+        throw MessageLengthError();
+    auto const arraySizeInBytes(size * sizeof(T));
+
+    addBytes(sizeof(SerializedSizeType) + arraySizeInBytes);
+    SerializedSizeType const serializedSize(
+                hostToSharemindNetOrder(static_cast<SerializedSizeType>(size)));
+    pokeBytes(&serializedSize, sizeof(serializedSize));
+    pokeBytes(data, arraySizeInBytes);
 }
 
 template <typename T>
