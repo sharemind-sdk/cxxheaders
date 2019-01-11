@@ -143,7 +143,7 @@ public: /* Methods: */
 
     inline OutgoingNetworkMessage() noexcept {}
     inline ~OutgoingNetworkMessage() noexcept override
-    { free(const_cast<void *>(this->data)); }
+    { std::free(const_cast<void *>(this->data)); }
 
     inline void rewind() noexcept { m_offset = 0u; }
 
@@ -242,7 +242,7 @@ inline bool IncomingNetworkMessage::readBytes(void * buffer, std::size_t size)
     if (this->size - m_offset < size)
         return false;
 
-    memcpy(buffer, static_cast<char const *>(this->data) + m_offset, size);
+    std::memcpy(buffer, static_cast<char const *>(this->data) + m_offset, size);
     m_offset += size;
     return true;
 }
@@ -257,9 +257,9 @@ inline bool IncomingNetworkMessage::read(T & val) noexcept {
         return false;
 
     if (sizeof(T) > 0u) {
-        memcpy(&val,
-               static_cast<char const *>(this->data) + m_offset,
-               sizeof(T));
+        std::memcpy(&val,
+                    static_cast<char const *>(this->data) + m_offset,
+                    sizeof(T));
         m_offset += sizeof(T);
     }
 
@@ -487,7 +487,7 @@ inline void OutgoingNetworkMessage::addBytes(std::size_t const bytes)
     assert(this->size == m_offset); // All data previously poked
 
     std::size_t const newSize = this->size + bytes;
-    void * const newData = realloc(const_cast<void *>(this->data), newSize);
+    void * const newData = std::realloc(const_cast<void *>(this->data), newSize);
     if (!newData)
         throw std::bad_alloc{};
 
@@ -501,9 +501,9 @@ inline void OutgoingNetworkMessage::pokeBytes(void const * data,
     assert(data || bytes == 0u);
     assert(this->size - m_offset >= bytes);
 
-    memcpy(static_cast<char *>(const_cast<void *>(this->data)) + m_offset,
-           data,
-           bytes);
+    std::memcpy(static_cast<char *>(const_cast<void *>(this->data)) + m_offset,
+                data,
+                bytes);
     m_offset += bytes;
 }
 
