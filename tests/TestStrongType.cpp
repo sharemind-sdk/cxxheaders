@@ -221,6 +221,9 @@ struct Test: std::true_type {
 
     SA(sharemind::IsStrongType<STI>::value);
     SA(!sharemind::IsStrongType<T>::value);
+    SA(sharemind::IsStrongTypeOf<STI, T>::value);
+    SA(!sharemind::IsStrongTypeOf<T, T>::value);
+    SA(!sharemind::IsStrongTypeOf<STI, T *>::value);
 }; // template <typename T, typename Tag> struct Test_
 
 #define TEST_(tag, ...) \

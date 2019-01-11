@@ -289,6 +289,14 @@ template <typename T> struct IsStrongType : std::false_type {};
 template <typename T, typename Tag, typename ... Mixins>
 struct IsStrongType<StrongType<T, Tag, Mixins...> > : std::true_type {};
 
+template <typename T, typename WrappedType>
+struct IsStrongTypeOf : std::false_type {};
+
+template <typename WrappedType, typename Tag, typename ... Mixins>
+struct IsStrongTypeOf<StrongType<WrappedType, Tag, Mixins...>, WrappedType>
+        : std::true_type
+{};
+
 } /* namespace Sharemind { */
 
 namespace std {
