@@ -24,6 +24,7 @@
 #include <cstring>
 #include <endian.h>
 #include <sharemind/endian.h>
+#include "StrongType.h"
 
 
 #if (__BYTE_ORDER != __BIG_ENDIAN) && (__BYTE_ORDER != __LITTLE_ENDIAN)
@@ -120,6 +121,29 @@ SHAREMIND_ENDIAN_INT_FUN(sharemindNetToHostOrder, int64_t, le64toh)
 #undef SHAREMIND_ENDIAN_ID_FUNS_ALLTYPES
 #undef SHAREMIND_ENDIAN_ID_FUN
 #undef SHAREMIND_ENDIAN_INT_FUN
+
+#define SHAREMIND_ENDIAN_ST_FUN(type, fun) \
+    template <typename Tag, typename ... Mixins> \
+    StrongType<type, Tag, Mixins...> fun(StrongType<type, Tag, Mixins...> v) \
+            noexcept \
+    { return StrongType<type, Tag, Mixins...>(fun(v.get())); }
+#define SHAREMIND_ENDIAN_ST_FUNS(type) \
+    SHAREMIND_ENDIAN_ST_FUN(type, hostToBigEndian) \
+    SHAREMIND_ENDIAN_ST_FUN(type, bigEndianToHost) \
+    SHAREMIND_ENDIAN_ST_FUN(type, hostToLittleEndian) \
+    SHAREMIND_ENDIAN_ST_FUN(type, littleEndianToHost) \
+    SHAREMIND_ENDIAN_ST_FUN(type, hostToSharemindNetOrder) \
+    SHAREMIND_ENDIAN_ST_FUN(type, sharemindNetToHostOrder)
+SHAREMIND_ENDIAN_ST_FUNS(std::int8_t)
+SHAREMIND_ENDIAN_ST_FUNS(std::int16_t)
+SHAREMIND_ENDIAN_ST_FUNS(std::int32_t)
+SHAREMIND_ENDIAN_ST_FUNS(std::int64_t)
+SHAREMIND_ENDIAN_ST_FUNS(std::uint8_t)
+SHAREMIND_ENDIAN_ST_FUNS(std::uint16_t)
+SHAREMIND_ENDIAN_ST_FUNS(std::uint32_t)
+SHAREMIND_ENDIAN_ST_FUNS(std::uint64_t)
+#undef SHAREMIND_ENDIAN_ST_FUNS
+#undef SHAREMIND_ENDIAN_ST_FUN
 
 } /* namespace sharemind { */
 
