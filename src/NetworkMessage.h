@@ -473,12 +473,14 @@ inline void OutgoingNetworkMessage::writeSizeAndArray(T const * data,
     if (size <= 0)
         return writeSize<SerializedSizeType, SizeType>(size);
 
-    auto bytesLeft(spaceLeft());
-    if (sizeof(SerializedSizeType) > bytesLeft)
-        throw MessageLengthError();
-    bytesLeft -= sizeof(SerializedSizeType);
-    if (bytesLeft / sizeof(T) < size)
-        throw MessageLengthError();
+    {
+        auto bytesLeft(spaceLeft());
+        if (sizeof(SerializedSizeType) > bytesLeft)
+            throw MessageLengthError();
+        bytesLeft -= sizeof(SerializedSizeType);
+        if (bytesLeft / sizeof(T) < size)
+            throw MessageLengthError();
+    }
     auto const arraySizeInBytes(size * sizeof(T));
 
     addBytes(sizeof(SerializedSizeType) + arraySizeInBytes);
