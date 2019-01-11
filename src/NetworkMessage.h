@@ -43,10 +43,6 @@ public: /* Types: */
             LengthError,
             MessageLengthError,
             "Outgoing message size exceeds fundamental upper limit!");
-    SHAREMIND_DETAIL_DEFINE_EXCEPTION_CONST_MSG(
-            LengthError,
-            StringLengthError,
-            "Outgoing message string size exceeds fundamental upper limit!");
 
 public: /* Methods: */
 
@@ -74,9 +70,6 @@ private: /* Types: */
 public: /* Types: */
 
     using DefaultSizeType = std::uint64_t;
-    using StringSizeType = std::uint16_t;
-    static_assert(sizeof(StringSizeType) <= sizeof(std::size_t),
-                  "StringSizeType too wide!");
 
 public: /* Methods: */
 
@@ -277,30 +270,30 @@ inline bool IncomingNetworkMessage::read(std::string & val) {
     assert(this->data);
     assert(m_offset <= this->size);
 
-    std::size_t const rollbackOffset = m_offset;
+    auto const rollbackOffset(m_offset);
 
-    StringSizeType length;
-    if (!read(length))
+    decltype(val.size()) length;
+    if (!readSize(length))
         return false;
-    length = sharemind::littleEndianToHost(length);
+
+    if (length <= 0u) {
+        val.clear();
+        return true;
+    }
 
     if (length > this->size - m_offset) {
         m_offset = rollbackOffset;
         return false;
     }
 
-    if (length > 0u) {
-        char const * const s = static_cast<char const *>(this->data) + m_offset;
-        try {
-            val.assign(s, s + length);
-        } catch (...) {
-            m_offset = rollbackOffset;
-            throw;
-        }
-        m_offset += length;
-    } else {
-        val.clear();
+    auto const s = static_cast<char const *>(this->data) + m_offset;
+    try {
+        val.assign(s, s + length);
+    } catch (...) {
+        m_offset = rollbackOffset;
+        throw;
     }
+    m_offset += length;
     return true;
 }
 
@@ -402,33 +395,16 @@ inline void OutgoingNetworkMessage::write(bool val) noexcept(false) {
 }
 
 inline void OutgoingNetworkMessage::write(char const * val) noexcept(false)
-{ write(val, strlen(val)); }
+{ writeSizeAndArray(val, std::strlen(val)); }
 
 inline void OutgoingNetworkMessage::write(char const * val,
-                                          std::size_t const size) noexcept(false)
-{
-    if (size > 0u) {
-        if (!SizeTypeInfo<StringSizeType>::fitsValue(size))
-            throw StringLengthError{};
-        if (std::numeric_limits<std::size_t>::max() - size
-            < sizeof(StringSizeType))
-            throw MessageLengthError{};
-        addBytes(sizeof(StringSizeType) + size);
-        StringSizeType const s =
-                sharemind::hostToLittleEndian(static_cast<StringSizeType>(size));
-        pokeBytes(&s, sizeof(s));
-        pokeBytes(val, size);
-    } else {
-        addBytes(sizeof(StringSizeType));
-        static StringSizeType const zeroSize =
-                sharemind::hostToLittleEndian(static_cast<StringSizeType>(0u));
-        pokeBytes(&zeroSize, sizeof(zeroSize));
-    }
-}
+                                          std::size_t const size)
+        noexcept(false)
+{ writeSizeAndArray(val, size); }
 
 inline void OutgoingNetworkMessage::write(std::string const & val)
         noexcept(false)
-{ write(val.c_str(), val.length()); }
+{ writeSizeAndArray(val.c_str(), val.length()); }
 
 inline void OutgoingNetworkMessage::write(NetworkMessage const & message)
         noexcept(false)
