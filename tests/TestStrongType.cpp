@@ -32,6 +32,7 @@
 
 template <typename T, typename STI>
 struct TestCommonInterface: std::true_type {
+    SA(std::is_standard_layout<STI>::value);
     SA(std::is_same<typename STI::ValueType, T>::value);
     SA(std::is_nothrow_default_constructible<STI>::value);
     SA(std::is_nothrow_constructible<STI,
@@ -222,36 +223,43 @@ struct Test: std::true_type {
     SA(!sharemind::IsStrongType<T>::value);
 }; // template <typename T, typename Tag> struct Test_
 
-#define TEST_(tag, ...) SA(Test<__VA_ARGS__, struct TypeTag_ ## tag>::value)
+#define TEST_(tag, ...) \
+    { \
+        using STT = Test<__VA_ARGS__, struct TypeTag_ ## tag>; \
+        SA(STT::value); \
+        STT::STI t; \
+        SHAREMIND_TESTASSERT(static_cast<void const *>(std::addressof(t.get()))\
+                             == static_cast<void const *>(std::addressof(t))); \
+    }
 #define TEST(type) TEST_(type, type)
 #define TEST_STD(type) TEST_(type, std::type)
-#define TEST_STD_W(type) TEST_STD(type ## 8_t); TEST_STD(type ## 16_t); \
-                         TEST_STD(type ## 32_t); TEST_STD(type ## 64_t)
-
-TEST(float);
-TEST(double);
-TEST_(long_double, long double);
-TEST(bool);
-TEST(char);
-TEST_(schar, signed char);
-TEST_(uchar, unsigned char);
-TEST(char16_t);
-TEST(char32_t);
-TEST(wchar_t);
-TEST_(shortInt, short int);
-TEST(int);
-TEST_(longInt, long int);
-TEST_(longLongInt, long long int);
-TEST_(ushortInt, unsigned short int);
-TEST_(unsignedInt, unsigned int);
-TEST_(unsignedLongInt, unsigned long int);
-TEST_(unsignedLongLongInt, unsigned long long int);
-TEST_STD_W(int); TEST_STD_W(int_least); TEST_STD_W(int_fast);
-TEST_STD_W(uint); TEST_STD_W(uint_least); TEST_STD_W(uint_fast);
-TEST_STD(intptr_t); TEST_STD(uintptr_t);
-TEST_STD(intmax_t); TEST_STD(uintmax_t);
+#define TEST_STD_W(type) TEST_STD(type ## 8_t) TEST_STD(type ## 16_t) \
+                         TEST_STD(type ## 32_t) TEST_STD(type ## 64_t)
 
 int main() {
+    TEST(float)
+    TEST(double)
+    TEST_(long_double, long double)
+    TEST(bool)
+    TEST(char)
+    TEST_(schar, signed char)
+    TEST_(uchar, unsigned char)
+    TEST(char16_t)
+    TEST(char32_t)
+    TEST(wchar_t)
+    TEST_(shortInt, short int)
+    TEST(int)
+    TEST_(longInt, long int)
+    TEST_(longLongInt, long long int)
+    TEST_(ushortInt, unsigned short int)
+    TEST_(unsignedInt, unsigned int)
+    TEST_(unsignedLongInt, unsigned long int)
+    TEST_(unsignedLongLongInt, unsigned long long int)
+    TEST_STD_W(int) TEST_STD_W(int_least) TEST_STD_W(int_fast)
+    TEST_STD_W(uint) TEST_STD_W(uint_least) TEST_STD_W(uint_fast)
+    TEST_STD(intptr_t) TEST_STD(uintptr_t)
+    TEST_STD(intmax_t) TEST_STD(uintmax_t)
+
     {
         using STI =
                 sharemind::StrongType<
