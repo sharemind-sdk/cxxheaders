@@ -65,22 +65,22 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    inline std::size_t dataAvailable() const noexcept {
+    std::size_t dataAvailable() const noexcept {
         std::lock_guard<MutexType> const guard(m_dataAvailableMutex);
         return m_dataAvailable;
     }
 
-    inline std::size_t dataAvailableNoLocking() const noexcept
+    std::size_t dataAvailableNoLocking() const noexcept
     { return m_dataAvailable; }
 
-    inline std::size_t increaseDataAvailable(std::size_t const size) noexcept {
+    std::size_t increaseDataAvailable(std::size_t const size) noexcept {
         std::lock_guard<MutexType> const guard(m_dataAvailableMutex);
         m_dataAvailable += size;
         m_dataAvailableCondition.notify_one();
         return m_dataAvailable;
     }
 
-    inline std::size_t decreaseDataAvailable(std::size_t const size) noexcept {
+    std::size_t decreaseDataAvailable(std::size_t const size) noexcept {
         std::lock_guard<MutexType> const guard(m_dataAvailableMutex);
         assert(m_dataAvailable >= size);
         m_dataAvailable -= size;
@@ -89,13 +89,13 @@ public: /* Methods: */
     }
 
     template <typename Lock, typename LoopDuration>
-    inline void wait_for(Lock & lock, LoopDuration && loopDuration) {
+    void wait_for(Lock & lock, LoopDuration && loopDuration) {
         m_dataAvailableCondition.wait_for(
                     lock,
                     std::forward<LoopDuration>(loopDuration));
     }
 
-    template <typename Lock> inline void wait(Lock & lock)
+    template <typename Lock> void wait(Lock & lock)
     { return m_dataAvailableCondition.wait(lock); }
 
 private: /* Fields: */
@@ -115,15 +115,14 @@ public: /* Constants: */
 
 public: /* Methods: */
 
-    inline std::size_t dataAvailable() const noexcept
-    { return m_dataAvailable; }
+    std::size_t dataAvailable() const noexcept { return m_dataAvailable; }
 
-    inline std::size_t increaseDataAvailable(std::size_t const size) noexcept {
+    std::size_t increaseDataAvailable(std::size_t const size) noexcept {
         m_dataAvailable += size;
         return m_dataAvailable;
     }
 
-    inline std::size_t decreaseDataAvailable(std::size_t const size) noexcept {
+    std::size_t decreaseDataAvailable(std::size_t const size) noexcept {
         m_dataAvailable -= size;
         return m_dataAvailable;
     }
@@ -163,7 +162,7 @@ public: /* Methods: */
     CircBufferBase(Self const &) = delete;
     Self & operator=(Self const &) = delete;
 
-    inline CircBufferBase(std::size_t const bufferSize = 1024u * 1024u)
+    CircBufferBase(std::size_t const bufferSize = 1024u * 1024u)
         // Don't use std::make_unique to avoid unnecessary zero-initialization:
         : m_buffer(new ValueAllocType[bufferSize])
         , m_bufferSize(bufferSize)
@@ -175,17 +174,17 @@ public: /* Methods: */
     std::size_t bufferSize() const noexcept { return m_bufferSize; }
 
     /** \returns a pointer to the circular FIFO storage array. */
-    inline ValueType * arrayStart() const noexcept { return m_buffer.get(); }
+    ValueType * arrayStart() const noexcept { return m_buffer.get(); }
 
 
     /***************************************************************************
      * Procedures for producer */
 
     /** \returns whether the buffer is full. */
-    inline bool full() const noexcept { return spaceAvailable() <= 0u; }
+    bool full() const noexcept { return spaceAvailable() <= 0u; }
 
     /** \returns the total number of elements free. */
-    inline std::size_t spaceAvailable() const noexcept {
+    std::size_t spaceAvailable() const noexcept {
         std::size_t const da = dataAvailable();
         assert(da <= m_bufferSize);
         return m_bufferSize - da;
@@ -197,7 +196,7 @@ public: /* Methods: */
      *                                     wraps.
      * \returns the total number of elements free.
     */
-    inline std::size_t spaceAvailable(std::size_t & availableUntilBufferEnd)
+    std::size_t spaceAvailable(std::size_t & availableUntilBufferEnd)
             const noexcept
     {
         assert(m_writeOffset < m_bufferSize);
@@ -209,18 +208,18 @@ public: /* Methods: */
     }
 
     /** \returns the number of elements free before the buffer array wraps. */
-    inline std::size_t spaceAvailableUntilBufferEnd() const noexcept
+    std::size_t spaceAvailableUntilBufferEnd() const noexcept
     { return std::min(spaceAvailable(), m_bufferSize - m_writeOffset); }
 
     /** \returns the current write offset in the FIFO storage array. */
-    inline std::size_t writeOffset() const noexcept { return m_writeOffset; }
+    std::size_t writeOffset() const noexcept { return m_writeOffset; }
 
     /**
      * \brief Marks data as written.
      * \param[in] size The number of elements written to the FIFO.
      * \returns the number of elements free.
     */
-    inline std::size_t haveWritten(std::size_t const size) noexcept {
+    std::size_t haveWritten(std::size_t const size) noexcept {
         std::size_t const ret = increaseDataAvailable(size);
         assert(m_writeOffset < m_bufferSize);
         std::size_t const offsetLimit = m_bufferSize - size;
@@ -238,7 +237,7 @@ public: /* Methods: */
      * \brief Marks data as written.
      * \param[in] size The number of elements written to the FIFO.
     */
-    inline void haveWrittenNoRet(std::size_t const size) noexcept
+    void haveWrittenNoRet(std::size_t const size) noexcept
     { (void) haveWritten(size); }
 
     /**
@@ -247,7 +246,7 @@ public: /* Methods: */
      * \returns the total number of elements free before the buffer array
      *          wraps.
     */
-    inline std::size_t haveWrittenRetUbe(std::size_t const size) noexcept {
+    std::size_t haveWrittenRetUbe(std::size_t const size) noexcept {
         std::size_t const ret = haveWritten(size);
         return std::min(ret, m_bufferSize - m_writeOffset);
     }
@@ -259,7 +258,7 @@ public: /* Methods: */
      * \returns the number of elements written (might be less than size if FIFO
      *          was filled).
     */
-    inline std::size_t write(T const * data, std::size_t const size) noexcept
+    std::size_t write(T const * data, std::size_t const size) noexcept
     { return operate<WriteActions>(data, size); }
 
 
@@ -267,10 +266,10 @@ public: /* Methods: */
      * Procedures for consumer */
 
     /** \returns whether the buffer is empty. */
-    inline bool empty() const noexcept { return dataAvailable() <= 0u; }
+    bool empty() const noexcept { return dataAvailable() <= 0u; }
 
     /** \returns the total number of elements pending. */
-    inline std::size_t dataAvailable() const noexcept
+    std::size_t dataAvailable() const noexcept
     { return m_locking.dataAvailable(); }
 
     /**
@@ -279,7 +278,7 @@ public: /* Methods: */
      *                                     array wraps.
      * \returns the total number of elements pending.
     */
-    inline std::size_t dataAvailable(std::size_t & availableUntilBufferEnd)
+    std::size_t dataAvailable(std::size_t & availableUntilBufferEnd)
             const noexcept
     {
         assert(m_readOffset < m_bufferSize);
@@ -291,18 +290,18 @@ public: /* Methods: */
     }
 
     /** \returns the number of elements pending before the array wraps. */
-    inline std::size_t dataAvailableUntilBufferEnd() const noexcept
+    std::size_t dataAvailableUntilBufferEnd() const noexcept
     { return std::min(dataAvailable(), m_bufferSize - m_readOffset); }
 
     /** \returns the current read offset in the FIFO storage array. */
-    inline std::size_t readOffset() const noexcept { return m_readOffset; }
+    std::size_t readOffset() const noexcept { return m_readOffset; }
 
     /**
      * \brief Marks data as consumed.
      * \param[in] size The number of elements to drop from the FIFO.
      * \returns the number of elements pending.
     */
-    inline std::size_t haveRead(std::size_t const size) noexcept {
+    std::size_t haveRead(std::size_t const size) noexcept {
         std::size_t const ret = decreaseDataAvailable(size);
         assert(m_readOffset < m_bufferSize);
         std::size_t const offsetLimit = m_bufferSize - size;
@@ -320,7 +319,7 @@ public: /* Methods: */
      * \brief Marks data as consumed.
      * \param[in] size The number of elements to drop from the FIFO.
     */
-    inline void haveReadNoRet(std::size_t const size) noexcept
+    void haveReadNoRet(std::size_t const size) noexcept
     { (void) haveRead(size); }
 
     /**
@@ -329,7 +328,7 @@ public: /* Methods: */
      * \returns the total number of elements pending before the buffer array
      *          wraps.
     */
-    inline std::size_t haveReadRetUbe(std::size_t const size) noexcept {
+    std::size_t haveReadRetUbe(std::size_t const size) noexcept {
         std::size_t const ret = haveRead(size);
         return std::min(ret, m_bufferSize - m_readOffset);
     }
@@ -341,24 +340,24 @@ public: /* Methods: */
      * \returns the number of elements read (might be less than size if FIFO was
      *          emptied).
     */
-    inline std::size_t read(T * const buffer, std::size_t const size) noexcept
+    std::size_t read(T * const buffer, std::size_t const size) noexcept
     { return operate<ReadActions>(buffer, size); }
 
 private: /* Methods: */
 
-    inline std::size_t increaseDataAvailable(std::size_t const size) noexcept {
+    std::size_t increaseDataAvailable(std::size_t const size) noexcept {
         assert(size <= m_bufferSize);
         return m_locking.increaseDataAvailable(size);
     }
 
-    inline std::size_t decreaseDataAvailable(std::size_t const size) noexcept {
+    std::size_t decreaseDataAvailable(std::size_t const size) noexcept {
         assert(size <= m_bufferSize);
         return m_locking.decreaseDataAvailable(size);
     }
 
     template <typename Actions>
-    inline std::size_t operate(typename Actions::OtherSideType * copyPtr,
-                               std::size_t size) noexcept
+    std::size_t operate(typename Actions::OtherSideType * copyPtr,
+                        std::size_t size) noexcept
     {
         assert(copyPtr);
         assert(size > 0u);
@@ -386,7 +385,7 @@ private: /* Methods: */
     }
 
     template <typename Actions, typename Actor>
-    inline std::size_t operate(Actor & actor) noexcept {
+    std::size_t operate(Actor & actor) noexcept {
         static_assert(
             noexcept(actor(std::declval<typename Actions::BufferSideType *>(),
                            static_cast<std::size_t>(42u))), "");
@@ -447,14 +446,14 @@ private: /* Methods: */
 
 private: /* Types: */
 
-    static inline void copyFirstToSecondData(T const * const first,
-                                             T * const second,
-                                             std::size_t const size) noexcept
+    static void copyFirstToSecondData(T const * const first,
+                                      T * const second,
+                                      std::size_t const size) noexcept
     { copy(first, second, size); }
 
-    static inline void copySecondToFirstData(T * const first,
-                                             T const * const second,
-                                             std::size_t const size) noexcept
+    static void copySecondToFirstData(T * const first,
+                                      T const * const second,
+                                      std::size_t const size) noexcept
     { copy(second, first, size); }
 
     template < typename BufferSideType_
@@ -472,25 +471,21 @@ private: /* Types: */
                       != std::is_const<OtherSideType_>::value, "");
         using BufferSideType = BufferSideType_;
         using OtherSideType = OtherSideType_;
-        static inline void copyAction(BufferSideType_ * const a,
-                                      OtherSideType_ * const b,
-                                      std::size_t const size) noexcept
+        static void copyAction(BufferSideType_ * const a,
+                               OtherSideType_ * const b,
+                               std::size_t const size) noexcept
         { COPY_ACTION_(a, b, size); }
-        static inline BufferSideType_ * operatePtr(Self const * thisPtr)
-                noexcept
-        {
+        static BufferSideType_ * operatePtr(Self const * thisPtr) noexcept {
             return const_cast<BufferSideType_ *>(
                         ptrAdd(thisPtr->arrayStart(),
                                (thisPtr->*OFFSET_ACTION_)()));
         }
-        static inline std::size_t availableUntilBufferEnd(Self * thisPtr)
-                noexcept
+        static std::size_t availableUntilBufferEnd(Self * thisPtr) noexcept
         { return (thisPtr->*AVAILABLE_UBE_)(); }
-        static inline void doneNoRet(Self * thisPtr, std::size_t const size)
-                noexcept
+        static void doneNoRet(Self * thisPtr, std::size_t const size) noexcept
         { (thisPtr->*DONE_NO_RET_)(size); }
-        static inline std::size_t doneRetUbe(Self * thisPtr,
-                                             std::size_t const size) noexcept
+        static std::size_t doneRetUbe(Self * thisPtr, std::size_t const size)
+                noexcept
         { return (thisPtr->*DONE_RET_UBE_)(size); }
     };
 
@@ -520,7 +515,7 @@ public: /* Methods */
      * \returns the number of elements written.
     */
     template <typename InputProducerActor>
-    inline std::size_t write(InputProducerActor inputProducerActor)
+    std::size_t write(InputProducerActor inputProducerActor)
             noexcept(noexcept(
                         std::declval<Self &>().template operate<
                                 typename Self::WriteActions>(
@@ -533,7 +528,7 @@ public: /* Methods */
      * \returns the number of elements read.
     */
     template <typename OutputConsumerActor>
-    inline std::size_t read(OutputConsumerActor outputConsumerActor)
+    std::size_t read(OutputConsumerActor outputConsumerActor)
             noexcept(noexcept(
                          std::declval<Self &>().template operate<
                                 typename Self::ReadActions>(
@@ -566,13 +561,13 @@ class CircBufferBase2<T, Locking, true>: public CircBufferBase<T, Locking> {
 private: /* Types: */
 
     struct HaveDataTest {
-        inline static bool test(std::size_t const in,
-                                std::size_t const bufferSize) noexcept
+        static bool test(std::size_t const in,
+                         std::size_t const bufferSize) noexcept
         { (void) bufferSize; return in != 0u; }
     };
     struct HaveSpaceTest {
-        inline static bool test(std::size_t const in,
-                                std::size_t const bufferSize) noexcept
+        static bool test(std::size_t const in,
+                         std::size_t const bufferSize) noexcept
         { return in != bufferSize; }
     };
 
@@ -584,7 +579,7 @@ public: /* Methods: */
      * \brief Waits until there is data pending.
      * \returns the total number of elements pending.
     */
-    inline std::size_t waitSpaceAvailable() const
+    std::size_t waitSpaceAvailable() const
     { return waitSpaceAvailable_(); }
 
     /**
@@ -594,7 +589,7 @@ public: /* Methods: */
      * \returns the total number of elements pending.
     */
     template <typename StopTest, typename LoopDuration>
-    inline std::size_t waitSpaceAvailable(
+    std::size_t waitSpaceAvailable(
             StopTest && stopTest,
             LoopDuration && loopDuration = LoopDuration()) const
     {
@@ -606,7 +601,7 @@ public: /* Methods: */
      * \brief Waits until there is data pending.
      * \returns the total number of elements pending.
     */
-    inline std::size_t waitDataAvailable() const
+    std::size_t waitDataAvailable() const
     { return waitAvailable<HaveDataTest>(); }
 
     /**
@@ -616,9 +611,9 @@ public: /* Methods: */
      * \returns the total number of elements pending.
     */
     template <typename StopTest, typename LoopDuration>
-    inline std::size_t waitDataAvailable(
-            StopTest && stopTest,
-            LoopDuration && loopDuration = LoopDuration()) const
+    std::size_t waitDataAvailable(StopTest && stopTest,
+                                  LoopDuration && loopDuration = LoopDuration())
+            const
     {
         return waitAvailable<HaveDataTest>(
                     std::forward<StopTest>(stopTest),
@@ -628,13 +623,13 @@ public: /* Methods: */
 private: /* Methods: */
 
     template <typename ... Args>
-    inline std::size_t waitSpaceAvailable_(Args && ... args) const {
+    std::size_t waitSpaceAvailable_(Args && ... args) const {
         return this->m_bufferSize - waitAvailable<HaveSpaceTest>(
                     std::forward<Args>(args)...);
     }
 
     template <typename Condition>
-    inline std::size_t waitAvailable() const {
+    std::size_t waitAvailable() const {
         Locking & lockingImpl = this->m_locking;
         typename Locking::ScopedReadLock lock(lockingImpl);
         while (!Condition::test(lockingImpl.dataAvailableNoLocking(),
@@ -644,8 +639,8 @@ private: /* Methods: */
     }
 
     template <typename Condition, typename StopTest, typename LoopDuration>
-    inline std::size_t waitAvailable(StopTest stopTest,
-                                     LoopDuration const loopDuration) const
+    std::size_t waitAvailable(StopTest stopTest,
+                              LoopDuration const loopDuration) const
     {
         Locking & lockingImpl = this->m_locking;
         typename Locking::ScopedReadLock lock(lockingImpl);
