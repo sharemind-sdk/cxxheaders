@@ -63,75 +63,74 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    inline Datum()
-            noexcept(std::is_nothrow_default_constructible<Container>::value)
+    Datum() noexcept(std::is_nothrow_default_constructible<Container>::value)
     {}
 
-    inline Datum(Datum && move)
+    Datum(Datum && move)
             noexcept(std::is_nothrow_move_constructible<Container>::value)
         : m_data(std::move(move.m_data)) {}
 
-    inline Datum(Datum const & copy) : m_data(copy.m_data) {}
+    Datum(Datum const & copy) : m_data(copy.m_data) {}
 
-    inline explicit Datum(size_type size, value_type initial = value_type())
+    explicit Datum(size_type size, value_type initial = value_type())
         : m_data(size, initial)
     {}
 
-    inline Datum(void const * const data, size_type const size)
+    Datum(void const * const data, size_type const size)
         : m_data(static_cast<value_type const *>(data),
                  static_cast<value_type const *>(data) + size)
     {}
 
-    inline explicit Datum(std::string const & filename)
+    explicit Datum(std::string const & filename)
         : m_data(loadFileToContainer(filename))
     {}
 
-    inline Datum & operator=(Datum const & copy) {
+    Datum & operator=(Datum const & copy) {
         m_data = copy.m_data;
         return *this;
     }
 
-    inline Datum & operator=(Datum && move)
+    Datum & operator=(Datum && move)
             noexcept(std::is_nothrow_move_assignable<Container>::value)
     {
         m_data = std::move(move.m_data);
         return *this;
     }
 
-    inline bool operator==(Datum const & rhs) const noexcept
+    bool operator==(Datum const & rhs) const noexcept
     { return m_data == rhs.m_data; }
 
-    inline bool operator!=(Datum const & rhs) const noexcept
+    bool operator!=(Datum const & rhs) const noexcept
     { return m_data != rhs.m_data; }
 
-    inline void resize(size_type const size, value_type initial = value_type())
+    void resize(size_type const size, value_type initial = value_type())
     { m_data.resize(size, initial); }
 
-    inline void loadFromFile(std::string const & filename)
+    void loadFromFile(std::string const & filename)
     { m_data = loadFileToContainer(filename); }
 
-    inline void assign(void const * const data, size_type const size) {
+    void assign(void const * const data, size_type const size) {
         m_data.resize(size);
         std::copy(static_cast<char const *>(data),
                   static_cast<char const *>(data) + size,
                   &m_data[0]);
     }
 
-    inline HashValue hash() const noexcept
+    HashValue hash() const noexcept
     { return hashRawData(&m_data[0u], m_data.size()); }
 
-    inline void clear() noexcept { m_data.clear(); }
-    inline bool empty() const noexcept { return m_data.empty(); }
-    inline size_type size() const noexcept { return m_data.size(); }
-    inline void * data() noexcept { return &m_data[0u]; }
-    inline void * dataEnd() noexcept { return &*m_data.end(); }
-    inline void const * constData() const noexcept { return &m_data[0u]; }
-    inline void const * constDataEnd() const noexcept
+    void clear() noexcept { m_data.clear(); }
+    bool empty() const noexcept { return m_data.empty(); }
+    size_type size() const noexcept { return m_data.size(); }
+    void * data() noexcept { return &m_data[0u]; }
+    void * dataEnd() noexcept { return &*m_data.end(); }
+    void const * constData() const noexcept { return &m_data[0u]; }
+    void const * constDataEnd() const noexcept
     { return &*m_data.end(); }
 
 private: /* Methods: */
 
-    inline static Container loadFileToContainer(std::string const & filename) {
+    static Container loadFileToContainer(std::string const & filename) {
         LoadException loadException(
                     concat("Failed to load file \"", filename, "\"!"));
         Container contents;
