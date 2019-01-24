@@ -131,20 +131,20 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    inline block_t& block (std::size_t const i) {
+    block_t & block(std::size_t const i) {
         assert (i < num_of_blocks);
         return m_blocks[i];
     }
 
-    inline block_t block (std::size_t const i) const {
+    block_t block(std::size_t const i) const {
         assert (i < num_of_blocks);
         return m_blocks[i];
     }
 
-    inline block_t* begin () { return &m_blocks[0]; }
-    inline block_t* end () { return begin() + num_of_blocks; }
-    inline const block_t* begin () const { return &m_blocks[0]; }
-    inline const block_t* end () const { return begin() + num_of_blocks; }
+    block_t * begin() { return &m_blocks[0]; }
+    block_t * end() { return begin() + num_of_blocks; }
+    block_t const * begin() const { return &m_blocks[0]; }
+    block_t const * end() const { return begin() + num_of_blocks; }
 
 private: /* Fields: */
     block_t m_blocks[num_of_blocks];
@@ -205,10 +205,10 @@ public: /* Types: */
         bit_reference& operator -= (bool x) { if  (x) reset_bit_ (); return *this; }
 
     private: /* Methods: */
-        inline void set_bit_ () const { m_block |= m_mask; }
-        inline void reset_bit_ () const { m_block &= ~m_mask; }
-        inline void flip_bit_ () const { m_block ^= m_mask; }
-        inline void assign_bit_ (bool x) const { x ? set_bit_ () : reset_bit_ (); }
+        void set_bit_() const { m_block |= m_mask; }
+        void reset_bit_() const { m_block &= ~m_mask; }
+        void flip_bit_() const { m_block ^= m_mask; }
+        void assign_bit_(bool x) const { x ? set_bit_ () : reset_bit_ (); }
 
     public: /* Fields: */
         block_t&      m_block;
@@ -253,7 +253,7 @@ public: /* Methods: */
         return *this;
     }
 
-    inline uint_t & operator=(uint_t && rhs)
+    uint_t & operator=(uint_t && rhs)
     { return this->operator=(rhs); } // Use copy assign
 
     template <typename T>
@@ -295,7 +295,7 @@ public: /* Methods: */
      **************/
 
 
-    inline bool operator [] (std::size_t const i) const {
+    bool operator[](std::size_t const i) const {
         assert (i < N && "Index out of bounds.");
         std::size_t const block_index = i / bits_in_block;
         const block_t bit_index = i % bits_in_block;
@@ -303,7 +303,7 @@ public: /* Methods: */
         return bit_mask & block(block_index);
     }
 
-    inline bit_reference operator [] (std::size_t const i) {
+    bit_reference operator[](std::size_t const i) {
         assert (i < N && "Index out of bounds.");
         std::size_t const block_index = i / bits_in_block;
         const block_t bit_index = i % bits_in_block;
@@ -665,7 +665,7 @@ public: /* Methods: */
         return out;
     }
 
-    inline void dump_blocks (std::ostream& os) const {
+    void dump_blocks(std::ostream& os) const {
         for (std::size_t i = 0u; i < num_of_blocks; ++i)
             os << std::hex << static_cast<std::uint64_t>(block(i)) << ' ';
         os << std::endl;
@@ -690,7 +690,7 @@ public: /* Methods: */
         return out;
     }
 
-    inline void clear_unused_bits () { clear_unused_bits_ (); }
+    void clear_unused_bits () { clear_unused_bits_ (); }
 
 private: /* Methods: */
 
@@ -700,12 +700,12 @@ private: /* Methods: */
      **************************/
 
 
-    inline block_t& least_significant_block () { return *begin(); }
-    inline block_t& most_significant_block () { return *(end() - 1); }
-    inline const block_t& least_significant_block () const { return *begin(); }
-    inline const block_t& most_significant_block () const { return *(end() - 1); }
+    block_t & least_significant_block() { return *begin(); }
+    block_t & most_significant_block() { return *(end() - 1); }
+    block_t const & least_significant_block() const { return *begin(); }
+    block_t const & most_significant_block() const { return *(end() - 1); }
 
-    inline void shift_blocks_right_(std::size_t const offset = 1u) {
+    void shift_blocks_right_(std::size_t const offset = 1u) {
         assert(offset <= num_of_blocks);
         for (std::size_t i = offset; i < num_of_blocks; ++i)
             block(i - offset) = block(i);
@@ -713,7 +713,7 @@ private: /* Methods: */
             block(i) = 0;
     }
 
-    inline void shift_blocks_left_(std::size_t offset = 1u) {
+    void shift_blocks_left_(std::size_t offset = 1u) {
         assert(offset <= num_of_blocks);
         for (std::size_t i = num_of_blocks; i --> offset; )
             block(i) = block(i - offset);
@@ -722,11 +722,9 @@ private: /* Methods: */
         clear_unused_bits_();
     }
 
-    inline void clear_unused_bits_() {
-        most_significant_block() &= last_block_mask;
-    }
+    void clear_unused_bits_() { most_significant_block() &= last_block_mask; }
 
-    inline void increment_ (block_t carry) {
+    void increment_(block_t carry) {
         for (std::size_t i = 0u; i < num_of_blocks; ++i) {
             block(i) += carry;
             carry = block(i) < carry;
@@ -735,7 +733,7 @@ private: /* Methods: */
         clear_unused_bits_();
     }
 
-    inline void decrement_ (block_t borrow) {
+    void decrement_(block_t borrow) {
         for (std::size_t i = 0u; i < num_of_blocks; ++i) {
             const block_t temp = block(i);
             block(i) -= borrow;
@@ -746,7 +744,7 @@ private: /* Methods: */
     }
 
     // TODO: we are assuming that blocks are not greater than 64 bits!
-    inline std::uint64_t as_uint64_t () const {
+    std::uint64_t as_uint64_t() const {
         std::uint64_t out = 0;
         std::size_t const s = min(num_of_bits, 64u);
         for (std::size_t i = 0u, j = 0u; j < s; ++i, j += bits_in_block)
@@ -870,9 +868,7 @@ namespace impl {
 
 template <unsigned N, typename B>
 struct demote_integer_impl<bool, uint_t<N, B>, void> {
-    static inline bool demote (const uint_t<N, B> x) {
-        return !!x;
-    }
+    static bool demote(const uint_t<N, B> x) { return !!x; }
 };
 
 // Convert  unsigned integers to smaller uint_t
@@ -883,7 +879,7 @@ struct demote_integer_impl<uint_t<N, B>, T,
         >::type
     >
 {
-    static inline const uint_t<N, B> demote (T x) { return x; }
+    static const uint_t<N, B> demote(T x) { return x; }
 };
 
 // Convert uint_t to smaller unsigned integers other than bool
@@ -896,9 +892,7 @@ struct demote_integer_impl<T, uint_t<N, B>,
         >::type
     >
 {
-    static inline T demote (const uint_t<N, B> x) {
-        return x.template demote<T>();
-    }
+    static T demote(const uint_t<N, B> x) { return x.template demote<T>(); }
 };
 
 // Convert uint_t to a smaller uint_t
@@ -907,9 +901,8 @@ struct demote_integer_impl<uint_t<N1, B1>, uint_t<N2, B2>,
         typename std::enable_if<(N1 < N2)>::type
     >
 {
-    static inline uint_t<N1, B1> demote (const uint_t<N2, B2> x) {
-        return x.template demote_to_other_uint_t<N1, B1>();
-    }
+    static uint_t<N1, B1> demote(const uint_t<N2, B2> x)
+    { return x.template demote_to_other_uint_t<N1, B1>(); }
 };
 
 // Convert uint_t to uint128_t if uint_t has more than 128 bits
@@ -918,9 +911,8 @@ struct demote_integer_impl<uint128_t, uint_t<N, B>,
         typename std::enable_if<(128u < N)>::type
     >
 {
-    static inline uint128_t demote (const uint_t<N, B> x) {
-        return x.template demote<uint128_t>();
-    }
+    static uint128_t demote(const uint_t<N, B> x)
+    { return x.template demote<uint128_t>(); }
 };
 
 } /* namespace impl { */
