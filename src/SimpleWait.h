@@ -31,15 +31,14 @@ class SimpleWait {
 
 public: /* Methods: */
 
-    inline SimpleWait() noexcept
-        : m_isReady(false) {}
+    SimpleWait() noexcept : m_isReady(false) {}
 
     SimpleWait(SimpleWait &&) = delete;
     SimpleWait(const SimpleWait &) = delete;
     SimpleWait & operator=(SimpleWait &&) = delete;
     SimpleWait & operator=(const SimpleWait &) = delete;
 
-    inline void wait() noexcept {
+    void wait() noexcept {
         std::unique_lock<std::mutex> lock(m_mutex);
         while (!m_isReady)
             m_cond.wait(lock);
@@ -47,8 +46,8 @@ public: /* Methods: */
 
     template <typename StopTest,
               typename LoopDuration_ = StaticLoopDuration<5u> >
-    inline void waitOrStop(StopTest && stopTest,
-                           LoopDuration_ && loopDuration = LoopDuration_())
+    void waitOrStop(StopTest && stopTest,
+                    LoopDuration_ && loopDuration = LoopDuration_())
             noexcept(false)
     {
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -61,7 +60,7 @@ public: /* Methods: */
         }
     }
 
-    inline void notifyReady() noexcept {
+    void notifyReady() noexcept {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_isReady = true;
         m_cond.notify_all();
