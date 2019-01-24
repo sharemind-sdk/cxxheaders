@@ -47,17 +47,16 @@ class ChildNodeBase {
 
 public: /* Methods: */
 
-    virtual inline ~ChildNodeBase() noexcept {}
+    virtual ~ChildNodeBase() noexcept {}
 
-    inline typename ParentNodeType::ParentType * parent() const noexcept
+    typename ParentNodeType::ParentType * parent() const noexcept
     { return m_parent; }
 
 private: /* Methods: */
 
-    inline ChildNodeBase(
-            typename ParentNodeType::ParentType * const parent,
-            typename ParentNodeType::ChildType * const realChild,
-            ParentNodeType ParentNodeType::ParentType::*parentMember)
+    ChildNodeBase(typename ParentNodeType::ParentType * const parent,
+                  typename ParentNodeType::ChildType * const realChild,
+                  ParentNodeType ParentNodeType::ParentType::*parentMember)
         : m_parent(parent)
         , m_realChild((assert(realChild), realChild))
     {
@@ -65,10 +64,10 @@ private: /* Methods: */
             (parent->*parentMember).registerChild(this);
     }
 
-    inline typename ParentNodeType::ChildType * realChild() const noexcept
+    typename ParentNodeType::ChildType * realChild() const noexcept
     { return m_realChild; }
 
-    inline void unregisterChild(
+    void unregisterChild(
             ParentNodeType ParentNodeType::ParentType::*parentMember) noexcept
     {
         if (m_parent) {
@@ -77,7 +76,7 @@ private: /* Methods: */
         }
     }
 
-    inline typename ParentNodeType::ChildType * freeByParent() noexcept {
+    typename ParentNodeType::ChildType * freeByParent() noexcept {
         m_parent = nullptr;
         return m_realChild;
     }
@@ -96,11 +95,12 @@ class ChildNode: public ChildNodeBase<ParentNodeType> {
 
 public: /* Methods: */
 
-    inline ChildNode(typename ParentNodeType::ParentType * parent,
-                     typename ParentNodeType::ChildType * realChild)
-        : ChildNodeBase<ParentNodeType>(parent, realChild, parentMember) {}
+    ChildNode(typename ParentNodeType::ParentType * parent,
+              typename ParentNodeType::ChildType * realChild)
+        : ChildNodeBase<ParentNodeType>(parent, realChild, parentMember)
+    {}
 
-    inline ~ChildNode() noexcept override
+    ~ChildNode() noexcept override
     { this->unregisterChild(parentMember); }
 
 };
@@ -143,43 +143,44 @@ private: /* Types: */
 public: /* Methods: */
 
     template <typename ... Args>
-    inline ParentNode(Args && ... args)
-        : m_childDestructor(std::forward<Args>(args)...) {}
+    ParentNode(Args && ... args)
+        : m_childDestructor(std::forward<Args>(args)...)
+    {}
 
-    inline ~ParentNode() noexcept {
+    ~ParentNode() noexcept {
         lock_guard lock(m_mutex);
         for (ChildNodeType * const node : m_childNodes)
             m_childDestructor(node->freeByParent());
         /* m_childNodes.clear(); */
     }
 
-    inline std::set<ChildType *> children() const {
+    std::set<ChildType *> children() const {
         lock_guard lock(m_mutex);
         return childrenNoLock();
     }
 
-    inline typename ChildNodes::size_type numChildren() const noexcept {
+    typename ChildNodes::size_type numChildren() const noexcept {
         lock_guard lock(m_mutex);
         return m_childNodes.size();
     }
 
 private: /* Methods: */
 
-    inline void registerChild(ChildNodeType * const childNode) {
+    void registerChild(ChildNodeType * const childNode) {
         lock_guard lock(m_mutex);
         assert(!m_childNodes.count(childNode));
         assert(!childrenNoLock().count(childNode->realChild()));
         m_childNodes.insert(childNode);
     }
 
-    inline void unregisterChild(ChildNodeType * const childNode) noexcept {
+    void unregisterChild(ChildNodeType * const childNode) noexcept {
         lock_guard lock(m_mutex);
         assert(m_childNodes.count(childNode));
         m_childNodes.erase(childNode);
         assert(!childrenNoLock().count(childNode->realChild()));
     }
 
-    inline std::set<ChildType *> childrenNoLock() const {
+    std::set<ChildType *> childrenNoLock() const {
         std::set<ChildType *> cs;
         for (ChildNodeType const * const childNode : m_childNodes)
             cs.insert(childNode->realChild());
@@ -212,7 +213,7 @@ using namespace std;
 struct Child;
 
 struct Parent {
-    inline Parent() : parentNode(&Parent::freeChild) {}
+    Parent() : parentNode(&Parent::freeChild) {}
     static void freeChild(Child * child);
 
     using ParentNodeType = ObjectTree::ParentNode<Parent, Child, std::mutex>;
