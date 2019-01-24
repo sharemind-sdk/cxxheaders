@@ -46,7 +46,7 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    virtual inline ~NetworkMessage() noexcept {}
+    virtual ~NetworkMessage() noexcept {}
 
 };
 
@@ -73,14 +73,14 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    inline void const * getData() const noexcept { return data; }
-    inline std::size_t getSize() const noexcept { return size; }
-    inline std::size_t getOffset() const noexcept { return m_offset; }
+    void const * getData() const noexcept { return data; }
+    std::size_t getSize() const noexcept { return size; }
+    std::size_t getOffset() const noexcept { return m_offset; }
 
-    inline void const * getPtr() const noexcept
+    void const * getPtr() const noexcept
     { return static_cast<char const *>(data) + m_offset; }
 
-    inline std::size_t getRemainingSize() const noexcept { return size - m_offset; }
+    std::size_t getRemainingSize() const noexcept { return size - m_offset; }
 
     inline bool seek(std::size_t pos) noexcept;
 
@@ -141,11 +141,11 @@ public: /* Methods: */
     OutgoingNetworkMessage(OutgoingNetworkMessage const &) = delete;
     OutgoingNetworkMessage & operator=(OutgoingNetworkMessage const &) = delete;
 
-    inline OutgoingNetworkMessage() noexcept {}
-    inline ~OutgoingNetworkMessage() noexcept override
+    OutgoingNetworkMessage() noexcept {}
+    ~OutgoingNetworkMessage() noexcept override
     { std::free(const_cast<void *>(this->data)); }
 
-    inline void rewind() noexcept { m_offset = 0u; }
+    void rewind() noexcept { m_offset = 0u; }
 
     inline void write(bool val) noexcept(false);
     inline void write(char const * val) noexcept(false);
@@ -173,7 +173,7 @@ public: /* Methods: */
 
 private: /* Methods: */
 
-    inline std::size_t spaceLeft() const noexcept
+    std::size_t spaceLeft() const noexcept
     { return std::numeric_limits<std::size_t>::max() - m_offset; }
 
     inline void addBytes(std::size_t const bytes) noexcept(false);
