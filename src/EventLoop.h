@@ -108,7 +108,7 @@ public: /* Types: */
     #endif
 
     struct EventHandler {
-        inline virtual ~EventHandler() noexcept {}
+        virtual ~EventHandler() noexcept {}
         virtual void handleEvents(EventSet events) noexcept = 0;
     };
 
@@ -118,7 +118,7 @@ private: /* Types: */
 
     /* Methods: */
 
-        inline Pipe() {
+        Pipe() {
             int fds[2u];
             syscallLoop<PipeCreateException>(
                     #if defined(__linux__) || defined(__NetBSD__) \
@@ -155,13 +155,13 @@ private: /* Types: */
             writeEnd = fds[1u];
         }
 
-        inline ~Pipe() noexcept {
+        ~Pipe() noexcept {
             ::close(readEnd);
             if (readEnd != writeEnd)
                 ::close(writeEnd);
         }
 
-        inline void writeEndClose() noexcept {
+        void writeEndClose() noexcept {
             if (writeEnd == readEnd)
                 return;
             ::close(writeEnd);
@@ -182,7 +182,7 @@ private: /* Types: */
 
     /* Methods: */
 
-        inline Epoll()
+        Epoll()
             : fd(::epoll_create1(EPOLL_CLOEXEC))
         {
             using sharemind::ErrnoException;
@@ -190,7 +190,7 @@ private: /* Types: */
                 throwNested(ErrnoException(errno), EpollCreateException());
         }
 
-        inline ~Epoll() noexcept { ::close(fd); }
+        ~Epoll() noexcept { ::close(fd); }
 
     /* Fields: */
 
@@ -201,20 +201,18 @@ private: /* Types: */
 
 public: /* Methods: */
 
-    inline EventLoop() {
+    EventLoop() {
         #if defined(__linux__)
         epollCtl<EPOLL_CTL_ADD>(m_closePipe.readEnd, ALL_INPUT_EVENTS, nullptr);
         #endif
     }
 
-    inline ~EventLoop() noexcept { stop(); }
+    ~EventLoop() noexcept { stop(); }
 
     template <typename F>
     static std::unique_ptr<EventHandler> createHandler(F && f) {
         struct TempHandler final: EventLoop::EventHandler {
-            inline TempHandler(F && f_)
-                : m_f{std::forward<F>(f_)}
-            {}
+            TempHandler(F && f_) : m_f{std::forward<F>(f_)} {}
 
             void handleEvents(EventLoop::EventSet const events)
                     noexcept final override
@@ -233,39 +231,33 @@ public: /* Methods: */
                              { f(); });
     }
 
-    inline void insertDisabled(int const fd) {
+    void insertDisabled(int const fd) {
         #if defined(__linux__)
         disabledInsertOrModify<void, &EventLoop::epollCtl<EPOLL_CTL_ADD> >(fd);
         #endif
     }
 
-    inline void modify(int const fd,
-                       EventSet const events,
-                       EventHandler & handler)
-    {
+    void modify(int const fd, EventSet const events, EventHandler & handler) {
         #if defined(__linux__)
         epollCtl<EPOLL_CTL_MOD>(fd, events | EPOLLONESHOT, &handler);
         #endif
     }
 
-    inline void disable(int const fd) {
+    void disable(int const fd) {
         #if defined(__linux__)
         disabledInsertOrModify<void, &EventLoop::epollCtl<EPOLL_CTL_MOD> >(fd);
         #endif
     }
 
-    inline bool insert(int const fd,
-                       EventSet const events,
-                       EventHandler & handler)
-    {
+    bool insert(int const fd, EventSet const events, EventHandler & handler) {
         #if defined(__linux__)
         return epollInsert(fd, events | EPOLLONESHOT, &handler);
         #endif
     }
 
-    inline bool insertOrModify(int const fd,
-                               EventSet const events,
-                               EventHandler & handler)
+    bool insertOrModify(int const fd,
+                        EventSet const events,
+                        EventHandler & handler)
     {
         assert(&handler);
         #if defined(__linux__)
@@ -273,31 +265,28 @@ public: /* Methods: */
         #endif
     }
 
-    inline bool insertDisabledOrDisable(int const fd)
-    {
+    bool insertDisabledOrDisable(int const fd) {
         #if defined(__linux__)
         return disabledInsertOrModify<bool,
                                       &EventLoop::epollInsertOrModify>(fd);
         #endif
     }
 
-    inline bool remove(int const fd) {
+    bool remove(int const fd) {
         #if defined(__linux__)
         return epollRemove(fd);
         #endif
     }
 
-    inline void stopAsync() noexcept {
-        m_closePipe.writeEndClose();
-    }
+    void stopAsync() noexcept { m_closePipe.writeEndClose(); }
 
-    inline void stop() noexcept {
+    void stop() noexcept {
         stopAsync();
         // Block until run() exits:
         std::lock_guard<std::mutex> const guard{m_stopMutex};
     }
 
-    inline void run() {
+    void run() {
         std::lock_guard<std::mutex> const guard{m_stopMutex};
         #if defined(__linux__)
 
@@ -358,22 +347,22 @@ public: /* Methods: */
         #endif
     }
 
-    inline void spinUntilLoopIterationEnd() noexcept
+    void spinUntilLoopIterationEnd() noexcept
     { spinOnLoopIterationEnd_(&sharemind::spinWait); }
 
-    inline void yieldUntilLoopIterationEnd() noexcept
+    void yieldUntilLoopIterationEnd() noexcept
     { spinOnLoopIterationEnd_(&std::this_thread::yield); }
 
 private: /* Methods: */
 
-    inline void loopIterationFinish() noexcept
+    void loopIterationFinish() noexcept
     { m_loopCounter.fetch_add(1u, std::memory_order_release); }
 
-    inline void handleEvent(::epoll_event const & event) noexcept
+    void handleEvent(::epoll_event const & event) noexcept
     { static_cast<EventHandler *>(event.data.ptr)->handleEvents(event.events); }
 
     template <typename SpinFunction>
-    inline void spinOnLoopIterationEnd_(SpinFunction spinFunction) noexcept {
+    void spinOnLoopIterationEnd_(SpinFunction spinFunction) noexcept {
         auto const start = m_loopCounter.load(std::memory_order_acquire);
         if (m_stopMutex.try_lock()) {
             m_stopMutex.unlock();
@@ -414,13 +403,13 @@ private: /* Methods: */
               R (EventLoop::*f)(int const,
                                 EventSet const,
                                 EventHandler * const)>
-    inline R disabledInsertOrModify(int const fd)
+    R disabledInsertOrModify(int const fd)
     { return (this->*f)(fd, EPOLLONESHOT, &nullHandler()); }
 
     template <int OP>
-    inline void epollCtl(int const fd,
-                         EventSet const events,
-                         EventHandler * const handler)
+    void epollCtl(int const fd,
+                  EventSet const events,
+                  EventHandler * const handler)
     {
         ::epoll_event e;
         e.events = events;
@@ -434,7 +423,7 @@ private: /* Methods: */
                     &e);
     }
 
-    inline bool epollRemove(int const fd) {
+    bool epollRemove(int const fd) {
         while (::epoll_ctl(m_epoll.fd, EPOLL_CTL_DEL, fd, nullptr) != 0) {
             if (errno == EAGAIN || errno == EINTR)
                 continue;
@@ -445,9 +434,9 @@ private: /* Methods: */
         return true;
     }
 
-    inline bool epollInsert(int const fd,
-                            EventSet const events,
-                            EventHandler * const handler)
+    bool epollInsert(int const fd,
+                     EventSet const events,
+                     EventHandler * const handler)
     {
         ::epoll_event e;
         e.events = events;
@@ -461,9 +450,9 @@ private: /* Methods: */
         return true;
     }
 
-    inline bool epollInsertOrModify(int const fd,
-                                    EventSet const events,
-                                    EventHandler * const handler)
+    bool epollInsertOrModify(int const fd,
+                             EventSet const events,
+                             EventHandler * const handler)
     {
         ::epoll_event e;
         e.events = events;
