@@ -54,7 +54,7 @@ template <typename T, typename U, class Enable = void> struct __attribute__ ((vi
 
 template <typename T, typename U>
 struct __attribute__ ((visibility("internal"))) demote_integer_impl<T, U, typename std::enable_if<impl::can_demote_primitives<T, U>::value >::type> {
-    static inline T demote (const U x) { return x; }
+    static T demote (const U x) { return x; }
 };
 
 // If
