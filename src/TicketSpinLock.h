@@ -40,13 +40,13 @@ public: /* Methods: */
     }
     #endif
 
-    inline void lock() noexcept {
+    void lock() noexcept {
         auto const ticket = m_next.fetch_add(1u, std::memory_order_relaxed);
         while (ticket != m_active.load(std::memory_order_acquire))
             spinWait();
     }
 
-    inline void unlock() noexcept {
+    void unlock() noexcept {
         m_active.store(m_active.load(std::memory_order_relaxed) + 1u,
                        std::memory_order_release);
     }
