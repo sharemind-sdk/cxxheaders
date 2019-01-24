@@ -35,30 +35,30 @@ private: /* Types: */
 
     public: /* Methods: */
 
-        inline CacheElement(key_t && key_, str_ptr && ptr) noexcept
+        CacheElement(key_t && key_, str_ptr && ptr) noexcept
             : m_key(std::move(key_))
             , m_strong_ptr(std::move(ptr))
         {}
 
-        inline str_ptr getValue() noexcept
+        str_ptr getValue() noexcept
         { return m_strong_ptr ? m_strong_ptr : m_weak_ptr.lock(); }
 
-        inline bool isStrong() const noexcept
+        bool isStrong() const noexcept
         { return static_cast<bool>(m_strong_ptr); }
 
-        inline bool expired() const noexcept { return m_weak_ptr.expired(); }
+        bool expired() const noexcept { return m_weak_ptr.expired(); }
 
-        inline void demote() noexcept {
+        void demote() noexcept {
             assert(m_strong_ptr);
             m_strong_ptr.reset();
         }
 
-        inline void promote(str_ptr ptr) noexcept {
+        void promote(str_ptr ptr) noexcept {
             assert(!m_strong_ptr);
             m_strong_ptr = std::move(ptr);
         }
 
-        inline key_t const & key() const noexcept { return m_key; }
+        key_t const & key() const noexcept { return m_key; }
 
     private: /* Fields: */
 
@@ -73,14 +73,14 @@ private: /* Types: */
 
 public: /* Methods: */
 
-    inline LRU(std::size_t const limit)
+    LRU(std::size_t const limit)
             noexcept(std::is_nothrow_default_constructible<CacheList>::value
                      && std::is_nothrow_default_constructible<CacheMap>::value)
         : m_sizeLimit{(assert(limit > 0u), limit)}
     {}
 
     /** \brief Inserts a item into the cache. */
-    inline void insert(key_t key, str_ptr value) {
+    void insert(key_t key, str_ptr value) {
         auto const it(m_cacheMap.find(key));
         // Insert new element:
         m_cacheList.emplace_front(std::move(key), std::move(value));
@@ -102,7 +102,7 @@ public: /* Methods: */
     }
 
     template <typename Key>
-    inline std::shared_ptr<value_t> get(Key && key) noexcept {
+    std::shared_ptr<value_t> get(Key && key) noexcept {
         auto const it(m_cacheMap.find(std::forward<Key>(key)));
         if (it == m_cacheMap.end())
             return nullptr;
@@ -135,7 +135,7 @@ public: /* Methods: */
     }
 
     /** \brief Clears this LRU cache. */
-    inline void clear() noexcept {
+    void clear() noexcept {
         m_cacheMap.clear();
         m_cacheList.clear();
         m_weakList.clear();
@@ -145,7 +145,7 @@ private: /* Methods: */
 
     /** \brief Increases the size of cache or removes the least recently used
      * element */
-    inline void grow() noexcept {
+    void grow() noexcept {
         // demote items that are over the limit
         while (m_cacheList.size() > m_sizeLimit) {
             // decrease ref count
