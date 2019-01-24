@@ -507,28 +507,28 @@ inline Future<void> makeReadyFuture() {
 }
 
 template <typename T>
-auto makeReadyFuture(T && value) {
+inline auto makeReadyFuture(T && value) {
     Promise<StripReferenceWrapper_t<typename std::decay<T>::type> > p;
     p.setValue(std::forward<T>(value));
     return p.takeFuture();
 }
 
 template <typename T>
-Future<T> makeExceptionalFuture(std::exception_ptr exception) {
+inline Future<T> makeExceptionalFuture(std::exception_ptr exception) {
     Promise<T> p;
     p.setException(std::move(exception));
     return p.takeFuture();
 }
 
 template <typename T, typename Exception>
-Future<T> makeExceptionalFuture(Exception && exception) {
+inline Future<T> makeExceptionalFuture(Exception && exception) {
     Promise<T> p;
     p.setException(std::move(exception));
     return p.takeFuture();
 }
 
 template <typename T>
-Future<T> makeBrokenFuture() { return Promise<T>().takeFuture(); }
+inline Future<T> makeBrokenFuture() { return Promise<T>().takeFuture(); }
 
 
 template <typename> class PackagedTask;
@@ -609,16 +609,18 @@ private: /* Methods: */
 namespace std {
 
 template <typename T>
-void swap(sharemind::Future<T> & lhs, sharemind::Future<T> & rhs) noexcept
+inline void swap(sharemind::Future<T> & lhs, sharemind::Future<T> & rhs)
+        noexcept
 { return lhs.swap(rhs); }
 
 template <typename T>
-void swap(sharemind::Promise<T> & lhs, sharemind::Promise<T> & rhs) noexcept
+inline void swap(sharemind::Promise<T> & lhs, sharemind::Promise<T> & rhs)
+        noexcept
 { return lhs.swap(rhs); }
 
 template <typename R, typename ... ArgTypes>
-void swap(sharemind::PackagedTask<R(ArgTypes...)> & lhs,
-          sharemind::PackagedTask<R(ArgTypes...)> & rhs) noexcept
+inline void swap(sharemind::PackagedTask<R(ArgTypes...)> & lhs,
+                 sharemind::PackagedTask<R(ArgTypes...)> & rhs) noexcept
 { return lhs.swap(rhs); }
 
 } /* namespace std { */
