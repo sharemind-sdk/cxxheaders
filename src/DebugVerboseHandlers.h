@@ -99,7 +99,7 @@ class ScopedDebugVerboseHandlers {
 
 public: /* Methods: */
 
-    inline ~ScopedDebugVerboseHandlers() noexcept {
+    ~ScopedDebugVerboseHandlers() noexcept {
         std::set_unexpected(m_oldVerboseUnexpectedHandler);
         std::set_terminate(m_oldVerboseTerminateHandler);
     }
