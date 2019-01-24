@@ -45,23 +45,21 @@ public: /* Methods: */
                        std::memory_order_seq_cst) noexcept
     { return m_flags.store(flags, memoryOrder); }
 
-    inline Flags<T, U> exchange(U const flags,
-                                std::memory_order const memoryOrder =
-                                        std::memory_order_seq_cst) noexcept
+    Flags<T, U> exchange(U const flags,
+                         std::memory_order const memoryOrder =
+                                std::memory_order_seq_cst) noexcept
     { return m_flags.exchange(flags, memoryOrder); }
 
-    inline bool compareExchangeStrong(U & expected,
-                                      U const flags,
-                                      std::memory_order const memoryOrder =
-                                              std::memory_order_seq_cst)
-            noexcept
+    bool compareExchangeStrong(U & expected,
+                               U const flags,
+                               std::memory_order const memoryOrder =
+                                        std::memory_order_seq_cst) noexcept
     { return m_flags.compare_exchange_strong(expected, flags, memoryOrder); }
 
-    inline bool compareExchangeStrong(U & expected,
-                                      U const flags,
-                                      std::memory_order const success,
-                                      std::memory_order const failure)
-            noexcept
+    bool compareExchangeStrong(U & expected,
+                               U const flags,
+                               std::memory_order const success,
+                               std::memory_order const failure) noexcept
     {
         return m_flags.compare_exchange_strong(expected,
                                                flags,
@@ -69,22 +67,20 @@ public: /* Methods: */
                                                failure);
     }
 
-    inline bool compareExchangeStrong(Flags<T, U> & expected,
-                                      U const flags,
-                                      std::memory_order const memoryOrder =
-                                              std::memory_order_seq_cst)
-            noexcept
+    bool compareExchangeStrong(Flags<T, U> & expected,
+                               U const flags,
+                               std::memory_order const memoryOrder =
+                                        std::memory_order_seq_cst) noexcept
     {
         return m_flags.compare_exchange_strong(expected.m_flags,
                                                flags,
                                                memoryOrder);
     }
 
-    inline bool compareExchangeStrong(Flags<T, U> & expected,
-                                      U const flags,
-                                      std::memory_order const success,
-                                      std::memory_order const failure)
-            noexcept
+    bool compareExchangeStrong(Flags<T, U> & expected,
+                               U const flags,
+                               std::memory_order const success,
+                               std::memory_order const failure) noexcept
     {
         return m_flags.compare_exchange_strong(expected.m_flags,
                                                flags,
@@ -92,36 +88,32 @@ public: /* Methods: */
                                                failure);
     }
 
-    inline bool compareExchangeWeak(U & expected,
-                                    U const flags,
-                                    std::memory_order const memoryOrder =
-                                            std::memory_order_seq_cst)
-            noexcept
+    bool compareExchangeWeak(U & expected,
+                             U const flags,
+                             std::memory_order const memoryOrder =
+                                    std::memory_order_seq_cst) noexcept
     { return m_flags.compare_exchange_weak(expected, flags, memoryOrder); }
 
-    inline bool compareExchangeWeak(U & expected,
-                                    U const flags,
-                                    std::memory_order const success,
-                                    std::memory_order const failure)
-            noexcept
+    bool compareExchangeWeak(U & expected,
+                             U const flags,
+                             std::memory_order const success,
+                             std::memory_order const failure) noexcept
     { return m_flags.compare_exchange_weak(expected, flags, success, failure); }
 
-    inline bool compareExchangeWeak(Flags<T, U> & expected,
-                                    U const flags,
-                                    std::memory_order const memoryOrder =
-                                            std::memory_order_seq_cst)
-            noexcept
+    bool compareExchangeWeak(Flags<T, U> & expected,
+                             U const flags,
+                             std::memory_order const memoryOrder =
+                                        std::memory_order_seq_cst) noexcept
     {
         return m_flags.compare_exchange_weak(expected.m_flags,
                                              flags,
                                              memoryOrder);
     }
 
-    inline bool compareExchangeWeak(Flags<T, U> & expected,
-                                    U const flags,
-                                    std::memory_order const success,
-                                    std::memory_order const failure)
-            noexcept
+    bool compareExchangeWeak(Flags<T, U> & expected,
+                             U const flags,
+                             std::memory_order const success,
+                             std::memory_order const failure) noexcept
     {
         return m_flags.compare_exchange_weak(expected.m_flags,
                                              flags,
@@ -166,19 +158,19 @@ public: /* Methods: */
                      std::memory_order_seq_cst) const noexcept
     { return load(memoryOrder).has(flags, of); }
 
-    inline bool hasAnyOf(U const flags,
-                         std::memory_order const memoryOrder =
-                                 std::memory_order_seq_cst) const noexcept
+    bool hasAnyOf(U const flags,
+                  std::memory_order const memoryOrder =
+                            std::memory_order_seq_cst) const noexcept
     { return load(memoryOrder).hasAnyOf(flags); }
 
-    inline bool hasAllOf(U const flags,
-                         std::memory_order const memoryOrder =
-                                 std::memory_order_seq_cst) const noexcept
+    bool hasAllOf(U const flags,
+                  std::memory_order const memoryOrder =
+                            std::memory_order_seq_cst) const noexcept
     { return load(memoryOrder).hasAllOf(flags); }
 
-    inline bool hasNoneOf(U const flags,
-                          std::memory_order const memoryOrder =
-                                  std::memory_order_seq_cst) const noexcept
+    bool hasNoneOf(U const flags,
+                   std::memory_order const memoryOrder =
+                            std::memory_order_seq_cst) const noexcept
     { return load(memoryOrder).hasNoneOf(flags); }
 
 private: /* Fields: */
