@@ -31,9 +31,9 @@ class LoopDuration: public CHRONO_ {
 
 public: /* Methods: */
 
-    inline LoopDuration(std::size_t const ms)
-            noexcept(noexcept(CHRONO_(ms)))
-        : CHRONO_(ms) {}
+    LoopDuration(std::size_t const ms) noexcept(noexcept(CHRONO_(ms)))
+        : CHRONO_(ms)
+    {}
 
 };
 
@@ -42,9 +42,9 @@ class StaticLoopDuration: public LoopDuration<CHRONO_> {
 
 public: /* Methods: */
 
-    inline StaticLoopDuration()
-            noexcept(noexcept(LoopDuration<CHRONO_>(MS_)))
-        : LoopDuration<CHRONO_>(MS_) {}
+    StaticLoopDuration() noexcept(noexcept(LoopDuration<CHRONO_>(MS_)))
+        : LoopDuration<CHRONO_>(MS_)
+    {}
 
 };
 
