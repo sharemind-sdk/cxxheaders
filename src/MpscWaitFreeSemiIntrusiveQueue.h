@@ -42,11 +42,11 @@ public: /* Types: */
 
     struct SHAREMIND_ALIGN_TO_CACHE_SIZE Node {
 
-        inline Node(Node &&) = default;
-        inline Node(Node const &) = default;
+        Node(Node &&) = default;
+        Node(Node const &) = default;
 
         template <typename ... Args>
-        inline Node(Args && ... args)
+        Node(Args && ... args)
             : next{nullptr}
             , data{std::forward<Args>(args)...}
         {}
@@ -65,18 +65,18 @@ public: /* Methods: */
     MpscWaitFreeSemiIntrusiveQueue & operator=(
             MpscWaitFreeSemiIntrusiveQueue const &) = delete;
 
-    inline MpscWaitFreeSemiIntrusiveQueue()
+    MpscWaitFreeSemiIntrusiveQueue()
         : MpscWaitFreeSemiIntrusiveQueue{new Node{}}
     {}
 
-    inline ~MpscWaitFreeSemiIntrusiveQueue() noexcept {
+    ~MpscWaitFreeSemiIntrusiveQueue() noexcept {
         while (pop());
         delete m_head.load(std::memory_order_relaxed);
     }
 
     SHAREMIND_ALIGNEDALLOCATION_MEMBERS(alignof(MpscWaitFreeSemiIntrusiveQueue))
 
-    inline void push(std::unique_ptr<Node> node) noexcept {
+    void push(std::unique_ptr<Node> node) noexcept {
         assert(node);
         Node * const newNode = node.release();
         assert(!newNode->next.load(std::memory_order_relaxed));
@@ -86,7 +86,7 @@ public: /* Methods: */
         oldTail->next.store(newNode, std::memory_order_relaxed);
     }
 
-    inline std::unique_ptr<Node> pop() noexcept {
+    std::unique_ptr<Node> pop() noexcept {
         Node * const head = m_head.load(std::memory_order_consume);
         assert(head);
         Node * const next = head->next.load(std::memory_order_relaxed);
@@ -100,7 +100,7 @@ public: /* Methods: */
         return std::unique_ptr<Node>{head};
     }
 
-    inline bool empty() noexcept {
+    bool empty() noexcept {
         Node * const head = m_head.load(std::memory_order_relaxed);
         assert(head);
         return !head->next.load(std::memory_order_relaxed);
@@ -108,7 +108,7 @@ public: /* Methods: */
 
 private: /* Methods: */
 
-    inline MpscWaitFreeSemiIntrusiveQueue(Node * const node)
+    MpscWaitFreeSemiIntrusiveQueue(Node * const node)
         : m_tail{node}
         , m_head{node}
     {}
