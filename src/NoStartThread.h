@@ -60,15 +60,15 @@ public: /* Methods: */
         m_startPromise.setValue(true);
     }
 
-    inline void stop() noexcept {
+    void stop() noexcept {
         if (m_startPromise.isValid())
             m_startPromise.setValue(false);
         if (m_thread.joinable())
             m_thread.join();
     }
 
-    inline void join() noexcept { m_thread.join(); }
-    inline bool joinable() noexcept { return m_thread.joinable(); }
+    void join() noexcept { m_thread.join(); }
+    bool joinable() noexcept { return m_thread.joinable(); }
 
 private: /* Methods: */
 
