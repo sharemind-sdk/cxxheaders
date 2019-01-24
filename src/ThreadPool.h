@@ -29,6 +29,8 @@
 #include <thread>
 #include <type_traits>
 #include <utility>
+#include "CallStack.h"
+#include "StrongType.h"
 #include "TicketSpinLock.h"
 
 
@@ -71,6 +73,15 @@ public: /* Types: */
 
         struct Internal {
 
+        /* Types: */
+
+            using CallStackRecursionIndicator =
+                    StrongType<
+                        Internal *,
+                        struct InternalCallStackRecursionIndicator_Tag,
+                        StrongTypeEqualityComparable
+                    >;
+
         /* Methods: */
 
             Internal(std::shared_ptr<ThreadPool> threadPool)
@@ -103,19 +114,20 @@ public: /* Types: */
             }
 
             std::shared_ptr<ThreadPool> stopAndMaybeJoin() noexcept {
+                if (!CallStack<CallStackRecursionIndicator>::contains(
+                        CallStackRecursionIndicator(this)))
+                    return stopAndJoin();
                 std::shared_ptr<ThreadPool> gcThreadPool;
-                auto const thisThreadId(std::this_thread::get_id());
-                std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
-                gcThreadPool = std::move(m_threadPool);
-                assert(!m_threadPool);
-                if (!m_running || m_lastRunningThreadId != thisThreadId)
-                    m_joinCond.wait(
-                                tailLock,
-                                [this]() noexcept { return m_sliceTask.get(); });
+                {
+                    std::lock_guard<decltype(m_tailMutex)> const tailGuard(
+                                m_tailMutex);
+                    gcThreadPool = std::move(m_threadPool);
+                }
                 return gcThreadPool;
             }
 
             void run(Task && sliceTask) noexcept {
+                CallStack<CallStackRecursionIndicator>::Context context(this);
                 {
                     // Retrieve first task (or return if stopping):
                     Task task;
@@ -138,8 +150,6 @@ public: /* Types: */
                         assert(m_head->m_next);
                         task = std::move(m_head);
                         m_head = std::move(task->m_next);
-                        m_running = true;
-                        m_lastRunningThreadId = std::move(thisThreadId);
                     }
                     TaskWrapper * const taskPtr = task.get();
                     assert(taskPtr);
@@ -150,7 +160,6 @@ public: /* Types: */
                 }
 
                 std::lock_guard<decltype(m_tailMutex)> tailGuard(m_tailMutex);
-                m_running = false;
                 if (m_threadPool && (m_head.get() != m_tail)) {
                     m_threadPool->submit(std::move(sliceTask));
                 } else {
@@ -170,8 +179,6 @@ public: /* Types: */
             Task m_head{new TaskWrapper(nullptr)};
             TaskWrapper * m_tail{m_head.get()};
             Task m_sliceTask;
-            bool m_running = false;
-            std::thread::id m_lastRunningThreadId;
 
         };
 
