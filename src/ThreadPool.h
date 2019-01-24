@@ -282,14 +282,10 @@ public: /* Methods: */
         m_dataCond.notify_one();
     }
 
-    /// \returns whether notifyStop() had already been called.
-    bool notifyStop() noexcept {
-        if (m_stopStarted.test_and_set())
-            return true;
+    void notifyStop() noexcept {
         std::lock_guard<decltype(m_tailMutex)> const tailGuard(m_tailMutex);
         m_stop = true;
         m_dataCond.notify_all();
-        return false;
     }
 
 protected: /* Methods: */
@@ -351,8 +347,6 @@ private: /* Fields: */
     TaskWrapper * m_tail;
     Task m_head;
     bool m_stop = false;
-
-    std::atomic_flag m_stopStarted = ATOMIC_FLAG_INIT;
 
 }; /* class ThreadPool { */
 
