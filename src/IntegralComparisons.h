@@ -69,14 +69,14 @@ using GetTypes =
 #define SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(C, op, suNegResult, usNegResult) \
     template <typename A, typename B, Types = GetTypes<A, B>::value> struct C; \
     template <typename A, typename B> struct C<A, B, Types::Same> { \
-        constexpr inline static bool test(A a, B b) noexcept { return a op b; }\
+        constexpr static bool test(A a, B b) noexcept { return a op b; } \
     }; \
     template <typename S, typename U> struct C<S, U, Types::SignedUnsigned> { \
-        constexpr inline static bool test(S s, U u) noexcept \
+        constexpr static bool test(S s, U u) noexcept \
         { return (s < 0) ? suNegResult : signedToUnsigned(s) op u; } \
     }; \
     template <typename U, typename S> struct C<U, S, Types::UnsignedSigned> { \
-        constexpr inline static bool test(U u, S s) noexcept \
+        constexpr static bool test(U u, S s) noexcept \
         { return (s < 0) ? usNegResult : u op signedToUnsigned(s); } \
     }
 SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(LT, < , true,  false);
@@ -89,10 +89,10 @@ SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(GT, > , false, true);
 #define SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(C, sop, ...) \
     template <typename T, Type = GetType<T>::value> struct C; \
     template <typename S> struct C<S, Type::Signed> { \
-        constexpr inline static bool test(S s) noexcept { sop; } \
+        constexpr static bool test(S s) noexcept { sop; } \
     }; \
     template <typename U> struct C<U, Type::Unsigned> { \
-        constexpr inline static bool test(U u) noexcept { __VA_ARGS__; } \
+        constexpr static bool test(U u) noexcept { __VA_ARGS__; } \
     }
 SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Positive,
                                       return s > 0,
