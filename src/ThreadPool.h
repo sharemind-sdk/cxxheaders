@@ -77,8 +77,6 @@ public: /* Types: */
                 : m_threadPool(std::move(threadPool))
             {}
 
-            ~Internal() noexcept { stopAndJoin(); }
-
             void submit(Task && task) noexcept {
                 assert(task);
                 assert(task->m_value);
