@@ -43,16 +43,16 @@ template <typename T> struct Alloc<T, true> { using type = UChar; };
 template <typename T, bool = std::is_void<T>::value>
 struct Arith {
 
-    constexpr static inline auto dist(T * const a, T * const b)
+    constexpr static auto dist(T * const a, T * const b)
             noexcept(noexcept(std::distance(a, b)))
     { return std::distance(a, b); }
 
     template <typename Diff>
-    constexpr static inline T * add(T * const p, Diff const size) noexcept
+    constexpr static T * add(T * const p, Diff const size) noexcept
     { return p + size; }
 
     template <typename Diff>
-    constexpr static inline T * sub(T * const p, Diff const size) noexcept
+    constexpr static T * sub(T * const p, Diff const size) noexcept
     { return p - size; }
 
 };
@@ -63,20 +63,20 @@ struct Arith<T, true> {
     using CT = CopyCv_t<UChar, T>;
     using ACT = Arith<CT>;
 
-    constexpr static inline CT * toCT(T * const ptr) noexcept
+    constexpr static CT * toCT(T * const ptr) noexcept
     { return static_cast<CT *>(ptr); }
 
-    constexpr static inline auto dist(T * const a, T * const b)
+    constexpr static auto dist(T * const a, T * const b)
             noexcept(noexcept(ACT::dist(toCT(a), toCT(b))))
     { return ACT::dist(toCT(a), toCT(b)); }
 
     template <typename Diff>
-    constexpr static inline T * add(T * const p, Diff const size)
+    constexpr static T * add(T * const p, Diff const size)
             noexcept(noexcept(ACT::add(toCT(p), size)))
     { return ACT::add(toCT(p), size); }
 
     template <typename Diff>
-    constexpr static inline T * sub(T * const p, Diff const size)
+    constexpr static T * sub(T * const p, Diff const size)
             noexcept(noexcept(ACT::sub(toCT(p), size)))
     { return ACT::sub(toCT(p), size); }
 
@@ -85,9 +85,9 @@ struct Arith<T, true> {
 template <typename T, bool = std::is_void<T>::value>
 struct Copy {
     static_assert(!std::is_const<T>::value, "");
-    static inline void copy(T const * const from,
-                            T * const to,
-                            std::size_t const size)
+    static void copy(T const * const from,
+                     T * const to,
+                     std::size_t const size)
             noexcept(noexcept(std::copy(from, from + size, to)))
     { std::copy(from, from + size, to); }
 };
@@ -95,9 +95,9 @@ struct Copy {
 template <typename T>
 struct Copy<T, true> {
     static_assert(!std::is_const<T>::value, "");
-    static inline void copy(T const * const from,
-                            T * const to,
-                            std::size_t const size) noexcept
+    static void copy(T const * const from,
+                     T * const to,
+                     std::size_t const size) noexcept
     { std::memcpy(to, from, size); }
 };
 
