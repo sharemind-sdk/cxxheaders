@@ -137,12 +137,12 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    inline IntrusiveUnorderedSharedItemSet(
+    IntrusiveUnorderedSharedItemSet(
             std::size_t const numBuckets = defaultNumberOfBuckets())
         : m_numBuckets(numBuckets)
     {}
 
-    inline ~IntrusiveUnorderedSharedItemSet() noexcept {
+    ~IntrusiveUnorderedSharedItemSet() noexcept {
         m_container.clear_and_dispose(
                     &IntrusiveUnorderedSharedItemSet::disposer);
     }
@@ -228,11 +228,11 @@ public: /* Methods: */
         return r;
     }
 
-    static inline std::shared_ptr<ValueType> retrieveSharedPtr(
-            ConstIterator const it) noexcept
+    static std::shared_ptr<ValueType> retrieveSharedPtr(ConstIterator const it)
+            noexcept
     { return ItemTraits::getPtr(*it); }
 
-    static inline std::shared_ptr<ValueType> retrieveSharedPtr(
+    static std::shared_ptr<ValueType> retrieveSharedPtr(
             ConstReference const cref) noexcept
     { return ItemTraits::getPtr(cref); }
 
