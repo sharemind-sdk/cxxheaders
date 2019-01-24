@@ -49,7 +49,7 @@ public: /* Types: */
     public: /* Methods: */
 
         template <typename F>
-        inline ReusableTask(F && f)
+        ReusableTask(F && f)
             : Task(createTask([this, f](Task && task) noexcept {
                                   this->Task::operator=(std::move(task));
                                   f();
@@ -73,13 +73,13 @@ public: /* Types: */
 
         /* Methods: */
 
-            inline Internal(std::shared_ptr<ThreadPool> threadPool)
+            Internal(std::shared_ptr<ThreadPool> threadPool)
                 : m_threadPool(std::move(threadPool))
             {}
 
-            inline ~Internal() noexcept { stopAndJoin(); }
+            ~Internal() noexcept { stopAndJoin(); }
 
-            inline void submit(Task && task) noexcept {
+            void submit(Task && task) noexcept {
                 assert(task);
                 assert(task->m_value);
                 assert(!task->m_next);
@@ -94,7 +94,7 @@ public: /* Types: */
                     m_threadPool->submit(std::move(m_sliceTask));
             }
 
-            inline std::shared_ptr<ThreadPool> stopAndJoin() noexcept {
+            std::shared_ptr<ThreadPool> stopAndJoin() noexcept {
                 std::shared_ptr<ThreadPool> gcThreadPool;
                 std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
                 gcThreadPool = std::move(m_threadPool);
@@ -104,7 +104,7 @@ public: /* Types: */
                 return gcThreadPool;
             }
 
-            inline std::shared_ptr<ThreadPool> stopAndMaybeJoin() noexcept {
+            std::shared_ptr<ThreadPool> stopAndMaybeJoin() noexcept {
                 std::shared_ptr<ThreadPool> gcThreadPool;
                 auto const thisThreadId(std::this_thread::get_id());
                 std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
@@ -117,16 +117,15 @@ public: /* Types: */
                 return gcThreadPool;
             }
 
-            inline bool runningFromThisThread() const noexcept
+            bool runningFromThisThread() const noexcept
             { return runningFromThread(std::this_thread::get_id()); }
 
-            inline bool runningFromThread(std::thread::id const & id) const noexcept
-            {
+            bool runningFromThread(std::thread::id const & id) const noexcept {
                 std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
                 return m_running && (m_lastRunningThreadId == id);
             }
 
-            inline void run(Task && sliceTask) noexcept {
+            void run(Task && sliceTask) noexcept {
                 {
                     // Retrieve first task (or return if stopping):
                     Task task;
@@ -188,7 +187,7 @@ public: /* Types: */
 
     public: /* Methods: */
 
-        inline OneThreadSharedSlice(std::shared_ptr<ThreadPool> threadPool)
+        OneThreadSharedSlice(std::shared_ptr<ThreadPool> threadPool)
             : m_internal(std::make_shared<Internal>(std::move(threadPool)))
         {
             std::weak_ptr<Internal> weakInternal(m_internal);
@@ -200,15 +199,15 @@ public: /* Types: */
                         });
         }
 
-        inline ~OneThreadSharedSlice() noexcept { m_internal->stopAndJoin(); }
+        ~OneThreadSharedSlice() noexcept { m_internal->stopAndJoin(); }
 
-        inline void submit(Task task) noexcept
+        void submit(Task task) noexcept
         { m_internal->submit(std::move(task)); }
 
-        inline std::shared_ptr<ThreadPool> stopAndJoin() noexcept
+        std::shared_ptr<ThreadPool> stopAndJoin() noexcept
         { return m_internal->stopAndJoin(); }
 
-        inline std::shared_ptr<ThreadPool> stopAndMaybeJoin() noexcept
+        std::shared_ptr<ThreadPool> stopAndMaybeJoin() noexcept
         { return m_internal->stopAndMaybeJoin(); }
 
     private: /* Fields: */
@@ -220,8 +219,8 @@ public: /* Types: */
 private: /* Types: */
 
     struct TaskBase {
-        inline TaskBase() {}
-        virtual inline ~TaskBase() noexcept {}
+        TaskBase() {}
+        virtual ~TaskBase() noexcept {}
         TaskBase(TaskBase &&) = delete;
         TaskBase(TaskBase const &) = delete;
         TaskBase & operator=(TaskBase &&) = delete;
@@ -231,7 +230,7 @@ private: /* Types: */
     };
 
     struct TaskWrapper final {
-        inline TaskWrapper(std::unique_ptr<TaskBase> && value) noexcept
+        TaskWrapper(std::unique_ptr<TaskBase> && value) noexcept
             : m_value(std::move(value))
         {}
 
@@ -249,10 +248,10 @@ public: /* Methods: */
     virtual ~ThreadPool() noexcept {}
 
     template <typename F>
-    static inline Task createTask(F && f) {
+    static Task createTask(F && f) {
         struct CustomTask: TaskBase {
-            inline CustomTask(F && f) : m_f(std::forward<F>(f)) {}
-            inline void operator()(Task && task) noexcept final override
+            CustomTask(F && f) : m_f(std::forward<F>(f)) {}
+            void operator()(Task && task) noexcept final override
             { m_f(std::move(task)); }
             typename std::decay<F>::type m_f;
         };
@@ -260,10 +259,10 @@ public: /* Methods: */
     }
 
     template <typename F>
-    static inline Task createSimpleTask(F && f) {
+    static Task createSimpleTask(F && f) {
         struct CustomSimpleTask: TaskBase {
-            inline CustomSimpleTask(F && f) : m_f(std::forward<F>(f)) {}
-            inline void operator()(Task &&) noexcept final override { m_f(); }
+            CustomSimpleTask(F && f) : m_f(std::forward<F>(f)) {}
+            void operator()(Task &&) noexcept final override { m_f(); }
             typename std::decay<F>::type m_f;
         };
         return createTask_(new CustomSimpleTask(std::forward<F>(f)));
@@ -334,7 +333,7 @@ private: /* Methods: */
     }
 
     template <typename TaskSubclass>
-    static inline Task createTask_(TaskSubclass * const task) {
+    static Task createTask_(TaskSubclass * const task) {
         assert(task);
         return Task(new TaskWrapper(std::unique_ptr<TaskBase>(task)));
     }
