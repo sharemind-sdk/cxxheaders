@@ -47,7 +47,7 @@ class SharemindUuidGenerator: public UuidNameGenerator {
 
 public: /* Methods: */
 
-    inline SharemindUuidGenerator() noexcept
+    SharemindUuidGenerator() noexcept
         : UuidNameGenerator{sharemindNamespaceUuid}
     {}
 
