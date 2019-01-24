@@ -47,21 +47,21 @@ namespace Detail { namespace ApplyTuples {
 template <std::size_t NT, std::size_t N, std::size_t ... Ns>
 struct Apply {
     template<typename F, typename Tuples, typename ... Args>
-    static inline auto apply(F && f, Tuples && tuples, Args && ... args)
+    static auto apply(F && f, Tuples && tuples, Args && ... args)
     { return SHAREMIND_APPLYTUPLES_CALLAPPLY(N, NT, N - 1u, Ns...); }
 };
 
 template <std::size_t NT, std::size_t N, std::size_t ... Ns>
 struct Apply<NT, 1u, N, Ns...> {
     template<typename F, typename Tuples, typename ... Args>
-    static inline auto apply(F && f, Tuples && tuples, Args && ... args)
+    static auto apply(F && f, Tuples && tuples, Args && ... args)
     { return SHAREMIND_APPLYTUPLES_CALLAPPLY(1u, NT - 1u, N, Ns...); }
 };
 
 template <std::size_t NT>
 struct Apply<NT, 1u> {
     template<typename F, typename Tuples, typename ... Args>
-    static inline auto apply(F && f, Tuples && tuples, Args && ... args) {
+    static auto apply(F && f, Tuples && tuples, Args && ... args) {
         return ::std::forward<F>(f)(::std::forward<Args>(args)...,
                                     SHAREMIND_APPLYTUPLES_CHOOSEELEM(1u));
     }
