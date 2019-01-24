@@ -31,8 +31,8 @@ class ScopeExit {
 public: /* Methods: */
 
     template <typename ... Args>
-    inline ScopeExit(Args && ... args) : m_f{std::forward<Args>(args)...} {}
-    inline ~ScopeExit() noexcept(false) { m_f(); }
+    ScopeExit(Args && ... args) : m_f{std::forward<Args>(args)...} {}
+    ~ScopeExit() noexcept(false) { m_f(); }
 
 private: /* Fields: */
 
