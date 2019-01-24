@@ -60,7 +60,7 @@ private: /* Types: */
 
     /* Methods: */
 
-        inline T reserve() {
+        T reserve() {
             std::lock_guard<std::mutex> const guard(m_mutex);
             T tryNext = m_tryNextId;
             T const oldTryNext = tryNext;
@@ -78,7 +78,7 @@ private: /* Types: */
            \pre The given id is reserved by the pool.
            \post The given id is not reserved by the pool.
         */
-        inline void recycle(T const id) noexcept {
+        void recycle(T const id) noexcept {
             std::lock_guard<std::mutex> const guard(m_mutex);
             #ifndef NDEBUG
             auto const numErased =
