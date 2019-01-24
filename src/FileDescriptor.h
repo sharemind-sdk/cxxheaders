@@ -33,9 +33,9 @@ public: /* Methods: */
 
     FileDescriptor(FileDescriptor const &) = delete;
 
-    inline FileDescriptor(int const fd = -1) noexcept : m_fd(fd) {}
+    FileDescriptor(int const fd = -1) noexcept : m_fd(fd) {}
 
-    inline ~FileDescriptor() noexcept { close(); }
+    ~FileDescriptor() noexcept { close(); }
 
     FileDescriptor & operator=(FileDescriptor && move) noexcept {
         if (&move != this) {
