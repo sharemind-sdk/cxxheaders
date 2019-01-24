@@ -117,14 +117,6 @@ public: /* Types: */
                 return gcThreadPool;
             }
 
-            bool runningFromThisThread() const noexcept
-            { return runningFromThread(std::this_thread::get_id()); }
-
-            bool runningFromThread(std::thread::id const & id) const noexcept {
-                std::lock_guard<decltype(m_tailMutex)> const guard(m_tailMutex);
-                return m_running && (m_lastRunningThreadId == id);
-            }
-
             void run(Task && sliceTask) noexcept {
                 {
                     // Retrieve first task (or return if stopping):
