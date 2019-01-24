@@ -118,10 +118,10 @@ public:
 
     private:
 
-        inline void set_bit_ () const { m_block |= m_mask; }
-        inline void reset_bit_ () const { m_block &= ~m_mask; }
-        inline void flip_bit_ () const { m_block ^= m_mask; }
-        inline void assign_bit_ (bool x) const { x ? set_bit_ () : reset_bit_ (); }
+        void set_bit_ () const { m_block |= m_mask; }
+        void reset_bit_ () const { m_block &= ~m_mask; }
+        void flip_bit_ () const { m_block ^= m_mask; }
+        void assign_bit_ (bool x) const { x ? set_bit_ () : reset_bit_ (); }
 
     private: /* Fields: */
         block_type&       m_block;
@@ -368,9 +368,7 @@ public: /* Methods: */
     friend bool operator == (const BitVec<B, A, S>& x,
                              const BitVec<B, A, S>& y);
 
-    inline void clear_and_release () {
-        store_type().swap (m_blocks);
-    }
+    void clear_and_release() { store_type().swap (m_blocks); }
 
     void* data () { return static_cast<void*>(m_blocks.data ()); }
     const void* data () const { return static_cast<const void*>(m_blocks.data ()); }
@@ -390,7 +388,7 @@ private: /* Methods: */
     }
 
 
-    inline size_type num_blocks_ () const { return m_blocks.size (); }
+    size_type num_blocks_() const { return m_blocks.size (); }
 
     template <typename InputIterator>
     void assign_ (InputIterator begin, InputIterator end, std::input_iterator_tag) {
