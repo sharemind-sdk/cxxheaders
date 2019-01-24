@@ -114,18 +114,17 @@ struct AlignedAllocator {
     template <typename U>
     AlignedAllocator(AlignedAllocator<U> const &) noexcept {}
 
-    inline static pointer allocate(size_type const n) {
+    static pointer allocate(size_type const n) {
         return static_cast<pointer>(
                     allocateAlignedStorage<alignof(T)>(n * sizeof(T)));
     }
 
     /*
-    inline static pointer allocate(size_type const n,
-                                   const_pointer const = nullptr)
+    static pointer allocate(size_type const n, const_pointer const = nullptr)
     { return allocate(n); }
     */
 
-    inline static void deallocate(pointer const p, size_type const) noexcept
+    static void deallocate(pointer const p, size_type const) noexcept
     { freeAlignedStorage(p); }
 
     /*
