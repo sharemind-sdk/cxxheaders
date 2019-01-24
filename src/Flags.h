@@ -35,69 +35,60 @@ class Flags {
 
 public: /* Methods: */
 
-    inline constexpr Flags() noexcept {}
-    inline constexpr Flags(U const value) noexcept : m_flags{value} {}
+    constexpr Flags() noexcept {}
+    constexpr Flags(U const value) noexcept : m_flags{value} {}
 
-    inline Flags<T, U> & operator=(U const flags) noexcept
-    { return store(flags); }
+    Flags<T, U> & operator=(U const flags) noexcept { return store(flags); }
 
-    inline Flags<T, U> & operator&=(U const flags) noexcept
+    Flags<T, U> & operator&=(U const flags) noexcept
     { return ((m_flags &= flags), *this); }
 
-    inline Flags<T, U> & operator|=(U const flags) noexcept
-    { return setFlags(flags); }
+    Flags<T, U> & operator|=(U const flags) noexcept { return setFlags(flags); }
 
-    inline Flags<T, U> & operator^=(U const flags) noexcept
+    Flags<T, U> & operator^=(U const flags) noexcept
     { return toggleFlags(flags); }
 
-    inline Flags<T, U> operator&(U const flags) noexcept
-    { return m_flags & flags; }
+    Flags<T, U> operator&(U const flags) noexcept { return m_flags & flags; }
+    Flags<T, U> operator|(U const flags) noexcept { return m_flags | flags; }
+    Flags<T, U> operator^(U const flags) noexcept { return m_flags ^ flags; }
 
-    inline Flags<T, U> operator|(U const flags) noexcept
-    { return m_flags | flags; }
+    operator U () const noexcept { return load(); }
 
-    inline Flags<T, U> operator^(U const flags) noexcept
-    { return m_flags ^ flags; }
+    U load() const noexcept { return m_flags; }
 
-    inline operator U () const noexcept { return load(); }
-
-    inline U load() const noexcept { return m_flags; }
-
-    inline Flags<T, U> & store(U const flags) noexcept
+    Flags<T, U> & store(U const flags) noexcept
     { return ((m_flags = flags), *this); }
 
-    inline Flags<T, U> exchange(U const flags) noexcept {
+    Flags<T, U> exchange(U const flags) noexcept {
         U const old = m_flags;
         m_flags = flags;
         return old;
     }
 
-    inline Flags<T, U> & setFlags() noexcept
+    Flags<T, U> & setFlags() noexcept
     { return ((m_flags = ~static_cast<U>(0)), *this); }
 
-    inline Flags<T, U> & setFlags(U const flags) noexcept
+    Flags<T, U> & setFlags(U const flags) noexcept
     { return ((m_flags |= flags), *this); }
 
-    inline Flags<T, U> & unsetFlags() noexcept
+    Flags<T, U> & unsetFlags() noexcept
     { return ((m_flags = static_cast<U>(0)), *this); }
 
-    inline Flags<T, U> & unsetFlags(U const flags) noexcept
+    Flags<T, U> & unsetFlags(U const flags) noexcept
     { return ((m_flags &= ~flags), *this); }
 
-    inline Flags<T, U> & toggleFlags() noexcept
+    Flags<T, U> & toggleFlags() noexcept
     { return ((m_flags = ~m_flags), *this); }
 
-    inline Flags<T, U> & toggleFlags(U const flags) noexcept
+    Flags<T, U> & toggleFlags(U const flags) noexcept
     { return ((m_flags ^= flags), *this); }
 
-    inline bool hasAnyOf(U const flags) const noexcept
-    { return m_flags & flags; }
+    bool hasAnyOf(U const flags) const noexcept { return m_flags & flags; }
 
-    inline bool hasAllOf(U const flags) const noexcept
+    bool hasAllOf(U const flags) const noexcept
     { return (m_flags & flags) == flags; }
 
-    inline bool hasNoneOf(U const flags) const noexcept
-    { return !(hasAnyOf(flags)); }
+    bool hasNoneOf(U const flags) const noexcept { return !(hasAnyOf(flags)); }
 
 private: /* Fields: */
 
