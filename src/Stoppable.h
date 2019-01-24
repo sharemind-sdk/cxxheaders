@@ -38,10 +38,11 @@ public: /* Types: */
 
     public: /* Methods: */
 
-        inline CustomTestActor(Stoppable_ & stoppable) noexcept
-            : m_stoppable(stoppable) {}
+        CustomTestActor(Stoppable_ & stoppable) noexcept
+            : m_stoppable(stoppable)
+        {}
 
-        inline void operator()() const noexcept(false)
+        void operator()() const noexcept(false)
         { m_stoppable.template throwIfStopRequested<Exception>(); }
 
     private: /* Fields: */
@@ -58,25 +59,25 @@ public: /* Methods: */
     Stoppable(const Stoppable &) = delete;
     Stoppable & operator=(const Stoppable &) = delete;
 
-    inline Stoppable() noexcept : m_stopRequested(false) {}
+    Stoppable() noexcept : m_stopRequested(false) {}
 
-    inline bool stopRequested() const noexcept
+    bool stopRequested() const noexcept
     { return m_stopRequested.load(std::memory_order_relaxed); }
 
-    inline void stop() noexcept
+    void stop() noexcept
     { m_stopRequested.store(true, std::memory_order_relaxed); }
 
-    inline void reset() noexcept
+    void reset() noexcept
     { m_stopRequested.store(false, std::memory_order_relaxed); }
 
     template <typename Exception>
-    inline void throwIfStopRequested() const noexcept(false) {
+    void throwIfStopRequested() const noexcept(false) {
         if (stopRequested())
             throw Exception();
     }
 
     template <typename Exception>
-    inline void throwIfStopRequested(Exception && e) const noexcept(false) {
+    void throwIfStopRequested(Exception && e) const noexcept(false) {
         if (stopRequested())
             throw std::forward<Exception>(e);
     }
