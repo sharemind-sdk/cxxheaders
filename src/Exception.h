@@ -89,7 +89,7 @@ public: /* Methods: */
     ErrnoException(ErrnoException &&) = default;
     ErrnoException & operator=(ErrnoException &&) = default;
 
-    explicit inline ErrnoException(int const e) noexcept
+    explicit ErrnoException(int const e) noexcept
         : m_message(
             [e]() noexcept {
                 MessageBuffer r;
@@ -99,7 +99,7 @@ public: /* Methods: */
         , m_errno(e)
     {}
 
-    inline char const * what() const noexcept final override
+    char const * what() const noexcept final override
     { return m_message.data(); }
 
     int errorNumber() const noexcept { return m_errno; }
