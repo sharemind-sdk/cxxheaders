@@ -19,7 +19,7 @@ class SingleThreadEventLoop: public EventLoop {
 
 public: /* Methods: */
 
-    inline SingleThreadEventLoop()
+    SingleThreadEventLoop()
         : m_thread{
             [this]() noexcept {
                 try {
@@ -29,7 +29,7 @@ public: /* Methods: */
     {}
 
     template <typename ExceptionHandler>
-    inline SingleThreadEventLoop(ExceptionHandler && exceptionHandler)
+    SingleThreadEventLoop(ExceptionHandler && exceptionHandler)
         : m_thread{
             [this,exceptionHandler]() noexcept {
                 try {
@@ -41,7 +41,7 @@ public: /* Methods: */
             }}
     {}
 
-    inline ~SingleThreadEventLoop() noexcept {
+    ~SingleThreadEventLoop() noexcept {
         if (m_thread.joinable()) {
             this->stop();
             m_thread.join();
