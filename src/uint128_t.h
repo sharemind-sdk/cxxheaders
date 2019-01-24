@@ -297,16 +297,13 @@ namespace impl {
 
 template <>
 struct demote_integer_impl<bool, uint128_t, void> {
-    static inline bool demote (const uint128_t x) {
-        return demote_integer<bool>(x.upper () | x.lower ());
-    }
+    static bool demote(const uint128_t x)
+    { return demote_integer<bool>(x.upper () | x.lower ()); }
 };
 
 template <>
 struct demote_integer_impl<std::uint64_t, uint128_t, void> {
-    static inline std::uint64_t demote (const uint128_t x) {
-        return x.lower ();
-    }
+    static std::uint64_t demote(const uint128_t x) { return x.lower (); }
 };
 
 // Demote to unsigned integers other than bool and std::uint64_t
@@ -319,9 +316,7 @@ struct demote_integer_impl<T, uint128_t,
         >::type
     >
 {
-    static inline T demote (const uint128_t x) {
-        return demote_integer<T>(x.lower ());
-    }
+    static T demote(const uint128_t x) { return demote_integer<T>(x.lower ()); }
 };
 
 } /* namespace impl { */
