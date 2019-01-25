@@ -131,7 +131,6 @@ public: /* Types: */
                 {
                     // Retrieve first task (or return if stopping):
                     Task task;
-                    auto thisThreadId(std::this_thread::get_id());
                     {
                         std::lock_guard<decltype(m_tailMutex)> const guard(
                                     m_tailMutex);
