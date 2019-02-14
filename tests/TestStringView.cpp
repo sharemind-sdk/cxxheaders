@@ -192,6 +192,11 @@ void staticTests() {
     SASD_NOEXCEPT(ST, SVR.rfind(D(CharT), D(ST)));
     SASD_NOEXCEPT(ST, SVCR.rfind(D(CharT), D(ST)));
 
+    SASD(ST, SVR.copy(D(CharT *), D(ST)));
+    SASD(ST, SVCR.copy(D(CharT *), D(ST)));
+    SASD(ST, SVR.copy(D(CharT *), D(ST), D(ST)));
+    SASD(ST, SVCR.copy(D(CharT *), D(ST), D(ST)));
+
     #define TEST_OP(op) \
         SASD_NOEXCEPT(bool, SVR op SVR); \
         SASD_NOEXCEPT(bool, SVR op SVCR); \
