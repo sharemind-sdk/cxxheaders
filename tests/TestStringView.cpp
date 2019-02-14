@@ -137,6 +137,9 @@ void staticTests() {
     SASD(SV, SVR.rightClipped(D(ST)));
     SASD(SV, SVCR.rightClipped(D(ST)));
 
+    SASD(SV, SVR.clipped(D(ST), D(ST)));
+    SASD(SV, SVCR.clipped(D(ST), D(ST)));
+
     #define SA_SIGNED(...) SA(std::is_signed<__VA_ARGS__>::value)
     #define SA_SIGNED_NOEXCEPT(...) SA_SIGNED(decltype(__VA_ARGS__)); \
                                     SA(noexcept(__VA_ARGS__))
@@ -343,6 +346,17 @@ int main() {
         SHAREMIND_TESTASSERT(hv.rightClipped(i) == hv.substr(0u, hv.size() - i));
     SHAREMIND_TEST_THROWS(hv.rightClipped(hv.size() + 1u));
     SHAREMIND_TEST_THROWS(hv.rightClipped(hv.size() + 2u));
+
+    for (SV::SizeType l = 0u; l <= hv.size() + 2u; ++l) {
+        for (SV::SizeType r = 0u; r <= hv.size() + 2u; ++r) {
+            if ((l > hv.size()) || (r > hv.size() - l)) {
+                SHAREMIND_TEST_THROWS(hv.clipped(l, r));
+            } else {
+                SHAREMIND_TESTASSERT(hv.clipped(l, r)
+                                     == hv.leftClipped(l).rightClipped(r));
+            }
+        }
+    }
 
     #define TEST_COMPARE(a,op,...) \
         SHAREMIND_TESTASSERT((a).compare(__VA_ARGS__) op 0); \

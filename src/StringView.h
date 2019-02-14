@@ -255,6 +255,13 @@ public: /* Methods: */
         return BasicStringView(m_start, m_size - n);
     }
 
+    constexpr BasicStringView clipped(SizeType l, SizeType r) const {
+        if ((l > m_size) || (r > m_size - l))
+            throw std::out_of_range(
+                    "BasicStringView::clipped(): l + r > size()!");
+        return BasicStringView(m_start + l, m_size - l - r);
+    }
+
     constexpr int compare(BasicStringView other) const noexcept {
         if (auto r = TraitsType::compare(m_start,
                                          other.m_start,
