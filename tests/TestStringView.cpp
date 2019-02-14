@@ -131,11 +131,11 @@ void staticTests() {
     SASD(SV, SVR.right(D(ST)));
     SASD(SV, SVCR.right(D(ST)));
 
-    SASD(SV, SVR.from(D(ST)));
-    SASD(SV, SVCR.from(D(ST)));
+    SASD(SV, SVR.leftClipped(D(ST)));
+    SASD(SV, SVCR.leftClipped(D(ST)));
 
-    SASD(SV, SVR.upTo(D(ST)));
-    SASD(SV, SVCR.upTo(D(ST)));
+    SASD(SV, SVR.rightClipped(D(ST)));
+    SASD(SV, SVCR.rightClipped(D(ST)));
 
     #define SA_SIGNED(...) SA(std::is_signed<__VA_ARGS__>::value)
     #define SA_SIGNED_NOEXCEPT(...) SA_SIGNED(decltype(__VA_ARGS__)); \
@@ -335,14 +335,14 @@ int main() {
     SHAREMIND_TEST_THROWS(hv.right(hv.size() + 2u));
 
     for (SV::SizeType i = 0u; i <= hv.size(); ++i)
-        SHAREMIND_TESTASSERT(hv.from(i) == hv.substr(i));
-    SHAREMIND_TEST_THROWS(hv.from(hv.size() + 1u));
-    SHAREMIND_TEST_THROWS(hv.from(hv.size() + 2u));
+        SHAREMIND_TESTASSERT(hv.leftClipped(i) == hv.substr(i));
+    SHAREMIND_TEST_THROWS(hv.leftClipped(hv.size() + 1u));
+    SHAREMIND_TEST_THROWS(hv.leftClipped(hv.size() + 2u));
 
     for (SV::SizeType i = 0u; i <= hv.size(); ++i)
-        SHAREMIND_TESTASSERT(hv.upTo(i) == hv.substr(0u, hv.size() - i));
-    SHAREMIND_TEST_THROWS(hv.upTo(hv.size() + 1u));
-    SHAREMIND_TEST_THROWS(hv.upTo(hv.size() + 2u));
+        SHAREMIND_TESTASSERT(hv.rightClipped(i) == hv.substr(0u, hv.size() - i));
+    SHAREMIND_TEST_THROWS(hv.rightClipped(hv.size() + 1u));
+    SHAREMIND_TEST_THROWS(hv.rightClipped(hv.size() + 2u));
 
     #define TEST_COMPARE(a,op,...) \
         SHAREMIND_TESTASSERT((a).compare(__VA_ARGS__) op 0); \
@@ -355,10 +355,10 @@ int main() {
     TEST_COMPARE(""_sv,<,hv);
     TEST_COMPARE(*newConstSv(""),<,hv);
     TEST_COMPARE(hv,>,*newConstSv(""));
-    TEST_COMPARE(hv,>,SV(hv).upTo(1u));
-    TEST_COMPARE(hv,>,SV(*hv2).upTo(1u));
-    TEST_COMPARE(SV(hv).upTo(1u),<,hv);
-    TEST_COMPARE(SV(hv).upTo(1u),<,*hv2);
+    TEST_COMPARE(hv,>,SV(hv).rightClipped(1u));
+    TEST_COMPARE(hv,>,SV(*hv2).rightClipped(1u));
+    TEST_COMPARE(SV(hv).rightClipped(1u),<,hv);
+    TEST_COMPARE(SV(hv).rightClipped(1u),<,*hv2);
     TEST_COMPARE("aaa"_sv,<,"aab"_sv);
     TEST_COMPARE("aaa"_sv,<,"aba"_sv);
     TEST_COMPARE("aaa"_sv,<,"baa"_sv);
@@ -372,8 +372,8 @@ int main() {
     TEST_COMPARE(hv,<=,*hv2);
     TEST_COMPARE(""_sv,<=,hv);
     TEST_COMPARE(*newConstSv(""),<=,hv);
-    TEST_COMPARE(SV(hv).upTo(1u),<=,hv);
-    TEST_COMPARE(SV(hv).upTo(1u),<=,*hv2);
+    TEST_COMPARE(SV(hv).rightClipped(1u),<=,hv);
+    TEST_COMPARE(SV(hv).rightClipped(1u),<=,*hv2);
     TEST_COMPARE("aaa"_sv,<=,"aab"_sv);
     TEST_COMPARE("aaa"_sv,<=,"aba"_sv);
     TEST_COMPARE("aaa"_sv,<=,"baa"_sv);
@@ -383,8 +383,8 @@ int main() {
     TEST_COMPARE(hv,>=,hv);
     TEST_COMPARE(hv,>=,*hv2);
     TEST_COMPARE(hv,>=,*newConstSv(""));
-    TEST_COMPARE(hv,>=,SV(hv).upTo(1u));
-    TEST_COMPARE(hv,>=,SV(*hv2).upTo(1u));
+    TEST_COMPARE(hv,>=,SV(hv).rightClipped(1u));
+    TEST_COMPARE(hv,>=,SV(*hv2).rightClipped(1u));
     TEST_COMPARE("aab"_sv,>=,"aaa"_sv);
     TEST_COMPARE("aba"_sv,>=,"aaa"_sv);
     TEST_COMPARE("baa"_sv,>=,"aaa"_sv);
@@ -392,10 +392,10 @@ int main() {
     TEST_COMPARE(""_sv,!=,hv);
     TEST_COMPARE(*newConstSv(""),!=,hv);
     TEST_COMPARE(hv,!=,*newConstSv(""));
-    TEST_COMPARE(hv,!=,SV(hv).upTo(1u));
-    TEST_COMPARE(hv,!=,SV(*hv2).upTo(1u));
-    TEST_COMPARE(SV(hv).upTo(1u),!=,hv);
-    TEST_COMPARE(SV(hv).upTo(1u),!=,*hv2);
+    TEST_COMPARE(hv,!=,SV(hv).rightClipped(1u));
+    TEST_COMPARE(hv,!=,SV(*hv2).rightClipped(1u));
+    TEST_COMPARE(SV(hv).rightClipped(1u),!=,hv);
+    TEST_COMPARE(SV(hv).rightClipped(1u),!=,*hv2);
     TEST_COMPARE("aaa"_sv,!=,"aab"_sv);
     TEST_COMPARE("aaa"_sv,!=,"aba"_sv);
     TEST_COMPARE("aaa"_sv,!=,"baa"_sv);
