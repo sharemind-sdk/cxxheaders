@@ -197,6 +197,11 @@ void staticTests() {
     SASD(ST, SVR.copy(D(CharT *), D(ST), D(ST)));
     SASD(ST, SVCR.copy(D(CharT *), D(ST), D(ST)));
 
+    SASD(std::basic_string<CharT>, SVR.str());
+    SASD(std::basic_string<CharT>, SVCR.str());
+    SASD(std::basic_string<CharT>, SVR.str(D(std::allocator<CharT>)));
+    SASD(std::basic_string<CharT>, SVCR.str(D(std::allocator<CharT>)));
+
     #define TEST_OP(op) \
         SASD_NOEXCEPT(bool, SVR op SVR); \
         SASD_NOEXCEPT(bool, SVR op SVCR); \
@@ -570,6 +575,12 @@ int main() {
                 SHAREMIND_TESTASSERT(r1[s] == 'x');
             }
         }
+    }
+
+    {
+        std::string hvs(hv.data(), hv.size());
+        SHAREMIND_TESTASSERT(hv.str() == hvs);
+        SHAREMIND_TESTASSERT(hv.str(std::allocator<SV::ValueType>()) == hvs);
     }
 
     {

@@ -508,6 +508,18 @@ public: /* Methods: */
         return toCopy;
     }
 
+    std::basic_string<CharT, Traits> str() const
+    { return std::basic_string<CharT, Traits>(m_start, m_size); }
+
+    template <typename Allocator>
+    auto str(Allocator const & alloc = Allocator()) const
+            -> std::basic_string<CharT, Traits, Allocator>
+    {
+        return std::basic_string<CharT, Traits, Allocator>(m_start,
+                                                           m_size,
+                                                           alloc);
+    }
+
     /** \todo Implement max_size(), if at all possible. */
 
 private: /* Fields: */
