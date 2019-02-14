@@ -241,17 +241,16 @@ public: /* Methods: */
         return BasicStringView(m_start + (m_size - n), n);
     }
 
-    constexpr BasicStringView fromLeft(SizeType n) const {
-        if (n > m_size)
-            throw std::out_of_range("BasicStringView::fromLeft(): n > size()!");
-        return BasicStringView(m_start + n, m_size - n);
+    constexpr BasicStringView from(SizeType pos) const {
+        if (pos > m_size)
+            throw std::out_of_range("BasicStringView::from(): pos > size()!");
+        return BasicStringView(m_start + pos, m_size - pos);
     }
 
-    constexpr BasicStringView untilRight(SizeType n) const {
-        if (n > m_size)
-            throw std::out_of_range(
-                    "BasicStringView::untilRight(): n > size()!");
-        return BasicStringView(m_start, m_size - n);
+    constexpr BasicStringView upTo(SizeType pos) const {
+        if (pos > m_size)
+            throw std::out_of_range("BasicStringView::upTo(): pos > size()!");
+        return BasicStringView(m_start, m_size - pos);
     }
 
     constexpr int compare(BasicStringView other) const noexcept {
