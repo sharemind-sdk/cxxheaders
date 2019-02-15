@@ -196,8 +196,10 @@ void staticTests() {
     SASD_NOEXCEPT(SV, SVCR.leftTrimmed(D(CharT)));
     SASD_NOEXCEPT(SV, SVR.leftTrimmed(D(CharT const *), D(ST)));
     SASD_NOEXCEPT(SV, SVCR.leftTrimmed(D(CharT const *), D(ST)));
-    SASD_NOEXCEPT(SV, SVR.leftTrimmed(D(SV)));
-    SASD_NOEXCEPT(SV, SVCR.leftTrimmed(D(SV)));
+    SASD_NOEXCEPT(SV, SVR.leftTrimmed(SVR));
+    SASD_NOEXCEPT(SV, SVCR.leftTrimmed(SVR));
+    SASD_NOEXCEPT(SV, SVR.leftTrimmed(SVCR));
+    SASD_NOEXCEPT(SV, SVCR.leftTrimmed(SVCR));
     SASD_NOEXCEPT(SV, SVR.leftTrimmed(D(CharT const *)));
     SASD_NOEXCEPT(SV, SVCR.leftTrimmed(D(CharT const *)));
 
@@ -205,8 +207,10 @@ void staticTests() {
     SASD_NOEXCEPT(SV, SVCR.rightTrimmed(D(CharT)));
     SASD_NOEXCEPT(SV, SVR.rightTrimmed(D(CharT const *), D(ST)));
     SASD_NOEXCEPT(SV, SVCR.rightTrimmed(D(CharT const *), D(ST)));
-    SASD_NOEXCEPT(SV, SVR.rightTrimmed(D(SV)));
-    SASD_NOEXCEPT(SV, SVCR.rightTrimmed(D(SV)));
+    SASD_NOEXCEPT(SV, SVR.rightTrimmed(SVR));
+    SASD_NOEXCEPT(SV, SVCR.rightTrimmed(SVR));
+    SASD_NOEXCEPT(SV, SVR.rightTrimmed(SVCR));
+    SASD_NOEXCEPT(SV, SVCR.rightTrimmed(SVCR));
     SASD_NOEXCEPT(SV, SVR.rightTrimmed(D(CharT const *)));
     SASD_NOEXCEPT(SV, SVCR.rightTrimmed(D(CharT const *)));
 
@@ -214,8 +218,10 @@ void staticTests() {
     SASD_NOEXCEPT(SV, SVCR.trimmed(D(CharT)));
     SASD_NOEXCEPT(SV, SVR.trimmed(D(CharT const *), D(ST)));
     SASD_NOEXCEPT(SV, SVCR.trimmed(D(CharT const *), D(ST)));
-    SASD_NOEXCEPT(SV, SVR.trimmed(D(SV)));
-    SASD_NOEXCEPT(SV, SVCR.trimmed(D(SV)));
+    SASD_NOEXCEPT(SV, SVR.trimmed(SVR));
+    SASD_NOEXCEPT(SV, SVCR.trimmed(SVR));
+    SASD_NOEXCEPT(SV, SVR.trimmed(SVCR));
+    SASD_NOEXCEPT(SV, SVCR.trimmed(SVCR));
     SASD_NOEXCEPT(SV, SVR.trimmed(D(CharT const *)));
     SASD_NOEXCEPT(SV, SVCR.trimmed(D(CharT const *)));
 
