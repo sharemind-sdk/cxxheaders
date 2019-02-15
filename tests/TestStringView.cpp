@@ -368,7 +368,6 @@ void testFinds_3() {
     std::string const snums("012345");
     SV nums(snums);
     auto const cnums(nums);
-    #define SUB nums.substr(subPos, subSize)
     #define TEST_(m,sm,...) \
         do { \
             auto const expected(snums.sm(__VA_ARGS__)); \
@@ -423,7 +422,6 @@ void testFinds_3() {
     }
     #undef TEST
     #undef TEST_
-    #undef SUB
 }
 
 void testFinds() { testFinds_1(); testFinds_2(); testFinds_3(); }
