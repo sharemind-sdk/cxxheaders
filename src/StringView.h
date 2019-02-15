@@ -145,6 +145,12 @@ public: /* Methods: */
 
     constexpr BasicStringView() noexcept = default;
 
+    /**
+      \note This constructor is provided, because we need a means to initialize
+            string views from standard string types, but we can't add amend the
+            standard string themselves with conversion operators to string
+            views.
+    */
     template <typename Allocator>
     constexpr BasicStringView(
             std::basic_string<CharT, Traits, Allocator> const & str) noexcept
