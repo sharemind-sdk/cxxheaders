@@ -273,29 +273,56 @@ public: /* Methods: */
     constexpr int compare(BasicStringView other) const noexcept
     { return compare(other.m_start, other.m_size); }
 
-    constexpr int compare(SizeType pos, SizeType n, BasicStringView other)
-            const noexcept
-    { return substr(pos, n).compare(other); }
+    constexpr int compare(SizeType pos, SizeType n, BasicStringView other) const
+    {
+        if (pos > m_size)
+            throw std::out_of_range(
+                    "BasicStringView::compare(): pos > size()!");
+        return BasicStringView(m_start + pos,
+                               std::min(n, m_size - pos)).compare(other);
+    }
 
     constexpr int compare(SizeType pos,
                           SizeType n,
                           BasicStringView other,
                           SizeType pos2,
-                          SizeType n2) const noexcept
-    { return substr(pos, n).compare(other.substr(pos2, n2)); }
+                          SizeType n2) const
+    {
+        if (pos > m_size)
+            throw std::out_of_range(
+                    "BasicStringView::compare(): pos > size()!");
+        if (pos2 > other.m_size)
+            throw std::out_of_range(
+                    "BasicStringView::compare(): pos2 > other.size()!");
+        return BasicStringView(m_start + pos, std::min(n, m_size - pos))
+                .compare(other.m_start + pos2,
+                         std::min(n2, other.m_size - pos2));
+    }
 
     constexpr int compare(CharT const * str) const noexcept
     { return compare(str, Traits::length(str)); }
 
-    constexpr int compare(SizeType pos, SizeType n, CharT const * str)
-            const noexcept
-    { return substr(pos, n).compare(str, Traits::length(str)); }
+    constexpr int compare(SizeType pos, SizeType n, CharT const * str) const {
+        if (pos > m_size)
+            throw std::out_of_range(
+                    "BasicStringView::compare(): pos > size()!");
+        return BasicStringView(
+                    m_start + pos,
+                    std::min(n, m_size - pos)).compare(str,
+                                                       Traits::length(str));
+    }
 
     constexpr int compare(SizeType pos,
                           SizeType n,
                           CharT const * str,
-                          SizeType size) const noexcept
-    { return substr(pos, n).compare(str, size); }
+                          SizeType size) const
+    {
+        if (pos > m_size)
+            throw std::out_of_range(
+                    "BasicStringView::compare(): pos > size()!");
+        return BasicStringView(m_start + pos,
+                               std::min(n, m_size - pos)).compare(str, size);
+    }
 
     constexpr bool startsWith(CharT const * str, SizeType n) const noexcept
     { return (m_size >= n) && (compare(0u, n, str, n) == 0); }

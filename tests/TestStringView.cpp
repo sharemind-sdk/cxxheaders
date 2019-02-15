@@ -140,29 +140,29 @@ void staticTests() {
     SASD(SV, SVR.clipped(D(ST), D(ST)));
     SASD(SV, SVCR.clipped(D(ST), D(ST)));
 
-    #define SA_SIGNED(...) SA(std::is_signed<__VA_ARGS__>::value)
-    #define SA_SIGNED_NOEXCEPT(...) SA_SIGNED(decltype(__VA_ARGS__)); \
+    #define SA_SIGNED(...) SA(std::is_signed<decltype(__VA_ARGS__)>::value)
+    #define SA_SIGNED_NOEXCEPT(...) SA_SIGNED(__VA_ARGS__); \
                                     SA(noexcept(__VA_ARGS__))
     SA_SIGNED_NOEXCEPT(SVR.compare(SVR));
     SA_SIGNED_NOEXCEPT(SVR.compare(SVCR));
     SA_SIGNED_NOEXCEPT(SVCR.compare(SVR));
     SA_SIGNED_NOEXCEPT(SVCR.compare(SVCR));
-    SA_SIGNED_NOEXCEPT(SVR.compare(D(ST), D(ST), SVR));
-    SA_SIGNED_NOEXCEPT(SVR.compare(D(ST), D(ST), SVCR));
-    SA_SIGNED_NOEXCEPT(SVCR.compare(D(ST), D(ST), SVR));
-    SA_SIGNED_NOEXCEPT(SVCR.compare(D(ST), D(ST), SVCR));
-    SA_SIGNED_NOEXCEPT(SVR.compare(D(ST), D(ST), SVR, D(ST), D(ST)));
-    SA_SIGNED_NOEXCEPT(SVR.compare(D(ST), D(ST), SVCR, D(ST), D(ST)));
-    SA_SIGNED_NOEXCEPT(SVCR.compare(D(ST), D(ST), SVR, D(ST), D(ST)));
-    SA_SIGNED_NOEXCEPT(SVCR.compare(D(ST), D(ST), SVCR, D(ST), D(ST)));
+    SA_SIGNED(SVR.compare(D(ST), D(ST), SVR));
+    SA_SIGNED(SVR.compare(D(ST), D(ST), SVCR));
+    SA_SIGNED(SVCR.compare(D(ST), D(ST), SVR));
+    SA_SIGNED(SVCR.compare(D(ST), D(ST), SVCR));
+    SA_SIGNED(SVR.compare(D(ST), D(ST), SVR, D(ST), D(ST)));
+    SA_SIGNED(SVR.compare(D(ST), D(ST), SVCR, D(ST), D(ST)));
+    SA_SIGNED(SVCR.compare(D(ST), D(ST), SVR, D(ST), D(ST)));
+    SA_SIGNED(SVCR.compare(D(ST), D(ST), SVCR, D(ST), D(ST)));
     SA_SIGNED_NOEXCEPT(SVR.compare(D(CharT const *)));
     SA_SIGNED_NOEXCEPT(SVCR.compare(D(CharT const *)));
     SA_SIGNED_NOEXCEPT(SVR.compare(D(CharT const *), D(ST)));
     SA_SIGNED_NOEXCEPT(SVCR.compare(D(CharT const *), D(ST)));
-    SA_SIGNED_NOEXCEPT(SVR.compare(D(ST), D(ST), D(CharT const *)));
-    SA_SIGNED_NOEXCEPT(SVCR.compare(D(ST), D(ST), D(CharT const *)));
-    SA_SIGNED_NOEXCEPT(SVR.compare(D(ST), D(ST), D(CharT const *), D(ST)));
-    SA_SIGNED_NOEXCEPT(SVCR.compare(D(ST), D(ST), D(CharT const *), D(ST)));
+    SA_SIGNED(SVR.compare(D(ST), D(ST), D(CharT const *)));
+    SA_SIGNED(SVCR.compare(D(ST), D(ST), D(CharT const *)));
+    SA_SIGNED(SVR.compare(D(ST), D(ST), D(CharT const *), D(ST)));
+    SA_SIGNED(SVCR.compare(D(ST), D(ST), D(CharT const *), D(ST)));
     #undef SA_SIGNED_NOEXCEPT
     #undef SA_SIGNED
 
