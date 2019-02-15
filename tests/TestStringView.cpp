@@ -192,6 +192,33 @@ void staticTests() {
     SASD_NOEXCEPT(ST, SVR.rfind(D(CharT), D(ST)));
     SASD_NOEXCEPT(ST, SVCR.rfind(D(CharT), D(ST)));
 
+    SASD_NOEXCEPT(SV, SVR.leftTrimmed(D(CharT)));
+    SASD_NOEXCEPT(SV, SVCR.leftTrimmed(D(CharT)));
+    SASD_NOEXCEPT(SV, SVR.leftTrimmed(D(CharT const *), D(ST)));
+    SASD_NOEXCEPT(SV, SVCR.leftTrimmed(D(CharT const *), D(ST)));
+    SASD_NOEXCEPT(SV, SVR.leftTrimmed(D(SV)));
+    SASD_NOEXCEPT(SV, SVCR.leftTrimmed(D(SV)));
+    SASD_NOEXCEPT(SV, SVR.leftTrimmed(D(CharT const *)));
+    SASD_NOEXCEPT(SV, SVCR.leftTrimmed(D(CharT const *)));
+
+    SASD_NOEXCEPT(SV, SVR.rightTrimmed(D(CharT)));
+    SASD_NOEXCEPT(SV, SVCR.rightTrimmed(D(CharT)));
+    SASD_NOEXCEPT(SV, SVR.rightTrimmed(D(CharT const *), D(ST)));
+    SASD_NOEXCEPT(SV, SVCR.rightTrimmed(D(CharT const *), D(ST)));
+    SASD_NOEXCEPT(SV, SVR.rightTrimmed(D(SV)));
+    SASD_NOEXCEPT(SV, SVCR.rightTrimmed(D(SV)));
+    SASD_NOEXCEPT(SV, SVR.rightTrimmed(D(CharT const *)));
+    SASD_NOEXCEPT(SV, SVCR.rightTrimmed(D(CharT const *)));
+
+    SASD_NOEXCEPT(SV, SVR.trimmed(D(CharT)));
+    SASD_NOEXCEPT(SV, SVCR.trimmed(D(CharT)));
+    SASD_NOEXCEPT(SV, SVR.trimmed(D(CharT const *), D(ST)));
+    SASD_NOEXCEPT(SV, SVCR.trimmed(D(CharT const *), D(ST)));
+    SASD_NOEXCEPT(SV, SVR.trimmed(D(SV)));
+    SASD_NOEXCEPT(SV, SVCR.trimmed(D(SV)));
+    SASD_NOEXCEPT(SV, SVR.trimmed(D(CharT const *)));
+    SASD_NOEXCEPT(SV, SVCR.trimmed(D(CharT const *)));
+
     SASD(ST, SVR.copy(D(CharT *), D(ST)));
     SASD(ST, SVCR.copy(D(CharT *), D(ST)));
     SASD(ST, SVR.copy(D(CharT *), D(ST), D(ST)));
@@ -557,6 +584,181 @@ int main() {
         #undef TEST_
         #undef SUB
     }
+
+    {
+        static constexpr std::size_t numParts = 5u;
+        static constexpr std::size_t maxSizes[numParts] =
+                { 3u, 1u, 1u, 1u, 3u };
+        static constexpr SV const alphabets[numParts] =
+                { "abc"_sv, "xyz"_sv, "abcxyz"_sv, "xyz"_sv, "abc"_sv };
+        static constexpr SV const trimChars = "abc"_sv;
+
+        static auto const cycleString =
+                [](std::string & w, SV const cs, std::size_t const maxWidth)
+                    -> std::string &
+                {
+                    assert(!cs.empty());
+                    if (w.empty()) {
+                        w.push_back(cs.front());
+                        return w;
+                    }
+                    auto di = w.size() - 1u; // index of digit
+                    for (;; --di) {
+                        auto ci = cs.find(w[di]);
+                        if (ci != cs.size() - 1u) {
+                            w[di] = cs[++ci];
+                            return w;
+                        }
+                        w[di] = cs.front();
+                        if (di == 0u) {
+                            if (w.size() >= maxWidth) {
+                                w.clear();
+                                return w;
+                            }
+                            w.push_back(cs.front());
+                            return w;
+                        }
+                    }
+                };
+        { // Test for cycleString() ^^
+            std::string test;
+            test.reserve(4u);
+            std::size_t count = 1u;
+            static constexpr auto cs("abc"_sv);
+            static constexpr std::size_t s(cs.size());
+            while (!cycleString(test, "abc"_sv, 4u).empty())
+                ++count;
+            SHAREMIND_TESTASSERT(count == 1u + s + s*s + s*s*s + s*s*s*s);
+        }
+        static auto const cycleParts =
+                [](std::vector<std::string> & parts) {
+                    auto pi = parts.size() - 1u; // index of part
+                    for (;; --pi) {
+                        if (!cycleString(parts[pi],
+                                         alphabets[pi],
+                                         maxSizes[pi]).empty())
+                            return true;
+                        if (!pi)
+                            return false;
+                    }
+                };
+        static auto const forAllFullWords =
+                [](auto f) {
+                    std::vector<std::string> parts(numParts);
+                    std::size_t fullWordMaxSize = 0u;
+                    for (std::size_t i = 0u; i < numParts; ++i) {
+                        fullWordMaxSize += maxSizes[i];
+                        parts[i].reserve(maxSizes[i]);
+                    }
+                    std::string fullWord;
+                    fullWord.reserve(fullWordMaxSize);
+                    for (;;) {
+                        f(SV(fullWord));
+                        if (!cycleParts(parts))
+                            break;
+                        fullWord.clear();
+                        for (auto const & part : parts)
+                            fullWord.append(part);
+                    }
+                };
+        static auto const forAllTrims =
+                [](auto f) {
+                    std::string trim;
+                    trim.reserve(trimChars.size());
+                    do {
+                        f(SV(trim));
+                    } while (!cycleString(trim,
+                                          trimChars,
+                                          trimChars.size()).empty());
+                };
+        #define TEST(...) SHAREMIND_TESTASSERT(input.__VA_ARGS__)
+        static auto const trimCharTest =
+                [](SV const input, char const trim) {
+                    if (input.empty()) {
+                        TEST(leftTrimmed(trim).empty());
+                        TEST(rightTrimmed(trim).empty());
+                        TEST(trimmed(trim).empty());
+                    } else {
+                        auto const leftPos(input.findFirstNotOf(trim));
+                        auto const lt((leftPos != SV::npos)
+                                      ? input.leftClipped(leftPos)
+                                      : ""_sv);
+                        TEST(leftTrimmed(trim) == lt);
+
+                        auto const rightPos(input.findLastNotOf(trim));
+                        auto const rt((rightPos != SV::npos)
+                                      ? input.rightClipped(
+                                            input.size() - (rightPos + 1u))
+                                      : ""_sv);
+                        TEST(rightTrimmed(trim) == rt);
+
+                        auto const t((leftPos != SV::npos)
+                                     ? rt.leftClipped(leftPos)
+                                     : ""_sv);
+                        TEST(trimmed(trim) == t);
+                    }
+                };
+        static auto const detailedTest =
+                [](SV const input, SV const trims) {
+                    if (input.empty()) {
+                        TEST(leftTrimmed(trims.front()).empty());
+                        TEST(leftTrimmed(trims).empty());
+                        TEST(leftTrimmed(trims.data(), trims.size()).empty());
+                        TEST(leftTrimmed(trims.data()).empty());
+                        TEST(rightTrimmed(trims.front()).empty());
+                        TEST(rightTrimmed(trims).empty());
+                        TEST(rightTrimmed(trims.data(), trims.size()).empty());
+                        TEST(rightTrimmed(trims.data()).empty());
+                        TEST(trimmed(trims.front()).empty());
+                        TEST(trimmed(trims).empty());
+                        TEST(trimmed(trims.data(), trims.size()).empty());
+                        TEST(trimmed(trims.data()).empty());
+                    } else if (trims.empty()) {
+                        TEST(leftTrimmed(trims) == input);
+                        TEST(leftTrimmed(trims.data(), trims.size()) == input);
+                        TEST(leftTrimmed(trims.data()) == input);
+                        TEST(rightTrimmed(trims) == input);
+                        TEST(rightTrimmed(trims.data(), trims.size()) == input);
+                        TEST(rightTrimmed(trims.data()) == input);
+                        TEST(trimmed(trims) == input);
+                        TEST(trimmed(trims.data(), trims.size()) == input);
+                        TEST(trimmed(trims.data()) == input);
+                    } else {
+                        auto const leftPos(input.findFirstNotOf(trims));
+                        auto const lt((leftPos != SV::npos)
+                                      ? input.leftClipped(leftPos)
+                                      : ""_sv);
+                        TEST(leftTrimmed(trims) == lt);
+                        TEST(leftTrimmed(trims.data(), trims.size()) == lt);
+                        TEST(leftTrimmed(trims.data()) == lt);
+
+                        auto const rightPos(input.findLastNotOf(trims));
+                        auto const rt((rightPos != SV::npos)
+                                      ? input.rightClipped(
+                                            input.size() - (rightPos + 1u))
+                                      : ""_sv);
+                        TEST(rightTrimmed(trims) == rt);
+                        TEST(rightTrimmed(trims.data(), trims.size()) == rt);
+                        TEST(rightTrimmed(trims.data()) == rt);
+
+                        auto const t((leftPos != SV::npos)
+                                     ? rt.leftClipped(leftPos)
+                                     : ""_sv);
+                        TEST(trimmed(trims) == t);
+                        TEST(trimmed(trims.data(), trims.size()) == t);
+                        TEST(trimmed(trims.data()) == t);
+                    }
+                };
+        forAllFullWords(
+                    [](SV input) {
+                        for (auto const c : trimChars)
+                            trimCharTest(input, c);
+                        forAllTrims([input](SV trim)
+                                    { detailedTest(input, trim); });
+                    });
+        #undef TEST
+    }
+
     {
         std::string const snums("01234");
         auto const s = snums.size();

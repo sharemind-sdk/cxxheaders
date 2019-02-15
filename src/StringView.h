@@ -498,6 +498,78 @@ public: /* Methods: */
             const noexcept
     { return findLastNotOf(BasicStringView(str), pos); }
 
+    constexpr BasicStringView leftTrimmed(CharT c) const noexcept {
+        for (SizeType i = 0u; i < m_size; ++i)
+            if (!Traits::eq(m_start[i], c))
+                return BasicStringView(m_start + i, m_size - i);
+        return BasicStringView();
+    }
+
+    constexpr BasicStringView leftTrimmed(CharT const * cs, SizeType count)
+            const noexcept
+    {
+        for (SizeType i = 0u; i < m_size; ++i)
+            if (!Traits::find(cs, count, m_start[i]))
+                return BasicStringView(m_start + i, m_size - i);
+        return BasicStringView();
+    }
+
+    constexpr BasicStringView leftTrimmed(BasicStringView cs) const noexcept
+    { return leftTrimmed(cs.m_start, cs.m_size); }
+
+    constexpr BasicStringView leftTrimmed(CharT const * cs) const noexcept
+    { return leftTrimmed(BasicStringView(cs)); }
+
+    constexpr BasicStringView rightTrimmed(CharT c) const noexcept {
+        for (SizeType i = m_size; i--;)
+            if (!Traits::eq(m_start[i], c))
+                return BasicStringView(m_start, i + 1u);
+        return BasicStringView();
+    }
+
+    constexpr BasicStringView rightTrimmed(CharT const * cs, SizeType count)
+            const noexcept
+    {
+        for (SizeType i = m_size; i--;)
+            if (!Traits::find(cs, count, m_start[i]))
+                return BasicStringView(m_start, i + 1u);
+        return BasicStringView();
+    }
+
+    constexpr BasicStringView rightTrimmed(BasicStringView cs) const noexcept
+    { return rightTrimmed(cs.m_start, cs.m_size); }
+
+    constexpr BasicStringView rightTrimmed(CharT const * cs) const noexcept
+    { return rightTrimmed(BasicStringView(cs)); }
+
+    constexpr BasicStringView trimmed(CharT c) const noexcept {
+        for (SizeType i = 0u; i < m_size; ++i) /* first inclusive */
+            if (!Traits::eq(m_start[i], c))
+                for (SizeType i2 = m_size - 1u;; --i2) /* last inclusive */
+                    if (!Traits::eq(m_start[i2], c))
+                        /* Return range [i, i2]: */
+                        return BasicStringView(m_start + i, i2 + 1u - i);
+        return BasicStringView();
+    }
+
+    constexpr BasicStringView trimmed(CharT const * cs, SizeType count)
+            const noexcept
+    {
+        for (SizeType i = 0u; i < m_size; ++i) /* first inclusive */
+            if (!Traits::find(cs, count, m_start[i]))
+                for (SizeType i2 = m_size - 1u;; --i2) /* last inclusive */
+                    if (!Traits::find(cs, count, m_start[i2]))
+                        /* Return range [i, i2]: */
+                        return BasicStringView(m_start + i, i2 + 1u - i);
+        return BasicStringView();
+    }
+
+    constexpr BasicStringView trimmed(BasicStringView cs) const noexcept
+    { return trimmed(cs.m_start, cs.m_size); }
+
+    constexpr BasicStringView trimmed(CharT const * cs) const noexcept
+    { return trimmed(BasicStringView(cs)); }
+
     constexpr SizeType copy(CharT * dest, SizeType count, SizeType pos = 0u)
             const
     {
