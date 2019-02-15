@@ -157,6 +157,8 @@ void staticTests() {
     SA_SIGNED_NOEXCEPT(SVCR.compare(D(ST), D(ST), SVCR, D(ST), D(ST)));
     SA_SIGNED_NOEXCEPT(SVR.compare(D(CharT const *)));
     SA_SIGNED_NOEXCEPT(SVCR.compare(D(CharT const *)));
+    SA_SIGNED_NOEXCEPT(SVR.compare(D(CharT const *), D(ST)));
+    SA_SIGNED_NOEXCEPT(SVCR.compare(D(CharT const *), D(ST)));
     SA_SIGNED_NOEXCEPT(SVR.compare(D(ST), D(ST), D(CharT const *)));
     SA_SIGNED_NOEXCEPT(SVCR.compare(D(ST), D(ST), D(CharT const *)));
     SA_SIGNED_NOEXCEPT(SVR.compare(D(ST), D(ST), D(CharT const *), D(ST)));
@@ -778,6 +780,7 @@ int main() {
     TEST_COMPARE("aba"_sv,!=,"aaa"_sv);
     TEST_COMPARE("baa"_sv,!=,"aaa"_sv);
     #undef TEST_COMPARE
+    /// \todo Add test for other compare() interfaces as well
 
     SHAREMIND_TESTASSERT(hv.startsWith('H'));
     SHAREMIND_TESTASSERT(!hv.startsWith('e'));

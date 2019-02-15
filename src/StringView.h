@@ -262,15 +262,16 @@ public: /* Methods: */
         return BasicStringView(m_start + l, m_size - l - r);
     }
 
-    constexpr int compare(BasicStringView other) const noexcept {
-        if (auto r = TraitsType::compare(m_start,
-                                         other.m_start,
-                                         std::min(m_size, other.m_size)))
+    constexpr int compare(CharT const * str, SizeType n) const noexcept {
+        if (auto r = TraitsType::compare(m_start, str, std::min(m_size, n)))
             return r;
-        if (m_size == other.m_size)
+        if (m_size == n)
             return 0;
-        return (m_size < other.m_size) ? -1 : 1;
+        return (m_size < n) ? -1 : 1;
     }
+
+    constexpr int compare(BasicStringView other) const noexcept
+    { return compare(other.m_start, other.m_size); }
 
     constexpr int compare(SizeType pos, SizeType n, BasicStringView other)
             const noexcept
