@@ -174,6 +174,8 @@ void staticTests() {
     SASD_NOEXCEPT(bool, SVCR.startsWith(D(CharT)));
     SASD_NOEXCEPT(bool, SVR.startsWith(D(CharT const *)));
     SASD_NOEXCEPT(bool, SVCR.startsWith(D(CharT const *)));
+    SASD_NOEXCEPT(bool, SVR.startsWith(D(CharT const *), D(ST)));
+    SASD_NOEXCEPT(bool, SVCR.startsWith(D(CharT const *), D(ST)));
 
     SASD_NOEXCEPT(bool, SVR.endsWith(SVR));
     SASD_NOEXCEPT(bool, SVR.endsWith(SVCR));
@@ -183,6 +185,8 @@ void staticTests() {
     SASD_NOEXCEPT(bool, SVCR.endsWith(D(CharT)));
     SASD_NOEXCEPT(bool, SVR.endsWith(D(CharT const *)));
     SASD_NOEXCEPT(bool, SVCR.endsWith(D(CharT const *)));
+    SASD_NOEXCEPT(bool, SVR.endsWith(D(CharT const *), D(ST)));
+    SASD_NOEXCEPT(bool, SVCR.endsWith(D(CharT const *), D(ST)));
 
     SASD_NOEXCEPT(ST, SVR.find(D(CharT)));
     SASD_NOEXCEPT(ST, SVCR.find(D(CharT)));
@@ -790,6 +794,10 @@ int main() {
     SHAREMIND_TESTASSERT(!hv.startsWith("ello"));
     SHAREMIND_TESTASSERT(!hv.startsWith("World!"));
 
+    SHAREMIND_TESTASSERT(hv.startsWith("Hello", 5u));
+    SHAREMIND_TESTASSERT(!hv.startsWith("ello", 4u));
+    SHAREMIND_TESTASSERT(!hv.startsWith("World!", 6u));
+
     SHAREMIND_TESTASSERT(hv.startsWith("Hello"_sv));
     SHAREMIND_TESTASSERT(!hv.startsWith("ello"_sv));
     SHAREMIND_TESTASSERT(!hv.startsWith("World!"_sv));
@@ -801,6 +809,10 @@ int main() {
     SHAREMIND_TESTASSERT(hv.endsWith("World!"));
     SHAREMIND_TESTASSERT(!hv.endsWith("World"));
     SHAREMIND_TESTASSERT(!hv.endsWith("Hello"));
+
+    SHAREMIND_TESTASSERT(hv.endsWith("World!", 6u));
+    SHAREMIND_TESTASSERT(!hv.endsWith("World", 5u));
+    SHAREMIND_TESTASSERT(!hv.endsWith("Hello", 5u));
 
     SHAREMIND_TESTASSERT(hv.endsWith("World!"_sv));
     SHAREMIND_TESTASSERT(!hv.endsWith("World"_sv));

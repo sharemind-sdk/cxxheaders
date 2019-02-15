@@ -297,29 +297,31 @@ public: /* Methods: */
                           SizeType size) const noexcept
     { return substr(pos, n).compare(str, size); }
 
-    constexpr bool startsWith(BasicStringView v) const noexcept {
-        return (m_size >= v.m_size)
-               && (compare(0u, v.m_size, v.m_start, v.m_size) == 0);
-    }
+    constexpr bool startsWith(CharT const * str, SizeType n) const noexcept
+    { return (m_size >= n) && (compare(0u, n, str, n) == 0); }
+
+    constexpr bool startsWith(BasicStringView v) const noexcept
+    { return startsWith(v.m_start, v.m_size); }
 
     constexpr bool startsWith(CharT c) const noexcept
     { return (m_size > 0u) && (Traits::eq(front(), c)); }
 
     /// \todo Optimize not to iterate over str twice:
     constexpr bool startsWith(CharT const * str) const noexcept
-    { return startsWith(BasicStringView(str)); }
+    { return startsWith(str, Traits::length(str)); }
 
-    constexpr bool endsWith(BasicStringView v) const noexcept {
-        return (m_size >= v.m_size)
-                && (compare(m_size - v.m_size, v.m_size, v.m_start, v.m_size)
-                    == 0);
+    constexpr bool endsWith(CharT const * str, SizeType n) const noexcept {
+        return (m_size >= n) && (compare(m_size - n, n, str, n) == 0);
     }
+
+    constexpr bool endsWith(BasicStringView v) const noexcept
+    { return endsWith(v.m_start, v.m_size); }
 
     constexpr bool endsWith(CharT c) const noexcept
     { return (m_size > 0u) && (Traits::eq(back(), c)); }
 
     constexpr bool endsWith(CharT const * str) const noexcept
-    { return endsWith(BasicStringView(str)); }
+    { return endsWith(str, Traits::length(str)); }
 
     constexpr SizeType find(CharT c, SizeType pos = 0u) const noexcept {
         if (pos < m_size)
