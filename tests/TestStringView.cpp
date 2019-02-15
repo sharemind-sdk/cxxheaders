@@ -331,12 +331,27 @@ void testFinds_2() {
                            SHAREMIND_TESTASSERT(cnums.m(c) == snums.sm(c))
         TESTS;
         #undef TEST
+        // These disabled tests are already covered via std::string/TESTS above:
+        #if 0
+        SHAREMIND_TESTASSERT(nums.find(c) == nums.findFirstOf(c));
+        SHAREMIND_TESTASSERT(cnums.find(c) == cnums.findFirstOf(c));
+        SHAREMIND_TESTASSERT(nums.rfind(c) == nums.findLastOf(c));
+        SHAREMIND_TESTASSERT(cnums.rfind(c) == cnums.findLastOf(c));
+        #endif
         for (SV::SizeType i = 0u; i < nums.size() + 3u; ++i) {
             #define TEST(m,sm) \
                 SHAREMIND_TESTASSERT(nums.m(c, i) == snums.sm(c, i)); \
                 SHAREMIND_TESTASSERT(cnums.m(c, i) == snums.sm(c, i))
             TESTS;
             #undef TEST
+            /* These disabled tests are already covered via std::string/TESTS
+               above: */
+            #if 0
+            SHAREMIND_TESTASSERT(nums.find(c, i) == nums.findFirstOf(c, i));
+            SHAREMIND_TESTASSERT(cnums.find(c, i) == cnums.findFirstOf(c, i));
+            SHAREMIND_TESTASSERT(nums.rfind(c, i) == nums.findLastOf(c, i));
+            SHAREMIND_TESTASSERT(cnums.rfind(c, i) == cnums.findLastOf(c, i));
+            #endif
         }
     }
     #undef TESTS

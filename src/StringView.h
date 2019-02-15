@@ -379,12 +379,8 @@ public: /* Methods: */
     constexpr SizeType rfind(CharT const * str, SizeType pos = 0u) const noexcept
     { return rfind(str, pos, TraitsType::length(str)); }
 
-    constexpr SizeType findFirstOf(CharT c, SizeType pos = 0u) const noexcept {
-        for (; pos < m_size; ++pos)
-            if (Traits::eq(m_start[pos], c))
-                return pos;
-        return npos;
-    }
+    constexpr SizeType findFirstOf(CharT c, SizeType pos = 0u) const noexcept
+    { return find(c, pos); }
 
     constexpr SizeType findFirstOf(CharT const * str,
                                    SizeType pos,
@@ -429,17 +425,8 @@ public: /* Methods: */
             const noexcept
     { return findFirstNotOf(str, pos, TraitsType::length(str)); }
 
-    constexpr SizeType findLastOf(CharT c, SizeType pos = npos) const noexcept {
-        // Search [0, pos] U [0, m_size):
-        if (auto const s = m_size)
-            /* Initialize i to be the "previous" search position. Note that
-               std::min(s - 1u, pos) is always less than SizeType(-1), therefore
-               i is always initialized to be greater than 0: */
-            for (SizeType i = std::min(s - 1u, pos) + 1u; i--;)
-                if (Traits::eq(m_start[i], c))
-                    return i;
-        return npos;
-    }
+    constexpr SizeType findLastOf(CharT c, SizeType pos = npos) const noexcept
+    { return rfind(c, pos); }
 
     constexpr SizeType findLastOf(CharT const * str,
                                   SizeType pos,
