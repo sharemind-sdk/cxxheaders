@@ -340,7 +340,7 @@ public: /* Methods: */
     { return find(v.m_start, pos, v.m_size); }
 
     constexpr SizeType find(CharT const * str, SizeType pos = 0u) const noexcept
-    { return find(BasicStringView(str), pos); }
+    { return find(str, pos, TraitsType::length(str)); }
 
     constexpr SizeType rfind(CharT c, SizeType pos = npos) const noexcept {
         // Search [0, pos] U [0, m_size):
@@ -377,7 +377,7 @@ public: /* Methods: */
     { return rfind(v.m_start, pos, v.m_size); }
 
     constexpr SizeType rfind(CharT const * str, SizeType pos = 0u) const noexcept
-    { return rfind(BasicStringView(str), pos); }
+    { return rfind(str, pos, TraitsType::length(str)); }
 
     constexpr SizeType findFirstOf(CharT c, SizeType pos = 0u) const noexcept {
         for (; pos < m_size; ++pos)
@@ -402,7 +402,7 @@ public: /* Methods: */
 
     constexpr SizeType findFirstOf(CharT const * str, SizeType pos = 0u)
             const noexcept
-    { return findFirstOf(BasicStringView(str), pos); }
+    { return findFirstOf(str, pos, TraitsType::length(str)); }
 
     constexpr SizeType findFirstNotOf(CharT c, SizeType pos = 0u) const noexcept {
         for (; pos < m_size; ++pos)
@@ -427,7 +427,7 @@ public: /* Methods: */
 
     constexpr SizeType findFirstNotOf(CharT const * str, SizeType pos = 0u)
             const noexcept
-    { return findFirstNotOf(BasicStringView(str), pos); }
+    { return findFirstNotOf(str, pos, TraitsType::length(str)); }
 
     constexpr SizeType findLastOf(CharT c, SizeType pos = npos) const noexcept {
         // Search [0, pos] U [0, m_size):
@@ -462,7 +462,7 @@ public: /* Methods: */
 
     constexpr SizeType findLastOf(CharT const * str, SizeType pos = npos)
             const noexcept
-    { return findLastOf(BasicStringView(str), pos); }
+    { return findLastOf(str, pos, TraitsType::length(str)); }
 
     constexpr SizeType findLastNotOf(CharT c, SizeType pos = npos) const noexcept {
         // Search [0, pos] U [0, m_size):
@@ -496,7 +496,7 @@ public: /* Methods: */
 
     constexpr SizeType findLastNotOf(CharT const * str, SizeType pos = npos)
             const noexcept
-    { return findLastNotOf(BasicStringView(str), pos); }
+    { return findLastNotOf(str, pos, TraitsType::length(str)); }
 
     constexpr BasicStringView leftTrimmed(CharT c) const noexcept {
         for (SizeType i = 0u; i < m_size; ++i)
@@ -518,7 +518,7 @@ public: /* Methods: */
     { return leftTrimmed(cs.m_start, cs.m_size); }
 
     constexpr BasicStringView leftTrimmed(CharT const * cs) const noexcept
-    { return leftTrimmed(BasicStringView(cs)); }
+    { return leftTrimmed(cs, TraitsType::length(cs)); }
 
     constexpr BasicStringView rightTrimmed(CharT c) const noexcept {
         for (SizeType i = m_size; i--;)
@@ -540,7 +540,7 @@ public: /* Methods: */
     { return rightTrimmed(cs.m_start, cs.m_size); }
 
     constexpr BasicStringView rightTrimmed(CharT const * cs) const noexcept
-    { return rightTrimmed(BasicStringView(cs)); }
+    { return rightTrimmed(cs, TraitsType::length(cs)); }
 
     constexpr BasicStringView trimmed(CharT c) const noexcept {
         for (SizeType i = 0u; i < m_size; ++i) /* first inclusive */
@@ -568,7 +568,7 @@ public: /* Methods: */
     { return trimmed(cs.m_start, cs.m_size); }
 
     constexpr BasicStringView trimmed(CharT const * cs) const noexcept
-    { return trimmed(BasicStringView(cs)); }
+    { return trimmed(cs, TraitsType::length(cs)); }
 
     constexpr SizeType copy(CharT * dest, SizeType count, SizeType pos = 0u)
             const
