@@ -106,16 +106,20 @@ class BasicStringView {
             auto const w(os.width());
             if (integralGreaterEqual(v.m_size, w)) {
                 Detail::StringView::doOut(os, v.m_start, v.m_size);
-            } else if ((os.flags() & std::ios_base::adjustfield)
-                       == std::ios_base::left)
-            {
-                Detail::StringView::doOut(os, v.m_start, v.m_size);
-                if (os.good())
-                    Detail::StringView::doFill(os, w - v.m_size);
             } else {
-                Detail::StringView::doFill(os, w - v.m_size);
-                if (os.good())
+                auto const toFill =
+                        w - static_cast<decltype(w)>(v.m_size);
+                if ((os.flags() & std::ios_base::adjustfield)
+                       == std::ios_base::left)
+                {
                     Detail::StringView::doOut(os, v.m_start, v.m_size);
+                    if (os.good())
+                        Detail::StringView::doFill(os, toFill);
+                } else {
+                    Detail::StringView::doFill(os, toFill);
+                    if (os.good())
+                        Detail::StringView::doOut(os, v.m_start, v.m_size);
+                }
             }
             os.width(0);
         }
