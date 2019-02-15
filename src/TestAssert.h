@@ -27,27 +27,28 @@
 
 #define SHAREMIND_TEST_PRINT_CURRENT_EXCEPTION \
     do { \
-        std::exception_ptr eptr = std::current_exception(); \
-        if (!eptr) { \
+        auto SHAREMIND_TESTASSERT_eptr = std::current_exception(); \
+        if (!SHAREMIND_TESTASSERT_eptr) { \
             std::fprintf(stderr, "<NO EXCEPTION>\n"); \
         } else { \
             /* Count exceptions: */ \
-            std::size_t count = 0u; \
+            std::size_t SHAREMIND_TESTASSERT_count = 0u; \
             { \
-                std::exception_ptr eptr2 = eptr; \
+                auto SHAREMIND_TESTASSERT_eptr2 = SHAREMIND_TESTASSERT_eptr; \
                 for (;;) { \
                     try { \
-                        std::rethrow_exception(eptr2); \
-                    } catch (std::exception const & e) { \
-                        ++count; \
+                        std::rethrow_exception(SHAREMIND_TESTASSERT_eptr2); \
+                    } catch (std::exception const & SHAREMIND_TESTASSERT_e) { \
+                        ++SHAREMIND_TESTASSERT_count; \
                         try { \
-                            std::rethrow_if_nested(e); \
+                            std::rethrow_if_nested(SHAREMIND_TESTASSERT_e); \
                             break; \
                         } catch (...) { \
-                            eptr2 = std::current_exception(); \
+                            SHAREMIND_TESTASSERT_eptr2 = \
+                                    std::current_exception(); \
                         } \
                     } catch (...) { \
-                        ++count; \
+                        ++SHAREMIND_TESTASSERT_count; \
                         break; \
                     } \
                 } \
@@ -56,27 +57,27 @@
             std::size_t num = 1u; \
             for (;;) { \
                 try { \
-                    std::rethrow_exception(eptr); \
-                } catch (std::exception const & e) { \
+                    std::rethrow_exception(SHAREMIND_TESTASSERT_eptr); \
+                } catch (std::exception const & SHAREMIND_TESTASSERT_e) { \
                     std::fprintf(stderr, \
                                  "[%zu/%zu] %s\n", \
                                  num, \
-                                 count, \
-                                 e.what()); \
+                                 SHAREMIND_TESTASSERT_count, \
+                                 SHAREMIND_TESTASSERT_e.what()); \
                     std::fflush(stderr); \
                     ++num; \
                     try { \
-                        std::rethrow_if_nested(e); \
+                        std::rethrow_if_nested(SHAREMIND_TESTASSERT_e); \
                         break; \
                     } catch (...) { \
-                        eptr = std::current_exception(); \
+                        SHAREMIND_TESTASSERT_eptr = std::current_exception(); \
                     } \
                 } catch (...) { \
                     std::fprintf( \
                             stderr, \
                             "[%zu/%zu] <UNKNOWN NON-STANDARD EXCEPTION>\n", \
                             num, \
-                            count); \
+                            SHAREMIND_TESTASSERT_count); \
                     std::fflush(stderr); \
                     break; \
                 } \
