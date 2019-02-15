@@ -376,6 +376,82 @@ void testFinds_3() {
 
 void testFinds() { testFinds_1(); testFinds_2(); testFinds_3(); }
 
+#define TEST(...) SHAREMIND_TESTASSERT(input.__VA_ARGS__)
+void trimCharTest(SV const input, char const trim) {
+    if (input.empty()) {
+        TEST(leftTrimmed(trim).empty());
+        TEST(rightTrimmed(trim).empty());
+        TEST(trimmed(trim).empty());
+    } else {
+        auto const leftPos(input.findFirstNotOf(trim));
+        auto const lt((leftPos != SV::npos)
+                      ? input.leftClipped(leftPos)
+                      : ""_sv);
+        TEST(leftTrimmed(trim) == lt);
+
+        auto const rightPos(input.findLastNotOf(trim));
+        auto const rt((rightPos != SV::npos)
+                      ? input.rightClipped(input.size() - (rightPos + 1u))
+                      : ""_sv);
+        TEST(rightTrimmed(trim) == rt);
+
+        auto const t((leftPos != SV::npos) ? rt.leftClipped(leftPos) : ""_sv);
+        TEST(trimmed(trim) == t);
+    }
+}
+
+void trimCharsTest(SV const input, SV const trims) {
+    if (input.empty()) {
+        TEST(leftTrimmed(trims.front()).empty());
+        TEST(leftTrimmed(trims).empty());
+        TEST(leftTrimmed(trims.data(), trims.size()).empty());
+        TEST(leftTrimmed(trims.data()).empty());
+        TEST(rightTrimmed(trims.front()).empty());
+        TEST(rightTrimmed(trims).empty());
+        TEST(rightTrimmed(trims.data(), trims.size()).empty());
+        TEST(rightTrimmed(trims.data()).empty());
+        TEST(trimmed(trims.front()).empty());
+        TEST(trimmed(trims).empty());
+        TEST(trimmed(trims.data(), trims.size()).empty());
+        TEST(trimmed(trims.data()).empty());
+    } else if (trims.empty()) {
+        TEST(leftTrimmed(trims) == input);
+        TEST(leftTrimmed(trims.data(), trims.size()) == input);
+        TEST(leftTrimmed(trims.data()) == input);
+        TEST(rightTrimmed(trims) == input);
+        TEST(rightTrimmed(trims.data(), trims.size()) == input);
+        TEST(rightTrimmed(trims.data()) == input);
+        TEST(trimmed(trims) == input);
+        TEST(trimmed(trims.data(), trims.size()) == input);
+        TEST(trimmed(trims.data()) == input);
+    } else {
+        auto const leftPos(input.findFirstNotOf(trims));
+        auto const lt((leftPos != SV::npos)
+                      ? input.leftClipped(leftPos)
+                      : ""_sv);
+        TEST(leftTrimmed(trims) == lt);
+        TEST(leftTrimmed(trims.data(), trims.size()) == lt);
+        TEST(leftTrimmed(trims.data()) == lt);
+
+        auto const rightPos(input.findLastNotOf(trims));
+        auto const rt((rightPos != SV::npos)
+                      ? input.rightClipped(
+                            input.size() - (rightPos + 1u))
+                      : ""_sv);
+        TEST(rightTrimmed(trims) == rt);
+        TEST(rightTrimmed(trims.data(), trims.size()) == rt);
+        TEST(rightTrimmed(trims.data()) == rt);
+
+        auto const t((leftPos != SV::npos)
+                     ? rt.leftClipped(leftPos)
+                     : ""_sv);
+        TEST(trimmed(trims) == t);
+        TEST(trimmed(trims.data(), trims.size()) == t);
+        TEST(trimmed(trims.data()) == t);
+    }
+}
+#undef TEST
+
 void testTrims() {
     {
         static constexpr std::size_t numParts = 5u;
@@ -434,120 +510,36 @@ void testTrims() {
                             return false;
                     }
                 };
-        static auto const forAllFullWords =
-                [](auto f) {
-                    std::vector<std::string> parts(numParts);
-                    std::size_t fullWordMaxSize = 0u;
-                    for (std::size_t i = 0u; i < numParts; ++i) {
-                        fullWordMaxSize += maxSizes[i];
-                        parts[i].reserve(maxSizes[i]);
-                    }
-                    std::string fullWord;
-                    fullWord.reserve(fullWordMaxSize);
-                    for (;;) {
-                        f(SV(fullWord));
-                        if (!cycleParts(parts))
-                            break;
-                        fullWord.clear();
-                        for (auto const & part : parts)
-                            fullWord.append(part);
-                    }
-                };
-        static auto const forAllTrims =
-                [](auto f) {
-                    std::string trim;
-                    trim.reserve(trimChars.size());
-                    do {
-                        f(SV(trim));
-                    } while (!cycleString(trim,
-                                          trimChars,
-                                          trimChars.size()).empty());
-                };
-        #define TEST(...) SHAREMIND_TESTASSERT(input.__VA_ARGS__)
-        static auto const trimCharTest =
-                [](SV const input, char const trim) {
-                    if (input.empty()) {
-                        TEST(leftTrimmed(trim).empty());
-                        TEST(rightTrimmed(trim).empty());
-                        TEST(trimmed(trim).empty());
-                    } else {
-                        auto const leftPos(input.findFirstNotOf(trim));
-                        auto const lt((leftPos != SV::npos)
-                                      ? input.leftClipped(leftPos)
-                                      : ""_sv);
-                        TEST(leftTrimmed(trim) == lt);
 
-                        auto const rightPos(input.findLastNotOf(trim));
-                        auto const rt((rightPos != SV::npos)
-                                      ? input.rightClipped(
-                                            input.size() - (rightPos + 1u))
-                                      : ""_sv);
-                        TEST(rightTrimmed(trim) == rt);
+        std::vector<std::string> parts(numParts);
+        std::size_t fullWordMaxSize = 0u;
+        for (std::size_t i = 0u; i < numParts; ++i) {
+            fullWordMaxSize += maxSizes[i];
+            parts[i].reserve(maxSizes[i]);
+        }
 
-                        auto const t((leftPos != SV::npos)
-                                     ? rt.leftClipped(leftPos)
-                                     : ""_sv);
-                        TEST(trimmed(trim) == t);
-                    }
-                };
-        static auto const detailedTest =
-                [](SV const input, SV const trims) {
-                    if (input.empty()) {
-                        TEST(leftTrimmed(trims.front()).empty());
-                        TEST(leftTrimmed(trims).empty());
-                        TEST(leftTrimmed(trims.data(), trims.size()).empty());
-                        TEST(leftTrimmed(trims.data()).empty());
-                        TEST(rightTrimmed(trims.front()).empty());
-                        TEST(rightTrimmed(trims).empty());
-                        TEST(rightTrimmed(trims.data(), trims.size()).empty());
-                        TEST(rightTrimmed(trims.data()).empty());
-                        TEST(trimmed(trims.front()).empty());
-                        TEST(trimmed(trims).empty());
-                        TEST(trimmed(trims.data(), trims.size()).empty());
-                        TEST(trimmed(trims.data()).empty());
-                    } else if (trims.empty()) {
-                        TEST(leftTrimmed(trims) == input);
-                        TEST(leftTrimmed(trims.data(), trims.size()) == input);
-                        TEST(leftTrimmed(trims.data()) == input);
-                        TEST(rightTrimmed(trims) == input);
-                        TEST(rightTrimmed(trims.data(), trims.size()) == input);
-                        TEST(rightTrimmed(trims.data()) == input);
-                        TEST(trimmed(trims) == input);
-                        TEST(trimmed(trims.data(), trims.size()) == input);
-                        TEST(trimmed(trims.data()) == input);
-                    } else {
-                        auto const leftPos(input.findFirstNotOf(trims));
-                        auto const lt((leftPos != SV::npos)
-                                      ? input.leftClipped(leftPos)
-                                      : ""_sv);
-                        TEST(leftTrimmed(trims) == lt);
-                        TEST(leftTrimmed(trims.data(), trims.size()) == lt);
-                        TEST(leftTrimmed(trims.data()) == lt);
+        // For all full words:
+        std::string fullWord;
+        fullWord.reserve(fullWordMaxSize);
+        for (;;) {
+            for (auto const c : trimChars)
+                trimCharTest(fullWord, c);
+            { // For all trims:
+                std::string trim;
+                trim.reserve(trimChars.size());
+                do {
+                    trimCharsTest(fullWord, SV(trim));
+                } while (!cycleString(trim,
+                                      trimChars,
+                                      trimChars.size()).empty());
+            }
 
-                        auto const rightPos(input.findLastNotOf(trims));
-                        auto const rt((rightPos != SV::npos)
-                                      ? input.rightClipped(
-                                            input.size() - (rightPos + 1u))
-                                      : ""_sv);
-                        TEST(rightTrimmed(trims) == rt);
-                        TEST(rightTrimmed(trims.data(), trims.size()) == rt);
-                        TEST(rightTrimmed(trims.data()) == rt);
-
-                        auto const t((leftPos != SV::npos)
-                                     ? rt.leftClipped(leftPos)
-                                     : ""_sv);
-                        TEST(trimmed(trims) == t);
-                        TEST(trimmed(trims.data(), trims.size()) == t);
-                        TEST(trimmed(trims.data()) == t);
-                    }
-                };
-        forAllFullWords(
-                    [](SV input) {
-                        for (auto const c : trimChars)
-                            trimCharTest(input, c);
-                        forAllTrims([input](SV trim)
-                                    { detailedTest(input, trim); });
-                    });
+            if (!cycleParts(parts))
+                break;
+            fullWord.clear();
+            for (auto const & part : parts)
+                fullWord.append(part);
+        }
         #undef TEST
     }
 }
