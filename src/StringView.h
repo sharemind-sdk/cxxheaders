@@ -285,20 +285,22 @@ public: /* Methods: */
     { return substr(pos, n).compare(other.substr(pos2, n2)); }
 
     constexpr int compare(CharT const * str) const noexcept
-    { return compare(BasicStringView(str)); }
+    { return compare(str, Traits::length(str)); }
 
     constexpr int compare(SizeType pos, SizeType n, CharT const * str)
             const noexcept
-    { return substr(pos, n).compare(BasicStringView(str)); }
+    { return substr(pos, n).compare(str, Traits::length(str)); }
 
     constexpr int compare(SizeType pos,
                           SizeType n,
                           CharT const * str,
                           SizeType size) const noexcept
-    { return substr(pos, n).compare(BasicStringView(str, size)); }
+    { return substr(pos, n).compare(str, size); }
 
-    constexpr bool startsWith(BasicStringView v) const noexcept
-    { return (m_size >= v.m_size) && (compare(0u, v.m_size, v) == 0); }
+    constexpr bool startsWith(BasicStringView v) const noexcept {
+        return (m_size >= v.m_size)
+               && (compare(0u, v.m_size, v.m_start, v.m_size) == 0);
+    }
 
     constexpr bool startsWith(CharT c) const noexcept
     { return (m_size > 0u) && (Traits::eq(front(), c)); }
@@ -309,7 +311,8 @@ public: /* Methods: */
 
     constexpr bool endsWith(BasicStringView v) const noexcept {
         return (m_size >= v.m_size)
-                && (compare(m_size - v.m_size, v.m_size, v) == 0);
+                && (compare(m_size - v.m_size, v.m_size, v.m_start, v.m_size)
+                    == 0);
     }
 
     constexpr bool endsWith(CharT c) const noexcept
