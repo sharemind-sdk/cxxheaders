@@ -192,6 +192,31 @@ void staticTests() {
     SASD_NOEXCEPT(ST, SVR.rfind(D(CharT), D(ST)));
     SASD_NOEXCEPT(ST, SVCR.rfind(D(CharT), D(ST)));
 
+    #define F(f) \
+        SASD_NOEXCEPT(ST, SVR.f(D(CharT))); \
+        SASD_NOEXCEPT(ST, SVCR.f(D(CharT))); \
+        SASD_NOEXCEPT(ST, SVR.f(D(CharT), D(ST))); \
+        SASD_NOEXCEPT(ST, SVCR.f(D(CharT), D(ST))); \
+        SASD_NOEXCEPT(ST, SVR.f(D(CharT const *), D(ST), D(ST))); \
+        SASD_NOEXCEPT(ST, SVCR.f(D(CharT const *), D(ST), D(ST))); \
+        SASD_NOEXCEPT(ST, SVR.f(SVR)); \
+        SASD_NOEXCEPT(ST, SVCR.f(SVR)); \
+        SASD_NOEXCEPT(ST, SVR.f(SVCR)); \
+        SASD_NOEXCEPT(ST, SVCR.f(SVCR)); \
+        SASD_NOEXCEPT(ST, SVR.f(SVR, D(ST))); \
+        SASD_NOEXCEPT(ST, SVCR.f(SVR, D(ST))); \
+        SASD_NOEXCEPT(ST, SVR.f(SVCR, D(ST))); \
+        SASD_NOEXCEPT(ST, SVCR.f(SVCR, D(ST))); \
+        SASD_NOEXCEPT(ST, SVR.f(D(CharT const *))); \
+        SASD_NOEXCEPT(ST, SVCR.f(D(CharT const *))); \
+        SASD_NOEXCEPT(ST, SVR.f(D(CharT const *), D(ST))); \
+        SASD_NOEXCEPT(ST, SVCR.f(D(CharT const *), D(ST)));
+    F(findFirstOf);
+    F(findFirstNotOf);
+    F(findLastOf);
+    F(findLastNotOf);
+    #undef F
+
     SASD_NOEXCEPT(SV, SVR.leftTrimmed(D(CharT)));
     SASD_NOEXCEPT(SV, SVCR.leftTrimmed(D(CharT)));
     SASD_NOEXCEPT(SV, SVR.leftTrimmed(D(CharT const *), D(ST)));
