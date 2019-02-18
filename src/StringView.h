@@ -103,24 +103,34 @@ class BasicStringView {
         using Sentry = typename std::basic_ostream<CharT, Traits>::sentry;
         if (auto sentry = Sentry(os)) {
             auto const w(os.width());
-            if (integralGreaterEqual(v.m_size, w)) {
+            if (w == 0) {
                 Detail::StringView::doOut(os, v.m_start, v.m_size);
             } else {
-                using UW = typename std::make_unsigned<decltype(w)>::type;
-                auto const toFill = static_cast<UW>(w) - v.m_size;
-                if ((os.flags() & std::ios_base::adjustfield)
-                       == std::ios_base::left)
-                {
-                    Detail::StringView::doOut(os, v.m_start, v.m_size);
-                    if (os.good())
-                        Detail::StringView::doFill(os, toFill);
-                } else {
-                    Detail::StringView::doFill(os, toFill);
-                    if (os.good())
+                if (w > 0) {
+                    if (integralGreaterEqual(v.m_size, w)) {
                         Detail::StringView::doOut(os, v.m_start, v.m_size);
+                    } else {
+                        using UW =
+                                typename std::make_unsigned<decltype(w)>::type;
+                        auto const toFill = static_cast<UW>(w) - v.m_size;
+                        if ((os.flags() & std::ios_base::adjustfield)
+                               == std::ios_base::left)
+                        {
+                            Detail::StringView::doOut(os, v.m_start, v.m_size);
+                            if (os.good())
+                                Detail::StringView::doFill(os, toFill);
+                        } else {
+                            Detail::StringView::doFill(os, toFill);
+                            if (os.good())
+                                Detail::StringView::doOut(os,
+                                                          v.m_start,
+                                                          v.m_size);
+                        }
+
+                    }
                 }
+                os.width(0);
             }
-            os.width(0);
         }
         return os;
     }

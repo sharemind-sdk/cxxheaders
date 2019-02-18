@@ -853,9 +853,21 @@ int main() {
     }{
         std::ostringstream oss;
         oss << std::setfill('.')
-            << std::right << std::setw(10) << SV("01234") << '-'
-            << std::left  << std::setw(10) << SV("01234");
-        SHAREMIND_TESTASSERT(oss.str() == ".....01234-01234.....");
+            << std::right << std::setw(5) << SV("012") << '-'
+            << std::right << std::setw(3) << SV("012") << '-'
+            << std::right << std::setw(2) << SV("012") << '-'
+            << std::right << std::setw(1) << SV("012") << '-'
+            << std::right << std::setw(0) << SV("012") << '-'
+            << std::right << std::setw(-1) << SV("012") << '-'
+            << std::left << std::setw(5) << SV("012") << '-'
+            << std::left << std::setw(3) << SV("012") << '-'
+            << std::left << std::setw(2) << SV("012") << '-'
+            << std::left << std::setw(1) << SV("012") << '-'
+            << std::left << std::setw(0) << SV("012") << '-'
+            << std::left << std::setw(-1) << SV("012");
+        SHAREMIND_TESTASSERT(
+                    oss.str()
+                    == "..012-012-012-012-012--012..-012-012-012-012-"_sv);
     }
 
     boost::hash<SV> hasher;
