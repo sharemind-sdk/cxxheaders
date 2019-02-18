@@ -78,14 +78,13 @@ inline auto doOut(std::basic_ostream<CharT, Traits> & os,
         os.setstate(errorBit);
 }
 
-template <typename CharT, typename Traits>
-inline void doFill(std::basic_ostream<CharT, Traits> & os, std::streamsize n) {
+template <typename CharT, typename Traits, typename SizeType>
+inline void doFill(std::basic_ostream<CharT, Traits> & os, SizeType n) {
+    static_assert(std::is_unsigned<SizeType>::value, "");
     auto const c(os.fill());
-    for (std::streamsize i = 0; i < n; ++i) {
+    for (SizeType i = 0u; i < n; ++i) {
         if (Traits::eq_int_type(os.rdbuf()->sputc(c), Traits::eof())) {
-            os.setstate((i > 0)
-                        ? std::ios_base::badbit
-                        : std::ios_base::failbit);
+            os.setstate(i ? std::ios_base::badbit : std::ios_base::failbit);
             return;
         }
     }
@@ -107,8 +106,8 @@ class BasicStringView {
             if (integralGreaterEqual(v.m_size, w)) {
                 Detail::StringView::doOut(os, v.m_start, v.m_size);
             } else {
-                auto const toFill =
-                        w - static_cast<decltype(w)>(v.m_size);
+                using UW = typename std::make_unsigned<decltype(w)>::type;
+                auto const toFill = static_cast<UW>(w) - v.m_size;
                 if ((os.flags() & std::ios_base::adjustfield)
                        == std::ios_base::left)
                 {
