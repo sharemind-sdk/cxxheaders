@@ -27,6 +27,7 @@
 #include <utility>
 #include <vector>
 
+
 #ifdef SHAREMIND_CXXHEADERS_TEST_NO_MAIN
 #include "TestIterator.cpp"
 #else
@@ -35,6 +36,16 @@
 #undef SHAREMIND_CXXHEADERS_TEST_NO_MAIN
 #endif
 
+namespace {
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-template"
+#endif
 
 // Test Range:
 
@@ -610,6 +621,10 @@ std::false_type testRandomAccessRangeToChar(T && t);
 RETURNS_TRUE(testRandomAccessRangeToChar(
                  "This is a fixed-length char const array"));
 
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+#pragma GCC diagnostic pop
 
 /// \todo Test ConstantTimeMeasurableRange
 
@@ -671,6 +686,13 @@ void testAsLiteralStringRange() {
 
 /// \todo Test measureRange(), rangeEqual()
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunneeded-member-function"
+#endif
 struct TestIt: TestIteratorBase<char const> {
     using iterator_category = std::input_iterator_tag;
     TestIt(char const * ptr_) noexcept : ptr(ptr_) {}
@@ -694,9 +716,11 @@ struct TestIt: TestIteratorBase<char const> {
 
     char const * ptr;
 };
-template <typename T>
-void swap(TestIt & a, TestIt & b) noexcept { return std::swap(a.ptr, b.ptr); }
 static_assert(sharemind::Models<InputIterator(TestIt)>::value, "");
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+#pragma GCC diagnostic pop
 
 void testRangeEqual() {
     using S = std::string;
@@ -790,12 +814,23 @@ void testRangeEqual() {
     SHAREMIND_TESTASSERT(!rangeEqual(r1e, r2e));
     SHAREMIND_TESTASSERT(!rangeEqual(r2e, r1e));
 
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wunused"
+    #pragma GCC diagnostic ignored "-Wunused-function"
+    #ifdef __clang__
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wunneeded-member-function"
+    #endif
     struct TestRange2 {
         TestIt begin() const noexcept { return m_begin; }
         TestIt end() const noexcept { return m_end; }
         TestIt m_begin;
         TestIt m_end;
     };
+    #ifdef __clang__
+    #pragma clang diagnostic pop
+    #endif
+    #pragma GCC diagnostic pop
     static_assert(Models<InputRangeTo(TestRange2, char)>::value, "");
     static_assert(!Models<ConstantTimeMeasurableRange(TestRange2)>::value, "");
     TestRange2 r3{TestIt{staticString},
@@ -881,6 +916,8 @@ void testRangeEqual() {
     SHAREMIND_TESTASSERT(!rangeEqual(r3e, r4e));
     SHAREMIND_TESTASSERT(!rangeEqual(r4e, r3e));
 }
+
+} // anonymous namespace
 
 int main() {
     testAsLiteralStringRange();
