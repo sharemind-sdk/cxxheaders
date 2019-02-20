@@ -25,14 +25,13 @@
 
 using sharemind::CallStack;
 
+namespace {
+
 struct Key { unsigned value; };
 struct Value { unsigned value; };
 
-bool operator==(Key const & lhs, unsigned rhs) noexcept
-{ return lhs.value == rhs; }
-
-bool operator==(Value const & lhs, unsigned rhs) noexcept
-{ return lhs.value == rhs; }
+bool operator==(Key const lhs, Key const rhs) noexcept
+{ return lhs.value == rhs.value; }
 
 #define SA(...) static_assert(__VA_ARGS__, "")
 SA(std::is_same<typename CallStack<Key>::KeyType, Key>::value);
@@ -52,11 +51,11 @@ void testWithoutValue(unsigned level = 0u) {
         SHAREMIND_TESTASSERT(context != nullptr);
         for (unsigned expected = level - 1u;; --expected) {
             SHAREMIND_TESTASSERT(context->key().value == expected);
-            SHAREMIND_TESTASSERT(CS::contains(expected) == context);
+            SHAREMIND_TESTASSERT(CS::contains(Key{expected}) == context);
             {
                 CS::Context const overrideContext(Key{expected});
                 SHAREMIND_TESTASSERT(CS::top() == &overrideContext);
-                SHAREMIND_TESTASSERT(CS::contains(expected)
+                SHAREMIND_TESTASSERT(CS::contains(Key{expected})
                                      == &overrideContext);
             }
             SHAREMIND_TESTASSERT(CS::top() == oldTop);
@@ -66,11 +65,11 @@ void testWithoutValue(unsigned level = 0u) {
         }
         SHAREMIND_TESTASSERT(context == nullptr);
     }
-    SHAREMIND_TESTASSERT(CS::contains(level) == nullptr);
+    SHAREMIND_TESTASSERT(CS::contains(Key{level}) == nullptr);
     CS::Context const context(Key{level});
     SHAREMIND_TESTASSERT(context.key().value == level);
     SHAREMIND_TESTASSERT(context.next() == oldTop);
-    SHAREMIND_TESTASSERT(CS::contains(level) == &context);
+    SHAREMIND_TESTASSERT(CS::contains(Key{level}) == &context);
     SHAREMIND_TESTASSERT(CS::top() == &context);
     if (level < maxLevels)
         testWithoutValue(level + 1u);
@@ -85,11 +84,11 @@ void testWithValue(unsigned level = 0u) {
         for (unsigned expected = level - 1u;; --expected) {
             SHAREMIND_TESTASSERT(context->key().value == expected);
             SHAREMIND_TESTASSERT(context->value().value == expected + 42u);
-            SHAREMIND_TESTASSERT(CS::contains(expected) == context);
+            SHAREMIND_TESTASSERT(CS::contains(Key{expected}) == context);
             {
                 CS::Context const overrideContext(Key{expected}, Value{});
                 SHAREMIND_TESTASSERT(CS::top() == &overrideContext);
-                SHAREMIND_TESTASSERT(CS::contains(expected)
+                SHAREMIND_TESTASSERT(CS::contains(Key{expected})
                                      == &overrideContext);
             }
             SHAREMIND_TESTASSERT(CS::top() == oldTop);
@@ -99,16 +98,18 @@ void testWithValue(unsigned level = 0u) {
         }
         SHAREMIND_TESTASSERT(context == nullptr);
     }
-    SHAREMIND_TESTASSERT(CS::contains(level) == nullptr);
+    SHAREMIND_TESTASSERT(CS::contains(Key{level}) == nullptr);
     CS::Context const context(Key{level}, Value{level + 42u});
     SHAREMIND_TESTASSERT(context.key().value == level);
     SHAREMIND_TESTASSERT(context.value().value == level + 42u);
     SHAREMIND_TESTASSERT(context.next() == oldTop);
-    SHAREMIND_TESTASSERT(CS::contains(level) == &context);
+    SHAREMIND_TESTASSERT(CS::contains(Key{level}) == &context);
     SHAREMIND_TESTASSERT(CS::top() == &context);
     if (level < maxLevels)
         testWithValue(level + 1u);
 }
+
+} // anonymous namespace
 
 int main() {
     testWithoutValue();
