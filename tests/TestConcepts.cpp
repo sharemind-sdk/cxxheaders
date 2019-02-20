@@ -135,6 +135,7 @@ struct TestBinaryPredicate {
     static bool check2(long const, int *);
 };
 struct TestBinaryPredicate2 {
+    virtual ~TestBinaryPredicate2() noexcept;
     virtual bool operator()(int const, int *) = 0;
 };
 template <typename T,
@@ -161,6 +162,7 @@ struct TestTrinaryPredicate {
     static bool check2(long const, int *, double *&);
 };
 struct TestTrinaryPredicate2 {
+    virtual ~TestTrinaryPredicate2() noexcept;
     virtual bool operator()(int const, int *, double *&) = 0;
 };
 template <typename T,
