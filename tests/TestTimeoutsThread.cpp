@@ -83,12 +83,12 @@ int main() {
         std::promise<void> pr;
         auto task(TimeoutsThread::createReusableTask(
                     [&countDown,&thread,&pr](
-                        std::unique_ptr<TimeoutsThread::Task> && task) noexcept
+                        std::unique_ptr<TimeoutsThread::Task> && taskPtr) noexcept
                     {
                         if (--countDown) {
                             thread.addTimeoutTask(
                                         std::chrono::milliseconds(100),
-                                        std::move(task));
+                                        std::move(taskPtr));
                         } else {
                             pr.set_value();
                         }
