@@ -36,8 +36,8 @@
 #undef SHAREMIND_CXXHEADERS_TEST_NO_MAIN
 #endif
 
+using namespace sharemind;
 namespace {
-
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused"

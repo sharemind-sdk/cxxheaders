@@ -25,8 +25,6 @@
 #include "../src/Concepts.h"
 
 
-using namespace sharemind;
-
 #define STATIC_TEST_TYPE(T, ...) \
     static_assert(std::is_same<T, __VA_ARGS__>::value, "");
 #define STATIC_TEST_DECLTYPE(T, ...) STATIC_TEST_TYPE(T, decltype(__VA_ARGS__))
@@ -64,9 +62,10 @@ struct TestIterator: TestIteratorBase<T> {
 template <typename T>
 bool swap(TestIterator<T> & a, TestIterator<T> & b);
 
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Iterator(T))>
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(sharemind::Iterator(T))>
 std::true_type testIterator(T && t);
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(Iterator(T)))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(sharemind::Not(sharemind::Iterator(T)))>
 std::false_type testIterator(T && t);
 RETURNS_TRUE(testIterator(std::declval<TestIterator<int> >()));
 RETURNS_FALSE(testIterator(42));
@@ -74,9 +73,12 @@ RETURNS_FALSE(testIterator(42));
 
 // Test IteratorTo:
 
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(IteratorTo(T, double))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(sharemind::IteratorTo(T, double))>
 std::true_type testIteratorTo(T && t);
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(IteratorTo(T, double)))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                sharemind::Not(sharemind::IteratorTo(T, double)))>
 std::false_type testIteratorTo(T && t);
 RETURNS_TRUE(testIteratorTo(std::declval<TestIterator<double> >()));
 RETURNS_FALSE(testIteratorTo(std::declval<TestIterator<float> >()));
@@ -85,9 +87,12 @@ RETURNS_FALSE(testIteratorTo(42));
 
 // Test InputIterator:
 
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(InputIterator(T))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(sharemind::InputIterator(T))>
 std::true_type testInputIterator(T && t);
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(InputIterator(T)))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                sharemind::Not(sharemind::InputIterator(T)))>
 std::false_type testInputIterator(T && t);
 RETURNS_TRUE(testInputIterator(std::declval<char const *>()));
 template <typename T>
@@ -130,9 +135,11 @@ struct TestOutputIterator: TestIteratorBase<T> {
 template <typename T>
 bool swap(TestOutputIterator<T> & a, TestOutputIterator<T> & b);
 
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(OutputIterator(T))>
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(sharemind::OutputIterator(T))>
 std::true_type testOutputIterator(T && t);
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(OutputIterator(T)))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                sharemind::Not(sharemind::OutputIterator(T)))>
 std::false_type testOutputIterator(T && t);
 RETURNS_TRUE(testOutputIterator(std::declval<TestOutputIterator<int> >()));
 RETURNS_FALSE(testOutputIterator(42));
@@ -159,9 +166,12 @@ struct TestForwardIterator: TestIteratorBase<T> {
 template <typename T>
 bool swap(TestForwardIterator<T> & a, TestForwardIterator<T> & b);
 
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(ForwardIterator(T))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(sharemind::ForwardIterator(T))>
 std::true_type testForwardIterator(T && t);
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(ForwardIterator(T)))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                sharemind::Not(sharemind::ForwardIterator(T)))>
 std::false_type testForwardIterator(T && t);
 RETURNS_TRUE(testOutputIterator(std::declval<TestForwardIterator<int> >()));
 RETURNS_TRUE(testForwardIterator(std::declval<TestForwardIterator<int> >()));
@@ -193,9 +203,12 @@ struct TestBidirectionalIterator: TestIteratorBase<T> {
 template <typename T>
 bool swap(TestBidirectionalIterator<T> & a, TestBidirectionalIterator<T> & b);
 
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(BidirectionalIterator(T))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(sharemind::BidirectionalIterator(T))>
 std::true_type testBidirectionalIterator(T && t);
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(BidirectionalIterator(T)))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                sharemind::Not(sharemind::BidirectionalIterator(T)))>
 std::false_type testBidirectionalIterator(T && t);
 RETURNS_TRUE(testOutputIterator(std::declval<TestBidirectionalIterator<int> >()));
 RETURNS_TRUE(testBidirectionalIterator(std::declval<TestBidirectionalIterator<int> >()));
@@ -253,9 +266,12 @@ typename TestRandomAccessIterator<T>::difference_type operator-(
 template <typename T>
 bool swap(TestRandomAccessIterator<T> & a, TestRandomAccessIterator<T> & b);
 
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(RandomAccessIterator(T))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(sharemind::RandomAccessIterator(T))>
 std::true_type testRandomAccessIterator(T && t);
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(RandomAccessIterator(T)))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                sharemind::Not(sharemind::RandomAccessIterator(T)))>
 std::false_type testRandomAccessIterator(T && t);
 
 RETURNS_TRUE(testOutputIterator(
@@ -272,9 +288,11 @@ RETURNS_FALSE(testRandomAccessIterator(42));
 // Test ValueSwappable:
 
 /// \todo Improve ValueSwappable tests
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(ValueSwappable(T))>
+template <typename T, SHAREMIND_REQUIRES_CONCEPTS(sharemind::ValueSwappable(T))>
 std::true_type testValueSwappable(T && t);
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(Not(ValueSwappable(T)))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                sharemind::Not(sharemind::ValueSwappable(T)))>
 std::false_type testValueSwappable(T && t);
 struct TestValueSwappable { int value; };
 struct TestValueSwappable2 { int const value; };
