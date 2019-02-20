@@ -106,12 +106,16 @@ SHAREMIND_REVERSED_RANGE_H_TO(ConstantTimeMeasurableReversedRange);
 #undef SHAREMIND_REVERSED_RANGE_H_CHAIN
 #undef SHAREMIND_REVERSED_RANGE_H_TO
 
-template <typename T, SHAREMIND_REQUIRES_CONCEPTS(SizedReversedRange(T))>
+template <typename T,
+          SHAREMIND_REQUIRES_CONCEPTS(
+                Not(SizedRange(T)),
+                SizedReversedRange(T))>
 auto measureRange(T && t) noexcept(noexcept(size(std::declval<T &&>())))
 { return size(std::forward<T>(t)); }
 
 template <typename T,
           SHAREMIND_REQUIRES_CONCEPTS(
+                Not(SizedRange(T)),
                 Not(SizedReversedRange(T)),
                 BoundedReversedRange(T),
                 RandomAccessReversedRange(T))>
