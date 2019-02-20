@@ -36,6 +36,8 @@ using namespace sharemind::StringViewLiterals;
 #define SASD(T,...) SAS(decltype(__VA_ARGS__), T)
 #define D(...) std::declval<__VA_ARGS__>()
 
+namespace {
+
 template <typename CharT>
 void staticTests() {
     using SV = sharemind::BasicStringView<CharT>;
@@ -593,6 +595,8 @@ void testTrims() {
         #undef TEST
     }
 }
+
+} // anonymous namespace
 
 int main() {
     staticTests<char>();
