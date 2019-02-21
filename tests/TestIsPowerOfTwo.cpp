@@ -117,15 +117,14 @@ void Test<T, true>::test() {
     Test<typename std::make_unsigned<T>::type>::test_();
 }
 
-template <typename T>
-void test(T = T()) { Test<T>::test(); }
+template <typename T> void test() { Test<T>::test(); }
 
 } // anonymous namespace
 
 int main() {
     static_assert(!isPowerOfTwo(false), "");
     static_assert(isPowerOfTwo(true), "");
-    test(char());
+    test<char>();
     test<char16_t>();
     test<char32_t>();
     test<wchar_t>();
