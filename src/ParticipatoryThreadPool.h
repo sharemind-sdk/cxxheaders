@@ -80,6 +80,68 @@ private: /* Types: */
     };
     friend class ParticipatorContext;
 
+    class TimedTryParticipatorContext {
+
+    public: /* Methods: */
+
+        template <typename Clock, typename Duration>
+        TimedTryParticipatorContext(
+                ParticipatoryThreadPool & threadPool,
+                std::chrono::time_point<Clock, Duration> const & timepoint)
+                noexcept
+            : m_threadPool(
+                [&threadPool, &timepoint]() -> ParticipatoryThreadPool * {
+                    using N = decltype(ParticipatoryThreadPool::m_numParticipants);
+                    static constexpr auto const max = std::numeric_limits<N>::max();
+                    std::unique_lock<std::mutex> lock(threadPool.m_mutex);
+                    if (threadPool.m_cond.wait_until(
+                            lock,
+                            timepoint,
+                            [&threadPool]() noexcept
+                            { return threadPool.m_numParticipants < max; }))
+                    {
+                        ++threadPool.m_numParticipants;
+                        return &threadPool;
+                    }
+                    return nullptr;
+                }())
+        {}
+
+        TimedTryParticipatorContext(TimedTryParticipatorContext && move)
+                noexcept
+            : m_threadPool(move.m_threadPool)
+        { move.m_threadPool = nullptr; }
+
+        TimedTryParticipatorContext(TimedTryParticipatorContext const &)
+                = delete;
+
+        ~TimedTryParticipatorContext() noexcept {
+            if (m_threadPool) {
+                std::lock_guard<std::mutex> const guard(m_threadPool->m_mutex);
+                assert(m_threadPool->m_numParticipants > 0u);
+                --m_threadPool->m_numParticipants;
+                m_threadPool->m_cond.notify_all();
+            }
+        }
+
+        TimedTryParticipatorContext & operator=(
+                TimedTryParticipatorContext && move) noexcept
+        {
+            this->~TimedTryParticipatorContext();
+            return *new (this) TimedTryParticipatorContext(std::move(move));
+        }
+        TimedTryParticipatorContext & operator=(
+                TimedTryParticipatorContext const &) = delete;
+
+        operator bool() const noexcept { return m_threadPool; }
+
+    private: /* Fields: */
+
+        ParticipatoryThreadPool * m_threadPool;
+
+    };
+    friend class TimedTryParticipatorContext;
+
 public: /* Methods: */
 
     ParticipatoryThreadPool(ParticipatoryThreadPool &&) = delete;
@@ -113,16 +175,18 @@ public: /* Methods: */
             std::chrono::duration<Rep, Period> const & duration)
     {
         auto const timepoint(std::chrono::steady_clock::now() + duration);
-        ParticipatorContext const ctx(*this);
-        return workerThreadUntil(timepoint);
+        if (auto const ctx = TimedTryParticipatorContext(*this, timepoint))
+            return workerThreadUntil(timepoint);
+        return std::cv_status::timeout;
     }
 
     template <typename Clock, typename Duration>
     std::cv_status participateUntil(
             std::chrono::time_point<Clock, Duration> const & timepoint)
     {
-        ParticipatorContext const ctx(*this);
-        return workerThreadUntil(timepoint);
+        if (auto const ctx = TimedTryParticipatorContext(*this, timepoint))
+            return workerThreadUntil(timepoint);
+        return std::cv_status::timeout;
     }
 
     /** \returns true if a task was run or false if the pool was stopped. */
@@ -136,16 +200,18 @@ public: /* Methods: */
             std::chrono::duration<Rep, Period> const & duration)
     {
         auto const timepoint(std::chrono::steady_clock::now() + duration);
-        ParticipatorContext const ctx(*this);
-        return oneTaskWorkerThreadUntil(timepoint);
+        if (auto const ctx = TimedTryParticipatorContext(*this, timepoint))
+            return oneTaskWorkerThreadUntil(timepoint);
+        return std::cv_status::timeout;
     }
 
     template <typename Clock, typename Duration>
     std::cv_status participateOnceUntil(
             std::chrono::time_point<Clock, Duration> const & timepoint)
     {
-        ParticipatorContext const ctx(*this);
-        return oneTaskWorkerThreadUntil(timepoint);
+        if (auto const ctx = TimedTryParticipatorContext(*this, timepoint))
+            return oneTaskWorkerThreadUntil(timepoint);
+        return std::cv_status::timeout;
     }
 
 private: /* Fields: */
