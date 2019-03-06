@@ -56,7 +56,7 @@ public: /* Types: */
 
         template <typename F>
         ReusableTask(F && f)
-            : Task(createTask([this, f](Task && task) noexcept {
+            : Task(createTask([this, f](Task && task) {
                                   this->Task::operator=(std::move(task));
                                   f();
                               }))
@@ -74,7 +74,7 @@ private: /* Types: */
         TaskBase & operator=(TaskBase &&) = delete;
         TaskBase & operator=(TaskBase const &) = delete;
 
-        virtual void operator()(Task &&) noexcept = 0;
+        virtual void operator()(Task &&) = 0;
     };
 
     struct TaskWrapper final {
@@ -99,7 +99,7 @@ public: /* Methods: */
     static Task createTask(F && f) {
         struct CustomTask: TaskBase {
             CustomTask(F && f) : m_f(std::forward<F>(f)) {}
-            void operator()(Task && task) noexcept final override
+            void operator()(Task && task) final override
             { m_f(std::move(task)); }
             typename std::decay<F>::type m_f;
         };
@@ -110,7 +110,7 @@ public: /* Methods: */
     static Task createSimpleTask(F && f) {
         struct CustomSimpleTask: TaskBase {
             CustomSimpleTask(F && f) : m_f(std::forward<F>(f)) {}
-            void operator()(Task &&) noexcept final override { m_f(); }
+            void operator()(Task &&) final override { m_f(); }
             typename std::decay<F>::type m_f;
         };
         return createTask_(new CustomSimpleTask(std::forward<F>(f)));
@@ -144,7 +144,7 @@ protected: /* Methods: */
 
     ThreadPool() : ThreadPool(new TaskWrapper(nullptr)) {}
 
-    void workerThread() noexcept {
+    void workerThread() {
         while (Task task = waitAndPop()) {
             // this->m_value(std::move(*this)); // would segfault.
             TaskWrapper * const taskPtr = task.get();

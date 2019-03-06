@@ -57,7 +57,7 @@ public: /* Methods: */
         join();
     }
 
-    void participate() noexcept {
+    void participate() {
         {
             static constexpr auto const max =
                     std::numeric_limits<decltype(m_numParticipants)>::max();
