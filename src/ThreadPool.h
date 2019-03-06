@@ -167,10 +167,6 @@ protected: /* Methods: */
         }
     }
 
-    template <typename Rep, typename Period>
-    void workerThreadFor(std::chrono::duration<Rep, Period> const & duration)
-    { workerThreadUntil(std::chrono::steady_clock::now() + duration); }
-
     bool oneTaskWorkerThread() {
         if (Task task = waitAndPop()) {
             // this->m_value(std::move(*this)); // would segfault.
@@ -195,11 +191,6 @@ protected: /* Methods: */
             taskPtr->m_value->operator()(std::move(task));
         }
     }
-
-    template <typename Rep, typename Period>
-    void oneTaskWorkerThreadFor(
-            std::chrono::duration<Rep, Period> const & duration)
-    { oneJobWorkerThreadUntil(std::chrono::steady_clock::now() + duration); }
 
 private: /* Methods: */
 

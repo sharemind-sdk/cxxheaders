@@ -93,8 +93,9 @@ public: /* Methods: */
 
     template <typename Rep, typename Period>
     void participateFor(std::chrono::duration<Rep, Period> const & duration) {
+        auto const timepoint(std::chrono::steady_clock::now() + duration);
         ParticipatorContext const ctx(*this);
-        workerThreadFor(duration);
+        workerThreadUntil(timepoint);
     }
 
     template <typename Clock, typename Duration>
@@ -114,8 +115,9 @@ public: /* Methods: */
     template <typename Rep, typename Period>
     void participateOnceFor(std::chrono::duration<Rep, Period> const & duration)
     {
+        auto const timepoint(std::chrono::steady_clock::now() + duration);
         ParticipatorContext const ctx(*this);
-        oneTaskWorkerThreadFor(duration);
+        oneTaskWorkerThreadUntil(timepoint);
     }
 
     template <typename Clock, typename Duration>
