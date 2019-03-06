@@ -171,14 +171,16 @@ protected: /* Methods: */
     void workerThreadFor(std::chrono::duration<Rep, Period> const & duration)
     { workerThreadUntil(std::chrono::steady_clock::now() + duration); }
 
-    void oneTaskWorkerThread() {
+    bool oneTaskWorkerThread() {
         if (Task task = waitAndPop()) {
             // this->m_value(std::move(*this)); // would segfault.
             TaskWrapper * const taskPtr = task.get();
             assert(taskPtr);
             assert(taskPtr->m_value);
             taskPtr->m_value->operator()(std::move(task));
+            return true;
         }
+        return false;
     }
 
     template <typename Clock, typename Duration>

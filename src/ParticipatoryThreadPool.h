@@ -105,9 +105,10 @@ public: /* Methods: */
         workerThreadUntil(timepoint);
     }
 
-    void participateOnce() {
+    /** \returns true if a task was run or false if the pool was stopped. */
+    bool participateOnce() {
         ParticipatorContext const ctx(*this);
-        oneTaskWorkerThread();
+        return oneTaskWorkerThread();
     }
 
     template <typename Rep, typename Period>
