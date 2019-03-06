@@ -34,6 +34,35 @@ namespace sharemind {
 
 class ParticipatoryThreadPool: public ThreadPool {
 
+private: /* Types: */
+
+    struct ParticipatorContext {
+
+        ParticipatorContext(ParticipatoryThreadPool & threadPool) noexcept
+            : m_threadPool(threadPool)
+        {
+            using N = decltype(ParticipatoryThreadPool::m_numParticipants);
+            static constexpr auto const max = std::numeric_limits<N>::max();
+            std::unique_lock<std::mutex> lock(threadPool.m_mutex);
+            threadPool.m_cond.wait(
+                        lock,
+                        [&threadPool]() noexcept
+                        { return threadPool.m_numParticipants < max; });
+            ++threadPool.m_numParticipants;
+        }
+
+        ~ParticipatorContext() noexcept {
+            std::lock_guard<std::mutex> const guard(m_threadPool.m_mutex);
+            assert(m_threadPool.m_numParticipants > 0u);
+            --m_threadPool.m_numParticipants;
+            m_threadPool.m_cond.notify_all();
+        }
+
+        ParticipatoryThreadPool & m_threadPool;
+
+    };
+    friend class ParticipatorContext;
+
 public: /* Methods: */
 
     ParticipatoryThreadPool(ParticipatoryThreadPool &&) = delete;
@@ -58,21 +87,8 @@ public: /* Methods: */
     }
 
     void participate() {
-        {
-            static constexpr auto const max =
-                    std::numeric_limits<decltype(m_numParticipants)>::max();
-            std::unique_lock<std::mutex> lock(m_mutex);
-            m_cond.wait(lock,
-                        [this]() noexcept { return m_numParticipants < max; });
-            ++m_numParticipants;
-        }
+        ParticipatorContext const ctx(*this);
         workerThread();
-        {
-            std::lock_guard<std::mutex> const guard(m_mutex);
-            assert(m_numParticipants > 0u);
-            --m_numParticipants;
-            m_cond.notify_all();
-        }
     }
 
 private: /* Fields: */
