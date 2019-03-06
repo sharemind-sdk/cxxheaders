@@ -91,9 +91,38 @@ public: /* Methods: */
         workerThread();
     }
 
+    template <typename Rep, typename Period>
+    void participateFor(std::chrono::duration<Rep, Period> const & duration) {
+        ParticipatorContext const ctx(*this);
+        workerThreadFor(duration);
+    }
+
+    template <typename Clock, typename Duration>
+    void participateUntil(
+            std::chrono::time_point<Clock, Duration> const & timepoint)
+    {
+        ParticipatorContext const ctx(*this);
+        workerThreadUntil(timepoint);
+    }
+
     void participateOnce() {
         ParticipatorContext const ctx(*this);
         oneTaskWorkerThread();
+    }
+
+    template <typename Rep, typename Period>
+    void participateOnceFor(std::chrono::duration<Rep, Period> const & duration)
+    {
+        ParticipatorContext const ctx(*this);
+        oneTaskWorkerThreadFor(duration);
+    }
+
+    template <typename Clock, typename Duration>
+    void participateOnceUntil(
+            std::chrono::time_point<Clock, Duration> const & timepoint)
+    {
+        ParticipatorContext const ctx(*this);
+        oneTaskWorkerThreadUntil(timepoint);
     }
 
 private: /* Fields: */

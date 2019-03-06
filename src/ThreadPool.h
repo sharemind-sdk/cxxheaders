@@ -154,6 +154,23 @@ protected: /* Methods: */
         }
     }
 
+    template <typename Clock, typename Duration>
+    void workerThreadUntil(
+            std::chrono::time_point<Clock, Duration> const & timepoint)
+    {
+        while (Task task = waitAndPop(timepoint)) {
+            // this->m_value(std::move(*this)); // would segfault.
+            TaskWrapper * const taskPtr = task.get();
+            assert(taskPtr);
+            assert(taskPtr->m_value);
+            taskPtr->m_value->operator()(std::move(task));
+        }
+    }
+
+    template <typename Rep, typename Period>
+    void workerThreadFor(std::chrono::duration<Rep, Period> const & duration)
+    { workerThreadUntil(std::chrono::steady_clock::now() + duration); }
+
     void oneTaskWorkerThread() {
         if (Task task = waitAndPop()) {
             // this->m_value(std::move(*this)); // would segfault.
@@ -163,6 +180,24 @@ protected: /* Methods: */
             taskPtr->m_value->operator()(std::move(task));
         }
     }
+
+    template <typename Clock, typename Duration>
+    void oneTaskWorkerThreadUntil(
+            std::chrono::time_point<Clock, Duration> const & timepoint)
+    {
+        if (Task task = waitAndPop(timepoint)) {
+            // this->m_value(std::move(*this)); // would segfault.
+            TaskWrapper * const taskPtr = task.get();
+            assert(taskPtr);
+            assert(taskPtr->m_value);
+            taskPtr->m_value->operator()(std::move(task));
+        }
+    }
+
+    template <typename Rep, typename Period>
+    void oneTaskWorkerThreadFor(
+            std::chrono::duration<Rep, Period> const & duration)
+    { oneJobWorkerThreadUntil(std::chrono::steady_clock::now() + duration); }
 
 private: /* Methods: */
 
@@ -187,6 +222,35 @@ private: /* Methods: */
                          sometimes hang here for unknown reasons!
                 #endif
                 m_dataCond.wait(tailLock);
+            }
+        }
+        assert(m_head->m_value);
+        Task oldHead(std::move(m_head));
+        m_head = std::move(oldHead->m_next);
+        return oldHead;
+    }
+
+    template <typename Clock, typename Duration>
+    Task waitAndPop(std::chrono::time_point<Clock, Duration> const & timepoint)
+            noexcept
+    {
+        std::lock_guard<std::mutex> const headGuard(m_headMutex);
+        assert(m_head);
+        {
+            std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
+            for (;;) {
+                if (m_stop)
+                    return Task();
+                if (m_head.get() != m_tail)
+                    break;
+                #if defined(SHAREMIND_CLANG_VERSION) \
+                    && (SHAREMIND_CLANG_VERSION < 30700)
+                #warning Clang 3.6 (and possibly older versions) are known to \
+                         sometimes hang here for unknown reasons!
+                #endif
+                if (m_dataCond.wait_until(tailLock, timepoint)
+                    == std::cv_status::timeout)
+                    return Task();
             }
         }
         assert(m_head->m_value);
