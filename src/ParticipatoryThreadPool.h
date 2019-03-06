@@ -91,6 +91,11 @@ public: /* Methods: */
         workerThread();
     }
 
+    void participateOnce() {
+        ParticipatorContext const ctx(*this);
+        oneTaskWorkerThread();
+    }
+
 private: /* Fields: */
 
     std::mutex m_mutex;

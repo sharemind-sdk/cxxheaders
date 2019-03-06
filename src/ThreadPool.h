@@ -154,6 +154,16 @@ protected: /* Methods: */
         }
     }
 
+    void oneTaskWorkerThread() {
+        if (Task task = waitAndPop()) {
+            // this->m_value(std::move(*this)); // would segfault.
+            TaskWrapper * const taskPtr = task.get();
+            assert(taskPtr);
+            assert(taskPtr->m_value);
+            taskPtr->m_value->operator()(std::move(task));
+        }
+    }
+
 private: /* Methods: */
 
     ThreadPool(TaskWrapper * const emptyTaskWrapper)
