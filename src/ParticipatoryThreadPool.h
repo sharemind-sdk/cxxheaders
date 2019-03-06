@@ -42,7 +42,7 @@ public: /* Methods: */
     ParticipatoryThreadPool & operator=(ParticipatoryThreadPool const &)
             = delete;
 
-    ParticipatoryThreadPool() noexcept {}
+    ParticipatoryThreadPool() = default;
 
     ~ParticipatoryThreadPool() noexcept override { stopAndJoin(); }
 
