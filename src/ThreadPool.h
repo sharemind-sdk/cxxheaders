@@ -135,6 +135,11 @@ public: /* Methods: */
         m_dataCond.notify_all();
     }
 
+    bool stopNotified() const noexcept {
+        std::lock_guard<decltype(m_tailMutex)> const tailGuard(m_tailMutex);
+        return m_stop;
+    }
+
 protected: /* Methods: */
 
     ThreadPool() : ThreadPool(new TaskWrapper(nullptr)) {}
@@ -189,7 +194,7 @@ private: /* Methods: */
 private: /* Fields: */
 
     std::mutex m_headMutex;
-    TicketSpinLock m_tailMutex;
+    mutable TicketSpinLock m_tailMutex;
     std::condition_variable_any m_dataCond;
     TaskWrapper * m_tail;
     Task m_head;
