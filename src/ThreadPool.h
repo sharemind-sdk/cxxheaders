@@ -155,15 +155,20 @@ protected: /* Methods: */
     }
 
     template <typename Clock, typename Duration>
-    void workerThreadUntil(
+    std::cv_status workerThreadUntil(
             std::chrono::time_point<Clock, Duration> const & timepoint)
     {
-        while (Task task = waitAndPop(timepoint)) {
-            // this->m_value(std::move(*this)); // would segfault.
-            TaskWrapper * const taskPtr = task.get();
-            assert(taskPtr);
-            assert(taskPtr->m_value);
-            taskPtr->m_value->operator()(std::move(task));
+        for (;;) {
+            auto r(waitAndPop(timepoint));
+            if (r.first) {
+                // this->m_value(std::move(*this)); // would segfault.
+                TaskWrapper * const taskPtr = r.first.get();
+                assert(taskPtr);
+                assert(taskPtr->m_value);
+                taskPtr->m_value->operator()(std::move(r.first));
+            } else {
+                return r.second;
+            }
         }
     }
 
@@ -180,15 +185,19 @@ protected: /* Methods: */
     }
 
     template <typename Clock, typename Duration>
-    void oneTaskWorkerThreadUntil(
+    std::cv_status oneTaskWorkerThreadUntil(
             std::chrono::time_point<Clock, Duration> const & timepoint)
     {
-        if (Task task = waitAndPop(timepoint)) {
+        auto r(waitAndPop(timepoint));
+        if (r.first) {
             // this->m_value(std::move(*this)); // would segfault.
-            TaskWrapper * const taskPtr = task.get();
+            TaskWrapper * const taskPtr = r.first.get();
             assert(taskPtr);
             assert(taskPtr->m_value);
-            taskPtr->m_value->operator()(std::move(task));
+            taskPtr->m_value->operator()(std::move(r.first));
+            return std::cv_status::no_timeout;
+        } else {
+            return r.second;
         }
     }
 
@@ -224,8 +233,8 @@ private: /* Methods: */
     }
 
     template <typename Clock, typename Duration>
-    Task waitAndPop(std::chrono::time_point<Clock, Duration> const & timepoint)
-            noexcept
+    std::pair<Task, std::cv_status> waitAndPop(
+            std::chrono::time_point<Clock, Duration> const & timepoint) noexcept
     {
         std::lock_guard<std::mutex> const headGuard(m_headMutex);
         assert(m_head);
@@ -233,7 +242,7 @@ private: /* Methods: */
             std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
             for (;;) {
                 if (m_stop)
-                    return Task();
+                    return {Task(), std::cv_status::no_timeout};
                 if (m_head.get() != m_tail)
                     break;
                 #if defined(SHAREMIND_CLANG_VERSION) \
@@ -243,13 +252,14 @@ private: /* Methods: */
                 #endif
                 if (m_dataCond.wait_until(tailLock, timepoint)
                     == std::cv_status::timeout)
-                    return Task();
+                    return {Task(), std::cv_status::timeout};
             }
         }
         assert(m_head->m_value);
-        Task oldHead(std::move(m_head));
-        m_head = std::move(oldHead->m_next);
-        return oldHead;
+        std::pair<Task, std::cv_status> r(std::move(m_head),
+                                          std::cv_status::no_timeout);
+        m_head = std::move(r.first->m_next);
+        return r;
     }
 
     template <typename TaskSubclass>
