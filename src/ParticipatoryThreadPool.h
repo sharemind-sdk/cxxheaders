@@ -36,10 +36,12 @@ class ParticipatoryThreadPool: public ThreadPool {
 
 private: /* Types: */
 
-    struct ParticipatorContext {
+    class ParticipatorContext {
+
+    public: /* Methods: */
 
         ParticipatorContext(ParticipatoryThreadPool & threadPool) noexcept
-            : m_threadPool(threadPool)
+            : m_threadPool(&threadPool)
         {
             using N = decltype(ParticipatoryThreadPool::m_numParticipants);
             static constexpr auto const max = std::numeric_limits<N>::max();
@@ -51,14 +53,29 @@ private: /* Types: */
             ++threadPool.m_numParticipants;
         }
 
+        ParticipatorContext(ParticipatorContext && move) noexcept
+            : m_threadPool(move.m_threadPool)
+        { move.m_threadPool = nullptr; }
+
+        ParticipatorContext(ParticipatorContext const &) = delete;
+
         ~ParticipatorContext() noexcept {
-            std::lock_guard<std::mutex> const guard(m_threadPool.m_mutex);
-            assert(m_threadPool.m_numParticipants > 0u);
-            --m_threadPool.m_numParticipants;
-            m_threadPool.m_cond.notify_all();
+            std::lock_guard<std::mutex> const guard(m_threadPool->m_mutex);
+            assert(m_threadPool->m_numParticipants > 0u);
+            --m_threadPool->m_numParticipants;
+            m_threadPool->m_cond.notify_all();
         }
 
-        ParticipatoryThreadPool & m_threadPool;
+        ParticipatorContext & operator=(ParticipatorContext && move) noexcept {
+            this->~ParticipatorContext();
+            return *new (this) ParticipatorContext(std::move(move));
+        }
+
+        ParticipatorContext & operator=(ParticipatorContext const &) = delete;
+
+    private: /* Fields: */
+
+        ParticipatoryThreadPool * m_threadPool;
 
     };
     friend class ParticipatorContext;
