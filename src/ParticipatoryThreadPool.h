@@ -171,22 +171,22 @@ public: /* Methods: */
     }
 
     template <typename Rep, typename Period>
-    std::cv_status participateFor(
+    Status participateFor(
             std::chrono::duration<Rep, Period> const & duration)
     {
         auto const timepoint(std::chrono::steady_clock::now() + duration);
         if (auto const ctx = TimedTryParticipatorContext(*this, timepoint))
             return workerThreadUntil(timepoint);
-        return std::cv_status::timeout;
+        return Timeout;
     }
 
     template <typename Clock, typename Duration>
-    std::cv_status participateUntil(
+    Status participateUntil(
             std::chrono::time_point<Clock, Duration> const & timepoint)
     {
         if (auto const ctx = TimedTryParticipatorContext(*this, timepoint))
             return workerThreadUntil(timepoint);
-        return std::cv_status::timeout;
+        return Timeout;
     }
 
     /** \returns true if a task was run or false if the pool was stopped. */
@@ -196,22 +196,22 @@ public: /* Methods: */
     }
 
     template <typename Rep, typename Period>
-    std::cv_status participateOnceFor(
+    Status participateOnceFor(
             std::chrono::duration<Rep, Period> const & duration)
     {
         auto const timepoint(std::chrono::steady_clock::now() + duration);
         if (auto const ctx = TimedTryParticipatorContext(*this, timepoint))
             return oneTaskWorkerThreadUntil(timepoint);
-        return std::cv_status::timeout;
+        return Timeout;
     }
 
     template <typename Clock, typename Duration>
-    std::cv_status participateOnceUntil(
+    Status participateOnceUntil(
             std::chrono::time_point<Clock, Duration> const & timepoint)
     {
         if (auto const ctx = TimedTryParticipatorContext(*this, timepoint))
             return oneTaskWorkerThreadUntil(timepoint);
-        return std::cv_status::timeout;
+        return Timeout;
     }
 
 private: /* Fields: */

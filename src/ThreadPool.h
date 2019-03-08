@@ -48,6 +48,8 @@ private: /* Forward declarations: */
 
 public: /* Types: */
 
+    enum Status { Ok, Timeout, StopNotified };
+
     using Task = std::unique_ptr<TaskWrapper>;
 
     class ReusableTask: public Task {
@@ -155,7 +157,7 @@ protected: /* Methods: */
     }
 
     template <typename Clock, typename Duration>
-    std::cv_status workerThreadUntil(
+    Status workerThreadUntil(
             std::chrono::time_point<Clock, Duration> const & timepoint)
     {
         for (;;) {
@@ -185,7 +187,7 @@ protected: /* Methods: */
     }
 
     template <typename Clock, typename Duration>
-    std::cv_status oneTaskWorkerThreadUntil(
+    Status oneTaskWorkerThreadUntil(
             std::chrono::time_point<Clock, Duration> const & timepoint)
     {
         auto r(waitAndPop(timepoint));
@@ -195,7 +197,7 @@ protected: /* Methods: */
             assert(taskPtr);
             assert(taskPtr->m_value);
             taskPtr->m_value->operator()(std::move(r.first));
-            return std::cv_status::no_timeout;
+            return Ok;
         } else {
             return r.second;
         }
@@ -233,7 +235,7 @@ private: /* Methods: */
     }
 
     template <typename Clock, typename Duration>
-    std::pair<Task, std::cv_status> waitAndPop(
+    std::pair<Task, Status> waitAndPop(
             std::chrono::time_point<Clock, Duration> const & timepoint) noexcept
     {
         std::lock_guard<std::mutex> const headGuard(m_headMutex);
@@ -242,7 +244,7 @@ private: /* Methods: */
             std::unique_lock<decltype(m_tailMutex)> tailLock(m_tailMutex);
             for (;;) {
                 if (m_stop)
-                    return {Task(), std::cv_status::no_timeout};
+                    return {Task(), StopNotified};
                 if (m_head.get() != m_tail)
                     break;
                 #if defined(SHAREMIND_CLANG_VERSION) \
@@ -252,12 +254,11 @@ private: /* Methods: */
                 #endif
                 if (m_dataCond.wait_until(tailLock, timepoint)
                     == std::cv_status::timeout)
-                    return {Task(), std::cv_status::timeout};
+                    return {Task(), Timeout};
             }
         }
         assert(m_head->m_value);
-        std::pair<Task, std::cv_status> r(std::move(m_head),
-                                          std::cv_status::no_timeout);
+        std::pair<Task, Status> r(std::move(m_head), Ok);
         m_head = std::move(r.first->m_next);
         return r;
     }
