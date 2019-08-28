@@ -27,7 +27,7 @@
 namespace sharemind {
 
 template <typename T>
-T && assertReturn(T && v)
+inline T && assertReturn(T && v)
         noexcept
             #ifndef NDEBUG
             (noexcept((v) ? true : false))
