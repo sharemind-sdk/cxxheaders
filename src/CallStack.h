@@ -109,7 +109,7 @@ private: /* Fields: */
 
 template <typename Key, typename Value>
 thread_local typename CallStack<Key, Value>::Context *
-CallStack<Key, Value>::m_topContext;
+CallStack<Key, Value>::m_topContext = nullptr;
 
 template <typename Key>
 class CallStack<Key, void> {
@@ -178,7 +178,7 @@ private: /* Fields: */
 
 template <typename Key>
 thread_local typename CallStack<Key, void>::Context *
-CallStack<Key, void>::m_topContext;
+CallStack<Key, void>::m_topContext = nullptr;
 
 } /* namespace Sharemind { */
 
