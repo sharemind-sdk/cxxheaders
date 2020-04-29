@@ -209,7 +209,7 @@ struct StrongTypePostIncrementable {
             auto & v = *static_cast<T *>(this);
             auto old(v);
             (v.get())++;
-            return std::move(old);
+            return old;
         }
     };
 };
@@ -247,7 +247,7 @@ struct StrongTypePostDecrementable {
             auto & v = *static_cast<T *>(this);
             auto old(v);
             (v.get())--;
-            return std::move(old);
+            return old;
         }
     };
 };
