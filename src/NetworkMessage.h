@@ -24,6 +24,7 @@
 #include <vector>
 #include "detail/ExceptionMacros.h"
 #include "Exception.h"
+#include "PotentiallyVoidTypeInfo.h"
 
 
 namespace sharemind {
@@ -78,7 +79,7 @@ public: /* Methods: */
     std::size_t getOffset() const noexcept { return m_offset; }
 
     void const * getPtr() const noexcept
-    { return static_cast<char const *>(data) + m_offset; }
+    { return ptrAdd(data, m_offset); }
 
     std::size_t getRemainingSize() const noexcept { return size - m_offset; }
 
@@ -242,7 +243,7 @@ inline bool IncomingNetworkMessage::readBytes(void * buffer, std::size_t size)
     if (this->size - m_offset < size)
         return false;
 
-    std::memcpy(buffer, static_cast<char const *>(this->data) + m_offset, size);
+    std::memcpy(buffer, ptrAdd(this->data, m_offset), size);
     m_offset += size;
     return true;
 }
@@ -257,9 +258,7 @@ inline bool IncomingNetworkMessage::read(T & val) noexcept {
         return false;
 
     if (sizeof(T) > 0u) {
-        std::memcpy(&val,
-                    static_cast<char const *>(this->data) + m_offset,
-                    sizeof(T));
+        std::memcpy(&val, ptrAdd(this->data, m_offset), sizeof(T));
         m_offset += sizeof(T);
     }
 
@@ -377,9 +376,7 @@ inline bool IncomingNetworkMessage::readArray(T * data, SizeType const size)
     if (getRemainingSize() < sizeInBytes)
         return false;
 
-    std::memcpy(data,
-                static_cast<char const *>(this->data) + m_offset,
-                sizeInBytes);
+    std::memcpy(data, ptrAdd(this->data, m_offset), sizeInBytes);
     m_offset += sizeInBytes;
     return true;
 }
@@ -501,9 +498,7 @@ inline void OutgoingNetworkMessage::pokeBytes(void const * data,
     assert(data || bytes == 0u);
     assert(this->size - m_offset >= bytes);
 
-    std::memcpy(static_cast<char *>(const_cast<void *>(this->data)) + m_offset,
-                data,
-                bytes);
+    std::memcpy(ptrAdd(const_cast<void *>(this->data), m_offset), data, bytes);
     m_offset += bytes;
 }
 
