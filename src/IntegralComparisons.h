@@ -23,6 +23,12 @@
 #include <type_traits>
 #include "SignedToUnsigned.h"
 
+#if __cplusplus >= 202002L
+#define SHAREMIND_INTEGRALCOMPARISIONS_DEPRECATED(f,a) \
+    [[deprecated(#f " is deprecated, please use " #a " instead!")]]
+#else
+#define SHAREMIND_INTEGRALCOMPARISIONS_DEPRECATED(f,a)
+#endif
 
 namespace sharemind {
 namespace Detail {
@@ -117,18 +123,19 @@ SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(NonZero,
 } /* namespace IntegralComparisons { */
 } /* namespace Detail { */
 
-#define SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Class,C) \
+#define SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Class,C,alt) \
     template <typename A, typename B> \
+    SHAREMIND_INTEGRALCOMPARISIONS_DEPRECATED(integral ## Class,alt) \
     constexpr inline bool integral ## Class(A a, B b) noexcept \
     { return Detail::IntegralComparisons::C<A, B>::test(a, b); }
-SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(LessThan, LT)
-SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Less, LT)
-SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(LessEqual, LE)
-SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Equal, EQ)
-SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(NotEqual, NE)
-SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(GreaterEqual, GE)
-SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Greater, GT)
-SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(GreaterThan, GT)
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(LessThan, LT, std::cmp_less)
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Less, LT, std::cmp_less)
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(LessEqual, LE, std::cmp_less_equal)
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Equal, EQ, std::cmp_equal)
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(NotEqual, NE, std::cmp_not_equal)
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(GreaterEqual, GE, std::cmp_greater_equal)
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(Greater, GT, std::cmp_greater)
+SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(GreaterThan, GT, std::cmp_greater)
 #undef SHAREMIND_INTEGRALCOMPARISIONS_DEFINE
 #define SHAREMIND_INTEGRALCOMPARISIONS_DEFINE(C) \
     template <typename T> \
