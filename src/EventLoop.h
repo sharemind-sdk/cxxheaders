@@ -259,7 +259,6 @@ public: /* Methods: */
                         EventSet const events,
                         EventHandler & handler)
     {
-        assert(&handler);
         #if defined(__linux__)
         return epollInsertOrModify(fd, events | EPOLLONESHOT, &handler);
         #endif
