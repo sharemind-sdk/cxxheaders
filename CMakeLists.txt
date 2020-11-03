@@ -26,7 +26,7 @@ INCLUDE("${CMAKE_CURRENT_BINARY_DIR}/config.local" OPTIONAL)
 FIND_PACKAGE(SharemindCMakeHelpers 1.4 REQUIRED)
 
 SET(Boost_USE_STATIC_RUNTIME OFF)
-FIND_PACKAGE(Boost REQUIRED)
+FIND_PACKAGE(Boost 1.62 REQUIRED)
 FIND_PACKAGE(SharemindCHeaders 1.1.0 REQUIRED)
 
 
@@ -93,7 +93,7 @@ SharemindAddComponentPackage("dev"
     DEB_SECTION "libdevel"
     DEB_DEPENDS
         "libsharemind-cheaders-dev (>= 1.1.0)"
-        "libboost-dev (>= 1.55)"
+        "libboost-dev (>= 1.62)"
         "libc6-dev (>= 2.19)"
         "libstdc++-dev"
 )
