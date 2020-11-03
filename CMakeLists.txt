@@ -23,65 +23,49 @@ PROJECT(SharemindCxxHeaders VERSION "0.8.0" LANGUAGES "CXX")
 INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/config.local" OPTIONAL)
 INCLUDE("${CMAKE_CURRENT_BINARY_DIR}/config.local" OPTIONAL)
 
-FIND_PACKAGE(SharemindCMakeHelpers 1.4 REQUIRED)
+FIND_PACKAGE(SharemindCMakeHelpers 1.6 REQUIRED)
 
-SET(Boost_USE_STATIC_RUNTIME OFF)
 FIND_PACKAGE(Boost 1.62 REQUIRED)
-FIND_PACKAGE(SharemindCHeaders 1.1.0 REQUIRED)
+FIND_PACKAGE(SharemindCHeaders 1.3.0 REQUIRED)
 
 
-SharemindNewUniqueList(SharemindCxxHeaders_INCLUDE_DIRS
-    ${Boost_INCLUDE_DIRS}
-    ${SharemindCHeaders_INCLUDE_DIRS}
-)
-SharemindNewUniqueList(SharemindCxxHeaders_DEFINITIONS
-    ${SharemindCHeaders_DEFINITIONS}
-)
-SharemindNewUniqueList(SharemindCxxHeaders_LINK_LIBRARIES
-    ${SharemindCHeaders_LIBRARIES}
-    "-latomic"
-)
-
+# Find header files:
 FILE(GLOB_RECURSE SharemindCxxHeaders_HEADERS
      "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
 ADD_CUSTOM_TARGET("include_SharemindCxxHeaders_HEADERS_in_IDE"
                   SOURCES ${SharemindCxxHeaders_HEADERS})
 
+
+# CxxHeaders:
+SharemindAddInterfaceLibrary(CxxHeaders)
+TARGET_INCLUDE_DIRECTORIES(CxxHeaders
+    INTERFACE
+        # $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> # TODO
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>
+    )
+TARGET_COMPILE_OPTIONS(CxxHeaders INTERFACE "-pthread")
+TARGET_LINK_LIBRARIES(CxxHeaders
+    INTERFACE
+        atomic
+        Boost::boost
+        pthread
+        Sharemind::CHeaders
+    )
 INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/"
         DESTINATION "include/sharemind"
         COMPONENT "dev")
+SharemindCreateCMakeFindFilesForTarget(CxxHeaders
+    DEPENDENCIES
+        "Boost 1.62"
+        "SharemindCHeaders 1.3.0"
+    )
 
 
 # Tests:
 SharemindSetCxx14CompileOptions()
 SharemindAddSimpleTests("${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp"
-    LEGACY_DEFINITIONS
-        ${SharemindCxxHeaders_DEFINITIONS}
-    INCLUDE_DIRECTORIES
-        ${SharemindCxxHeaders_INCLUDE_DIRS}
     LINK_LIBRARIES
-        ${SharemindCxxHeaders_LINK_LIBRARIES}
-
-        # The following is a workaround for multithreaded test failures with GCC
-        # 4.9 and older. The error message is something like:
-        #
-        #   terminate called after throwing an instance of 'std::system_error'
-        #     what():  Enable multithreading to use std::thread: Operation not
-        #                                                        permitted
-        #   Aborted
-        #
-        -pthread
-)
-
-# Install CMake files:
-SharemindCreateCMakeFindFiles(
-    INCLUDE_DIRS
-        "${CMAKE_INSTALL_PREFIX}/include"
-        ${SharemindCxxHeaders_INCLUDE_DIRS}
-    DEFINITIONS
-        ${SharemindCxxHeaders_DEFINITIONS}
-    LIBRARIES
-        ${SharemindCxxHeaders_LINK_LIBRARIES}
+        CxxHeaders
 )
 
 
@@ -92,7 +76,7 @@ SharemindAddComponentPackage("dev"
     DESCRIPTION "C++ development headers for Sharemind"
     DEB_SECTION "libdevel"
     DEB_DEPENDS
-        "libsharemind-cheaders-dev (>= 1.1.0)"
+        "libsharemind-cheaders-dev (>= 1.3.0)"
         "libboost-dev (>= 1.62)"
         "libc6-dev (>= 2.19)"
         "libstdc++-dev"
