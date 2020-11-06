@@ -27,6 +27,7 @@ FIND_PACKAGE(SharemindCMakeHelpers 1.6 REQUIRED)
 
 FIND_PACKAGE(Boost 1.62 REQUIRED)
 FIND_PACKAGE(SharemindCHeaders 1.3.0 REQUIRED)
+FIND_PACKAGE(Threads REQUIRED)
 
 
 # Find header files:
@@ -43,13 +44,12 @@ TARGET_INCLUDE_DIRECTORIES(CxxHeaders
         # $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> # TODO
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>
     )
-TARGET_COMPILE_OPTIONS(CxxHeaders INTERFACE "-pthread")
 TARGET_LINK_LIBRARIES(CxxHeaders
     INTERFACE
         atomic
         Boost::boost
-        pthread
         Sharemind::CHeaders
+        Threads::Threads
     )
 INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/"
         DESTINATION "include/sharemind"
@@ -58,6 +58,7 @@ SharemindCreateCMakeFindFilesForTarget(CxxHeaders
     DEPENDENCIES
         "Boost 1.62"
         "SharemindCHeaders 1.3.0"
+        Threads
     )
 
 
