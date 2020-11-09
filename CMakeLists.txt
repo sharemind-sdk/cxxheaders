@@ -30,15 +30,11 @@ FIND_PACKAGE(SharemindCHeaders 1.3.0 REQUIRED)
 FIND_PACKAGE(Threads REQUIRED)
 
 
-# Find header files:
+# CxxHeaders:
 FILE(GLOB_RECURSE SharemindCxxHeaders_HEADERS
      "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
-ADD_CUSTOM_TARGET("include_SharemindCxxHeaders_HEADERS_in_IDE"
-                  SOURCES ${SharemindCxxHeaders_HEADERS})
-
-
-# CxxHeaders:
-SharemindAddInterfaceLibrary(CxxHeaders)
+SharemindAddInterfaceLibrary(CxxHeaders
+    EXPOSE_FILES ${SharemindCxxHeaders_HEADERS})
 TARGET_INCLUDE_DIRECTORIES(CxxHeaders
     INTERFACE
         # $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> # TODO
