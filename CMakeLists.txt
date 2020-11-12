@@ -59,7 +59,6 @@ SharemindCreateCMakeFindFilesForTarget(CxxHeaders
 
 
 # Tests:
-SharemindSetCxx14CompileOptions()
 FILE(GLOB CxxHeaders_TESTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp")
 FOREACH(testFile IN LISTS CxxHeaders_TESTS)
     GET_FILENAME_COMPONENT(testName "${testFile}" NAME_WE)
