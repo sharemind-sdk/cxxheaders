@@ -106,8 +106,8 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    MessageBuffer const m_message;
-    int const m_errno;
+    MessageBuffer m_message;
+    int m_errno;
 
 };
 
