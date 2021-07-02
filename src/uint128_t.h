@@ -61,19 +61,19 @@ public: /* Methods: */
 
     template <typename T>
     uint128_t (T rhs)
-        : m_upper (0)
-        , m_lower (static_cast<std::uint64_t>(rhs))
+        : m_lower (static_cast<std::uint64_t>(rhs))
+        , m_upper (0)
     { }
 
     uint128_t (std::uint64_t upper, std::uint64_t lower)
-        : m_upper (upper)
-        , m_lower (lower)
+        : m_lower (lower)
+        , m_upper (upper)
     { }
 
     template <typename T>
     uint128_t& operator = (T rhs) {
-        m_upper = 0;
         m_lower = static_cast<std::uint64_t>(rhs);
+        m_upper = 0;
         return *this;
     }
 
@@ -124,8 +124,8 @@ private: /* Methods: */
     static void divMod (uint128_t x, uint128_t y, uint128_t& quotient, uint128_t& reminder);
 
 private: /* Fields: */
-    std::uint64_t m_upper;
     std::uint64_t m_lower;
+    std::uint64_t m_upper;
 };
 
 /*
