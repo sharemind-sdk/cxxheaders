@@ -148,7 +148,7 @@ public: /* Methods: */
                     if (void * const newData =
                             ::operator new(copy.size(), std::nothrow))
                     {
-                        m_data = newData;
+                        m_data = DataPtr(newData);
                     } else {
                         if (m_sizes[lastSizesIndex]
                                 < copy.m_sizes[lastSizesIndex])
