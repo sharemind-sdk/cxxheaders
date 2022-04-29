@@ -9,6 +9,7 @@
 #ifndef SHAREMIND_FILEDESCRIPTOR_H
 #define SHAREMIND_FILEDESCRIPTOR_H
 
+#include <fcntl.h>
 #include <unistd.h>
 #include <sharemind/Posix.h>
 #include "detail/ExceptionMacros.h"

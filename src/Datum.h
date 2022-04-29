@@ -24,12 +24,14 @@
 #include <cassert>
 #include <cstddef>
 #include <errno.h>
+#include <exception>
 #include <fcntl.h>
 #include <limits>
 #include <sharemind/DebugOnly.h>
 #include <string>
 #include <sys/stat.h>
 #include <type_traits>
+#include <unistd.h>
 #include <utility>
 #include <vector>
 #include "Concat.h"

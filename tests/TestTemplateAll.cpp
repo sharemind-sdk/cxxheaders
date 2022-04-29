@@ -19,8 +19,8 @@
 
 #include "../src/TemplateAll.h"
 
-using sharemind::TemplateAll;
 
+using sharemind::TemplateAll;
 
 static_assert(TemplateAll<>::value, "");
 static_assert(TemplateAll<true>::value, "");

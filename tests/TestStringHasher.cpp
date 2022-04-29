@@ -20,6 +20,7 @@
 #include "../src/StringHasher.h"
 
 #include "../src/TestAssert.h"
+#include <cstddef>
 #include <string>
 #include <type_traits>
 

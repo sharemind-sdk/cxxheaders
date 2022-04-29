@@ -28,8 +28,10 @@
 
 #include <algorithm>
 #include <boost/iterator/transform_iterator.hpp>
+#include <cstddef>
 #include <functional>
 #include <initializer_list>
+#include <iterator>
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>

@@ -25,7 +25,9 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/name_generator.hpp>
+#include <cstddef>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 

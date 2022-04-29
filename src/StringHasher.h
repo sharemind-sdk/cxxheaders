@@ -28,8 +28,8 @@
 #include <string>
 #include <utility>
 #include "Concepts.h"
+#include "IntegralComparisons.h"
 #include "Range.h"
-#include "RemoveCvref.h"
 
 
 namespace sharemind {

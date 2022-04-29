@@ -21,12 +21,16 @@
 
 #include <boost/range/iterator_range.hpp>
 #include <cstddef>
+#include <iterator>
 #include <random>
 #include <string>
+#include <type_traits>
 #include <unordered_set>
+#include <utility>
 #include <vector>
-#include "../src/TestAssert.h"
 #include "../src/StringHashTablePredicate.h"
+#include "../src/TestAssert.h"
+#include "../src/UnorderedMap.h"
 
 
 namespace {

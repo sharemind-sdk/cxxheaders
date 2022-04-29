@@ -20,13 +20,13 @@
 #ifndef SHAREMIND_BITVECTOR_H
 #define SHAREMIND_BITVECTOR_H
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <cstdlib>
 #include <cstring>
+#include <iterator>
 #include <limits>
-#include <ostream>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>

@@ -27,7 +27,6 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <new>
 #include <type_traits>
 #include <utility>
 #include "detail/ExceptionMacros.h"

@@ -19,6 +19,7 @@
 
 #include "../src/Optional.h"
 
+#include <cassert>
 #include <boost/preprocessor/seq/elem.hpp>
 #include <boost/preprocessor/seq/for_each_product.hpp>
 #include <memory>

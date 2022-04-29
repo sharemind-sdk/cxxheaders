@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_TESTASSERT_H
 #define SHAREMIND_TESTASSERT_H
 
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <exception>

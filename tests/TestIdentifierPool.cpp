@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <random>
 #include <memory>
+#include <vector>
 #include "../src/StrongType.h"
 #include "../src/TestAssert.h"
 

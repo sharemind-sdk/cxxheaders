@@ -21,9 +21,12 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <type_traits>
 #include <utility>
+#include "../src/PackedStructAccessor.h"
+#include "../src/PotentiallyVoidTypeInfo.h"
 #include "../src/TestAssert.h"
 
 
@@ -101,7 +104,7 @@ void checkPackedRefs(Lhs && lhs, Rhs && rhs) noexcept {
 }
 
 int main() {
-    using Msg1 = PackedStruct<char, int, std::array<uint16_t, 10>, float, long>;
+    using Msg1 = PackedStruct<char, int, std::array<std::uint16_t, 10>, float, long>;
     using Msg2 = PackedStruct<char, Msg1, char>;
     static_assert(sizeof(Msg2) == sizeof(Msg1) + 2, "");
     Msg1 m;

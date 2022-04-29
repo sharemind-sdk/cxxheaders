@@ -20,6 +20,9 @@
 #include "../src/MaybeDynamicPackedStruct.h"
 
 #include <type_traits>
+#include "../src/DynamicPackedStruct.h"
+#include "../src/DynamicPackingInfo.h"
+#include "../src/PackedStruct.h"
 
 
 using namespace sharemind;

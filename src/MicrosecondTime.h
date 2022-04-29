@@ -21,7 +21,6 @@
 #define SHAREMIND_MICROSECONDTIMER_H
 
 #include <cassert>
-#include <cstddef>
 #include <cstdint>
 #include <sys/time.h>
 #include <type_traits>

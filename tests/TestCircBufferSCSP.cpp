@@ -2,8 +2,8 @@
 
 #include <atomic>
 #include <cstddef>
+#include <functional>
 #include <thread>
-#include <utility>
 #include "../src/TestAssert.h"
 
 

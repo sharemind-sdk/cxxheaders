@@ -19,7 +19,9 @@
 
 #include "../src/CstddefLiterals.h"
 
+#include <cstddef>
 #include <type_traits>
+
 
 namespace sharemind {
 

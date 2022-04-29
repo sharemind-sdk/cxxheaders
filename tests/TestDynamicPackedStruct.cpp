@@ -19,8 +19,13 @@
 
 #include "../src/DynamicPackedStruct.h"
 
-#include <iostream>
+#include <cstdint>
+#include <cstring>
 #include <type_traits>
+#include "../src/DynamicPackingInfo.h"
+#include "../src/PotentiallyVoidTypeInfo.h"
+#include "../src/UnalignedPointer.h"
+#include "../src/UnalignedReference.h"
 #include "../src/TestAssert.h"
 
 
@@ -44,17 +49,17 @@ static_assert(
 
 static_assert(
         std::is_same<
-            DynamicPackedStruct<int64_t, char, R, char, A<int32_t>, uint16_t>::PrefixType<3u>,
-            DynamicPackedStruct<int64_t, char, R>
+            DynamicPackedStruct<std::int64_t, char, R, char, A<std::int32_t>, std::uint16_t>::PrefixType<3u>,
+            DynamicPackedStruct<std::int64_t, char, R>
         >::value, "");
 static_assert(
         std::is_same<
-            typename DynamicPackedStruct<int64_t, char, R, char, A<int32_t>, uint16_t>::StaticPrefixType,
-            DynamicPackedStruct<int64_t, char>
+            typename DynamicPackedStruct<std::int64_t, char, R, char, A<std::int32_t>, std::uint16_t>::StaticPrefixType,
+            DynamicPackedStruct<std::int64_t, char>
         >::value, "");
 
 int main() {
-    DynamicPackedStruct<int64_t, char, R, char, A<int32_t>, uint16_t> m(3u, 10u);
+    DynamicPackedStruct<std::int64_t, char, R, char, A<std::int32_t>, std::uint16_t> m(3u, 10u);
     decltype(m) const & cm = m;
 #if 0
     std::cout << "Data is at " << m.data() << std::endl;
@@ -82,11 +87,11 @@ int main() {
     SHAREMIND_TESTASSERT(ptrAdd(m.data(), m.size()) == m.endVoidPtr());
 
     SHAREMIND_TESTASSERT(m.elemOffset<0u>() == 0u);
-    SHAREMIND_TESTASSERT(m.elemOffset<1u>() == m.elemOffset<0u>() + sizeof(int64_t));
+    SHAREMIND_TESTASSERT(m.elemOffset<1u>() == m.elemOffset<0u>() + sizeof(std::int64_t));
     SHAREMIND_TESTASSERT(m.elemOffset<2u>() == m.elemOffset<1u>() + sizeof(char));
     SHAREMIND_TESTASSERT(m.elemOffset<3u>() == m.elemOffset<2u>() + 3u);
     SHAREMIND_TESTASSERT(m.elemOffset<4u>() == m.elemOffset<3u>() + sizeof(char));
-    SHAREMIND_TESTASSERT(m.elemOffset<5u>() == m.elemOffset<4u>() + sizeof(int32_t) * 10u);
+    SHAREMIND_TESTASSERT(m.elemOffset<5u>() == m.elemOffset<4u>() + sizeof(std::int32_t) * 10u);
     char const test3[3u] = { '1', '2', '3' };
     m.set<0u>(42);
     m.set<1u>('X');
@@ -98,10 +103,10 @@ int main() {
     (void) m.ref<4u>();
     (void) m.cref<4u>();
     static_assert(std::is_same<decltype(m.ptr<4u>()),
-                               UnalignedPointer<int32_t> >::value, "");
+                               UnalignedPointer<std::int32_t> >::value, "");
     auto const p4 = m.ptr<4u>();
     auto const poly = [](unsigned i) noexcept
-                      { return static_cast<int32_t>(3 * i * i + 7 * i + 13); };
+                      { return static_cast<std::int32_t>(3 * i * i + 7 * i + 13); };
     for (unsigned i = 0; i < 10; i++) {
         p4[i] = poly(i);
         SHAREMIND_TESTASSERT(p4[i] == poly(i));

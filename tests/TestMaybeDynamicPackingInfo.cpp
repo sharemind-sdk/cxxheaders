@@ -20,6 +20,8 @@
 #include "../src/MaybeDynamicPackingInfo.h"
 
 #include <type_traits>
+#include "../src/DynamicPackingInfo.h"
+#include "../src/PackingInfo.h"
 
 
 using namespace sharemind;

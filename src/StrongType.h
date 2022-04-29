@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_STRONGTYPE_H
 #define SHAREMIND_STRONGTYPE_H
 
+#include <cstddef>
 #include <functional>
 #include <iosfwd>
 #include <type_traits>

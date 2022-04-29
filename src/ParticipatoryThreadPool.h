@@ -23,11 +23,13 @@
 #include "ThreadPool.h"
 
 #include <cassert>
+#include <chrono>
 #include <condition_variable>
 #include <cstddef>
 #include <limits>
 #include <mutex>
 #include <new>
+#include <utility>
 
 
 namespace sharemind {

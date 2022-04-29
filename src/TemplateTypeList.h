@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_TEMPLATETYPELIST_H
 #define SHAREMIND_TEMPLATETYPELIST_H
 
+#include <cstddef>
 #include <tuple>
 
 

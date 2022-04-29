@@ -9,11 +9,18 @@
 #ifndef SHAREMIND_EVENTLOOP_H
 #define SHAREMIND_EVENTLOOP_H
 
-#include <cassert>
 #include <atomic>
+#include <cassert>
+#include <cerrno>
+#include <cstddef>
+#include <cstdint>
+#include <fcntl.h>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <unistd.h>
+#include <utility>
 #include "detail/ExceptionMacros.h"
 #include "Exception.h"
 #include "Posix.h"

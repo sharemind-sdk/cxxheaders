@@ -21,11 +21,16 @@
 
 #include <algorithm>
 #include <boost/functional/hash.hpp>
+#include <cassert>
+#include <cstddef>
 #include <iomanip>
+#include <iterator>
 #include <memory>
 #include <sstream>
+#include <string>
 #include <type_traits>
 #include <utility>
+#include <vector>
 #include "../src/TestAssert.h"
 
 

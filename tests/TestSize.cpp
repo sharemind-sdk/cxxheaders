@@ -20,7 +20,6 @@
 #include "../src/Size.h"
 
 #include <array>
-#include <utility>
 
 
 static int a[42][13];

@@ -11,11 +11,13 @@
 #define SHAREMIND_LRU_H
 
 #include <cassert>
+#include <cstddef>
 #include <iterator>
 #include <list>
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
+#include <utility>
 
 
 namespace sharemind {

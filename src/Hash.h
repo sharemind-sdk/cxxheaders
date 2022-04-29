@@ -22,8 +22,8 @@
 
 #include <cstddef>
 
+#include <cstddef>
 #include <boost/functional/hash/hash.hpp>
-#include <type_traits>
 #include <utility>
 #include "PotentiallyVoidTypeInfo.h"
 

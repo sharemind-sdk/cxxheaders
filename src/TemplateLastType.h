@@ -24,8 +24,6 @@
 #include "TemplateFirstType.h"
 #include "TemplateSuffixTypes.h"
 
-#include <type_traits>
-
 
 namespace sharemind {
 

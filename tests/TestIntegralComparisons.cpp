@@ -21,7 +21,7 @@
 
 #include <cstdint>
 #include <limits>
-#include "../src/TestAssert.h"
+#include <type_traits>
 #include "../src/TemplateAll.h"
 #include "../src/TemplateContainsType.h"
 

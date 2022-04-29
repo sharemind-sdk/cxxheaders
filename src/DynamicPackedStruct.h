@@ -24,7 +24,7 @@
 #include <cstddef>
 #include <cstring>
 #include <memory>
-#include <type_traits>
+#include <new>
 #include <utility>
 #include "DynamicPackingInfo.h"
 #include "GlobalDeleter.h"

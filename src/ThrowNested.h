@@ -20,9 +20,9 @@
 #ifndef SHAREMIND_THROWNESTED_H
 #define SHAREMIND_THROWNESTED_H
 
-#include <exception>
 #include <utility>
 #include "ThrowWithNested.h"
+
 
 namespace sharemind {
 

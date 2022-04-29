@@ -24,6 +24,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <type_traits>
 #include <vector>
 #include "../src/TestAssert.h"
 

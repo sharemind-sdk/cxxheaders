@@ -24,6 +24,8 @@
 #include <cassert>
 #include <condition_variable>
 #include <cstddef>
+#include <limits>
+#include <memory>
 #include <mutex>
 #include <type_traits>
 #include <utility>

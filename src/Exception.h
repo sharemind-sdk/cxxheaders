@@ -31,7 +31,6 @@
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #include <sys/cdefs.h>
 #endif
-#include <utility>
 #include "detail/ExceptionMacros.h"
 
 

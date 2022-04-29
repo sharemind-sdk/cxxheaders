@@ -21,11 +21,9 @@
 #define SHAREMIND_ALIGNEDALLOCATOR_H
 
 #include <cstdlib>
-/* #include <limits> */
 #include <new>
 #include <memory>
-/* #include <type_traits> */
-/* #include <utility> */
+#include <type_traits>
 
 
 namespace sharemind {

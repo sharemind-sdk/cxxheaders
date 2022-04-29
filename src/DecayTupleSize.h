@@ -21,6 +21,7 @@
 #define SHAREMIND_DECAYTUPLESIZE_H
 
 #include <tuple>
+#include <type_traits>
 
 
 namespace sharemind {

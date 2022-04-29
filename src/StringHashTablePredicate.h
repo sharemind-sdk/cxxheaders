@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include "Concepts.h"
 #include "HashTablePredicate.h"
 #include "Range.h"

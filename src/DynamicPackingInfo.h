@@ -27,6 +27,7 @@
 #include <utility>
 #include "ConstUnalignedReference.h"
 #include "PackingInfo.h"
+#include "PotentiallyVoidTypeInfo.h"
 #include "SizeOfTypes.h"
 #include "TemplateCommonPrefixTypes.h"
 #include "TemplateFilterTypes.h"
@@ -34,6 +35,7 @@
 #include "TemplateInstantiateWithTypeParams.h"
 #include "TemplatePrefixTypes.h"
 #include "TemplateSuffixTypes.h"
+#include "TemplateTypeList.h"
 #include "UnalignedPointer.h"
 #include "UnalignedReference.h"
 
@@ -423,8 +425,6 @@ struct AccumArrayType
 
 } /* namespace DynamicPacking { */
 } /* namespace Detail { */
-
-template <typename ... Ts> struct DynamicPackingInfo;
 
 template <typename ... Ts>
 struct DynamicPackingInfo {

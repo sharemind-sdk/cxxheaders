@@ -20,9 +20,12 @@
 #ifndef SHAREMIND_CONSTPACKEDSTRUCTACCESSOR_H
 #define SHAREMIND_CONSTPACKEDSTRUCTACCESSOR_H
 
-#include "PackingInfo.h"
-
+#include <cstddef>
 #include "PackedStructAccessor.h"
+#include "PackingInfo.h"
+#include "TemplateInstantiateWithTypeParams.h"
+#include "TemplatePrefixTypes.h"
+#include "TemplateSuffixTypes.h"
 
 
 namespace sharemind {

@@ -23,8 +23,9 @@
 #include <algorithm>
 #include <boost/functional/hash_fwd.hpp>
 #include <cstddef>
-#include <limits>
+#include <ios>
 #include <iterator>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <type_traits>

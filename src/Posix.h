@@ -11,7 +11,6 @@
 
 #include <cerrno>
 #include <fcntl.h>
-#include <unistd.h>
 #include <utility>
 #include "Exception.h"
 #include "ThrowNested.h"
@@ -35,12 +34,12 @@ namespace Detail {
 template <int const GET, int const SET, typename GetE, typename SetE = GetE>
 inline void fcntlAddFlags(int const fd, int const flags) noexcept(false) {
     syscallLoop<SetE>(
-                fcntl,
+                ::fcntl,
                 [](int const r) { return r == 0; },
                 fd,
                 SET,
                 syscallLoop<GetE>(
-                            fcntl,
+                            ::fcntl,
                             [](int const r) { return r != -1; },
                             fd,
                             GET) | flags);

@@ -28,9 +28,6 @@
 #include "CallStack.h"
 #include "StrongType.h"
 #include "ThreadPool.h"
-
-#include <thread>
-#include <type_traits>
 #include "TicketSpinLock.h"
 
 

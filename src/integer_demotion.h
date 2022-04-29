@@ -21,8 +21,8 @@
 #define SHAREMIND_INTEGER_DEMOTION_H
 
 #include <cstddef>
-#include <cstdint>
 #include <type_traits>
+
 
 namespace sharemind {
 

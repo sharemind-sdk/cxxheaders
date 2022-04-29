@@ -20,11 +20,14 @@
 #ifndef SHAREMIND_REVERSEDRANGE_H
 #define SHAREMIND_REVERSEDRANGE_H
 
+#include <iterator>
 #include <type_traits>
+#include <utility>
 #include "Concepts.h"
 #include "Iterator.h"
 #include "Range.h"
 #include "RemoveCvref.h"
+#include "Size.h"
 
 
 namespace sharemind {

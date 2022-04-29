@@ -21,7 +21,6 @@
 #include "../src/StrongType.h"
 
 #include <cstdint>
-#include <memory>
 #include <ostream>
 #include <type_traits>
 #include <utility>

@@ -22,7 +22,6 @@
 
 #include <atomic>
 #include <cassert>
-#include <cstdint>
 #include <sharemind/AlignToCacheLine.h>
 #include "Spinwait.h"
 

@@ -19,9 +19,13 @@
 
 #include "../src/Future.h"
 
+#include <cassert>
 #include <chrono>
+#include <exception>
 #include <memory>
 #include <thread>
+#include <type_traits>
+#include <utility>
 #include "../src/TestAssert.h"
 
 

@@ -17,16 +17,19 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#include <algorithm>
-
-#include "../src/TestAssert.h"
 #include "../src/Uuid.h"
+
+#include <algorithm>
+#include <boost/lexical_cast/bad_lexical_cast.hpp>
+#include <cstdint>
+#include "../src/TestAssert.h"
+
 
 int main() {
     using namespace sharemind;
     Uuid u { {0} };
     SHAREMIND_TESTASSERT(std::all_of(u.begin(), u.end(),
-                                     [](uint8_t x){ return x == 0; }));
+                                     [](std::uint8_t x){ return x == 0; }));
     constexpr const char* zeroUuidStr = "00000000-0000-0000-0000-000000000000";
     SHAREMIND_TESTASSERT(uuidToString(u) == zeroUuidStr);
     SHAREMIND_TESTASSERT(uuidFromString(uuidToString(sharemindNamespaceUuid)) ==

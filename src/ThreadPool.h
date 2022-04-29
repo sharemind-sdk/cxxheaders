@@ -20,17 +20,14 @@
 #ifndef SHAREMIND_THREADPOOL_H
 #define SHAREMIND_THREADPOOL_H
 
-#include <atomic>
 #include <cassert>
+#include <chrono>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <sharemind/compiler-support/ClangVersion.h>
-#include <thread>
 #include <type_traits>
 #include <utility>
-#include "CallStack.h"
-#include "StrongType.h"
 #include "TicketSpinLock.h"
 
 

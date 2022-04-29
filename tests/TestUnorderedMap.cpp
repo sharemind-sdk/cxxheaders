@@ -21,9 +21,12 @@
 
 #include <cstddef>
 #include <cstring>
+#include <initializer_list>
 #include <iterator>
+#include <memory>
 #include <random>
 #include <unordered_set>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <unordered_map>

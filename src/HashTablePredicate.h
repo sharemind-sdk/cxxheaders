@@ -20,7 +20,6 @@
 #ifndef SHAREMIND_HASHTABLEPREDICATE_H
 #define SHAREMIND_HASHTABLEPREDICATE_H
 
-#include <type_traits>
 #include "Hash.h"
 #include "Concepts.h"
 #include "RemoveCvref.h"

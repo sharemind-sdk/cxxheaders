@@ -21,9 +21,7 @@
 #define SHAREMIND_NOSTARTTHREAD_H
 
 #include <cassert>
-#include <condition_variable>
 #include <functional>
-#include <mutex>
 #include <thread>
 #include <utility>
 #include "Future.h"

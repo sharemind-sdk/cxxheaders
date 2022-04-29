@@ -20,6 +20,7 @@
 #ifndef SHAREMIND_TEMPLATECONTAINSTYPE_H
 #define SHAREMIND_TEMPLATECONTAINSTYPE_H
 
+#include <type_traits>
 #include "TemplateCountTypes.h"
 
 

@@ -19,6 +19,7 @@
 
 #include "../src/ThrowNested.h"
 
+#include <exception>
 #include "../src/TestAssert.h"
 
 

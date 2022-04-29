@@ -19,8 +19,8 @@
 
 #include "../src/TemplateNone.h"
 
-using sharemind::TemplateNone;
 
+using sharemind::TemplateNone;
 
 static_assert(TemplateNone<>::value, "");
 static_assert(!TemplateNone<true>::value, "");

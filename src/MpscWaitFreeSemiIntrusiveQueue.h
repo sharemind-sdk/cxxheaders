@@ -22,7 +22,6 @@
 
 #include <atomic>
 #include <cassert>
-#include <cstddef>
 #include <memory>
 #include <sharemind/AlignToCacheLine.h>
 #include <type_traits>

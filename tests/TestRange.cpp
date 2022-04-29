@@ -22,10 +22,13 @@
 #include <boost/range/as_literal.hpp>
 #include <cstddef>
 #include <iterator>
-#include <sharemind/TestAssert.h>
+#include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include "../src/Concepts.h"
+#include "../src/Iterator.h"
+#include "../src/TestAssert.h"
 
 
 #ifdef SHAREMIND_CXXHEADERS_TEST_NO_MAIN

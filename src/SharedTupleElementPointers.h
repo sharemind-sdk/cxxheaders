@@ -24,6 +24,7 @@
 #include <cstddef>
 #include <memory>
 #include <tuple>
+#include <type_traits>
 
 
 namespace sharemind {

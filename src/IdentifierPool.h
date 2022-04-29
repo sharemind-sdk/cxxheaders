@@ -23,7 +23,6 @@
 #include <cassert>
 #include <memory>
 #include <mutex>
-#include <stdexcept>
 #include <set>
 #include <type_traits>
 #include "detail/ExceptionMacros.h"

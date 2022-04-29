@@ -20,7 +20,6 @@
 #ifndef SHAREMIND_REFERENCEVECTOR_H
 #define SHAREMIND_REFERENCEVECTOR_H
 
-#include <cassert>
 #include <cstddef>
 #include <iterator>
 #include <type_traits>

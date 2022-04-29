@@ -21,7 +21,6 @@
 #define SHAREMIND_FUNCTIONTRAITS_H
 
 #include <cstddef>
-#include <type_traits>
 #include "TemplateTypeList.h"
 
 

@@ -19,6 +19,8 @@
 
 #include "../src/IntegerLiterals.h"
 
+#include <cstdint>
+
 
 template <std::uintmax_t Max, char ... Cs>
 using L = sharemind::IntegerLiterals::Detail::Literal<Max, Cs...>;

@@ -19,11 +19,13 @@
 
 #include "../src/TemplateCommonPrefixTypes.h"
 
+#include <cstddef>
 #include <type_traits>
-#include "../src/TemplatePrefixTypes.h"
 #include "../src/TemplateAppendTypes.h"
-#include "../src/TemplatePrependTypes.h"
 #include "../src/TemplateInstantiateWithTypeParams.h"
+#include "../src/TemplatePrefixTypes.h"
+#include "../src/TemplateTypeList.h"
+
 
 using namespace sharemind;
 

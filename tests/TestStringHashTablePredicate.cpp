@@ -21,7 +21,9 @@
 
 #include <boost/range/as_literal.hpp>
 #include <boost/range/join.hpp>
+#include <string>
 #include <type_traits>
+#include <utility>
 #include "../src/Range.h"
 #include "../src/StringHasher.h"
 #include "../src/TestAssert.h"
