@@ -193,7 +193,7 @@ private: /* Methods: */
                             break;
                         buf = ptrAdd(buf, read);
                     }
-                };
+                }
             }
 
             ::close(inFd);
