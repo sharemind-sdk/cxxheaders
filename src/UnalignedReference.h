@@ -59,7 +59,7 @@ public: /* Methods: */
     typename std::enable_if<
         !std::is_const<T>::value && std::is_convertible<T_, T const &>::value,
         type
-    >::type &
+    >::type
     operator=(T_ && v) noexcept {
         std::memcpy(this->m_unalignedData, std::addressof(v), sizeof(T));
         return *this;
