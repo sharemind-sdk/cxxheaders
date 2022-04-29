@@ -79,7 +79,7 @@ inline void splitNoAllowEmpty(InputIterator first,
                 return;
             if (!delimPredicate(*first))
                 break;
-        }; // first now points to the first non-delimeter in a sequence
+        } // first now points to the first non-delimeter in a sequence
         InputIterator it(first);
         do {
             if (++it == last) {
