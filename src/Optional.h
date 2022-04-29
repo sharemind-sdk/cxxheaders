@@ -247,7 +247,7 @@ struct CopyAssignmentBase<T, true>: MoveConstructorBase<T> {
     } else { \
         this->reset_(); \
     } \
-    return *this;
+    return *this
 
     CopyAssignmentBase & operator=(CopyAssignmentBase const & copy)
             noexcept(std::is_nothrow_copy_constructible<T>::value
@@ -294,7 +294,7 @@ struct MoveAssignmentBase<T, true>: CopyAssignmentBase<T> {
         } else { \
             this->reset_(); \
         } \
-        return *this;
+        return *this
 
     MoveAssignmentBase & operator=(MoveAssignmentBase && move)
             noexcept(std::is_nothrow_move_constructible<T>::value
