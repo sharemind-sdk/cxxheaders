@@ -102,7 +102,7 @@ public: /* Methods: */
             { m_f(std::move(task)); }
             typename std::decay<F>::type m_f;
         };
-        return createTask_(new CustomTask(std::forward<F>(f)));
+        return createTask_<CustomTask>(std::forward<F>(f));
     }
 
     template <typename F>
@@ -112,7 +112,7 @@ public: /* Methods: */
             void operator()(Task &&) final override { m_f(); }
             typename std::decay<F>::type m_f;
         };
-        return createTask_(new CustomSimpleTask(std::forward<F>(f)));
+        return createTask_<CustomSimpleTask>(std::forward<F>(f));
     }
 
     void submit(Task task) noexcept {
@@ -141,7 +141,7 @@ public: /* Methods: */
 
 protected: /* Methods: */
 
-    ThreadPool() : ThreadPool(new TaskWrapper(nullptr)) {}
+    ThreadPool() = default;
 
     void workerThread() {
         while (Task task = waitAndPop()) {
@@ -202,11 +202,6 @@ protected: /* Methods: */
 
 private: /* Methods: */
 
-    ThreadPool(TaskWrapper * const emptyTaskWrapper)
-        : m_tail(emptyTaskWrapper)
-        , m_head(emptyTaskWrapper)
-    {}
-
     Task waitAndPop() noexcept {
         std::lock_guard<std::mutex> const headGuard(m_headMutex);
         assert(m_head);
@@ -260,10 +255,10 @@ private: /* Methods: */
         return r;
     }
 
-    template <typename TaskSubclass>
-    static Task createTask_(TaskSubclass * const task) {
-        assert(task);
-        return Task(new TaskWrapper(std::unique_ptr<TaskBase>(task)));
+    template <typename TaskSubclass, typename F>
+    static Task createTask_(F && f) {
+        return std::make_unique<TaskWrapper>(
+                    std::make_unique<TaskSubclass>(std::forward<F>(f)));
     }
 
 private: /* Fields: */
@@ -271,8 +266,8 @@ private: /* Fields: */
     std::mutex m_headMutex;
     mutable TicketSpinLock m_tailMutex;
     std::condition_variable_any m_dataCond;
-    TaskWrapper * m_tail;
-    Task m_head;
+    Task m_head{std::make_unique<TaskWrapper>(nullptr)};
+    TaskWrapper * m_tail{m_head.get()};
     bool m_stop = false;
 
 }; /* class ThreadPool { */
